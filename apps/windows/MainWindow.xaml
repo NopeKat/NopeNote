@@ -1,0 +1,27 @@
+<Window
+    x:Class="NopeNote.Windows.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls">
+
+    <Grid>
+        <muxc:NavigationView
+            x:Name="RootNavigation"
+            PaneDisplayMode="Top"
+            IsBackButtonVisible="Collapsed">
+
+            <muxc:NavigationView.Content>
+                <StackPanel Padding="32" Spacing="16">
+                    <TextBlock
+                        Text="NopeNote"
+                        Style="{StaticResource HeaderTextBlockStyle}" />
+                    <muxc:InfoBar
+                        IsOpen="True"
+                        Severity="Success"
+                        Title="状态"
+                        Message="Windows 客户端骨架已就绪。" />
+                </StackPanel>
+            </muxc:NavigationView.Content>
+        </muxc:NavigationView>
+    </Grid>
+</Window>
