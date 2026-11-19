@@ -1,0 +1,23 @@
+<Page
+    x:Class="NopeNote.Windows.Views.NotesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="36,24">
+        <StackPanel MaxWidth="1064" Spacing="8">
+            <TextBlock
+                Style="{StaticResource TitleTextBlockStyle}"
+                Text="Notes" />
+            <Border
+                Padding="16"
+                Background="{ThemeResource AppCardBackgroundBrush}"
+                BorderBrush="{ThemeResource AppCardBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <TextBlock
+                    Foreground="{ThemeResource AppTextSecondaryBrush}"
+                    Text="The notes workspace is ready for implementation." />
+            </Border>
+        </StackPanel>
+    </Grid>
+</Page>

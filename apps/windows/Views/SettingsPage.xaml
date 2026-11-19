@@ -1,0 +1,31 @@
+<Page
+    x:Class="NopeNote.Windows.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Padding="36,24">
+        <StackPanel MaxWidth="1064" Spacing="8">
+            <TextBlock
+                Style="{StaticResource TitleTextBlockStyle}"
+                Text="Settings" />
+            <Border
+                Padding="16"
+                Background="{ThemeResource AppCardBackgroundBrush}"
+                BorderBrush="{ThemeResource AppCardBorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+                <StackPanel Spacing="8">
+                    <TextBlock
+                        Foreground="{ThemeResource AppTextPrimaryBrush}"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Text="Theme" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Click="ThemeSystem_Click" Content="System" />
+                        <Button Click="ThemeLight_Click" Content="Light" />
+                        <Button Click="ThemeDark_Click" Content="Dark" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </Grid>
+</Page>
