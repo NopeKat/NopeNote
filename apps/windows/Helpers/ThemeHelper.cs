@@ -4,27 +4,46 @@ namespace NopeNote.Windows.Helpers;
 
 public static class ThemeHelper
 {
-    private static Window? _window;
+    private static ElementTheme _rootTheme = ElementTheme.Default;
 
-    public static ElementTheme RequestedTheme { get; private set; } = ElementTheme.Default;
-
-    public static void Initialize(Window window)
+    public static ElementTheme RootTheme
     {
-        _window = window;
-        Apply(RequestedTheme);
+        get => _rootTheme;
+        private set
+        {
+            _rootTheme = value;
+            SettingsHelper.Current.SelectedAppTheme = value;
+            SettingsHelper.Current.Save();
+        }
+    }
+
+    public static void Initialize()
+    {
+        _rootTheme = SettingsHelper.Current.SelectedAppTheme;
+        Apply(_rootTheme);
     }
 
     public static void SetTheme(ElementTheme theme)
     {
-        RequestedTheme = theme;
+        RootTheme = theme;
         Apply(theme);
+    }
+
+    public static bool IsDarkTheme()
+    {
+        return _rootTheme == ElementTheme.Dark ||
+            (_rootTheme == ElementTheme.Default &&
+             Application.Current.RequestedTheme == ApplicationTheme.Dark);
     }
 
     private static void Apply(ElementTheme theme)
     {
-        if (_window?.Content is FrameworkElement root)
+        foreach (var window in WindowHelper.ActiveWindows)
         {
-            root.RequestedTheme = theme;
+            if (window.Content is FrameworkElement root)
+            {
+                root.RequestedTheme = theme;
+            }
         }
     }
 }

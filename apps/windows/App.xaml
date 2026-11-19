@@ -10,25 +10,25 @@
 
             <ResourceDictionary.ThemeDictionaries>
                 <ResourceDictionary x:Key="Light">
-                    <SolidColorBrush x:Key="AppCardBackgroundBrush" Color="#FFFFFFFF" />
-                    <SolidColorBrush x:Key="AppCardBorderBrush" Color="#FFE4E4E4" />
-                    <SolidColorBrush x:Key="AppTextPrimaryBrush" Color="#FF1B1B1B" />
-                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="#FF5C5C5C" />
-                    <SolidColorBrush x:Key="AppAccentBrush" Color="#FF1860BE" />
+                    <StaticResource x:Key="AppCardBackgroundBrush" ResourceKey="SolidBackgroundFillColorBaseBrush" />
+                    <StaticResource x:Key="AppCardBorderBrush" ResourceKey="CardStrokeColorDefaultBrush" />
+                    <StaticResource x:Key="AppTextPrimaryBrush" ResourceKey="TextFillColorPrimaryBrush" />
+                    <StaticResource x:Key="AppTextSecondaryBrush" ResourceKey="TextFillColorSecondaryBrush" />
+                    <StaticResource x:Key="AppAccentBrush" ResourceKey="AccentFillColorDefaultBrush" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="AppCardBackgroundBrush" Color="#FF1F1F1F" />
-                    <SolidColorBrush x:Key="AppCardBorderBrush" Color="#FF3A3A3A" />
-                    <SolidColorBrush x:Key="AppTextPrimaryBrush" Color="#FFF3F3F3" />
-                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="#FFC8C8C8" />
-                    <SolidColorBrush x:Key="AppAccentBrush" Color="#FF5AA7FF" />
+                    <StaticResource x:Key="AppCardBackgroundBrush" ResourceKey="SolidBackgroundFillColorBaseBrush" />
+                    <StaticResource x:Key="AppCardBorderBrush" ResourceKey="CardStrokeColorDefaultBrush" />
+                    <StaticResource x:Key="AppTextPrimaryBrush" ResourceKey="TextFillColorPrimaryBrush" />
+                    <StaticResource x:Key="AppTextSecondaryBrush" ResourceKey="TextFillColorSecondaryBrush" />
+                    <StaticResource x:Key="AppAccentBrush" ResourceKey="AccentFillColorDefaultBrush" />
                 </ResourceDictionary>
                 <ResourceDictionary x:Key="HighContrast">
                     <SolidColorBrush x:Key="AppCardBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
-                    <SolidColorBrush x:Key="AppCardBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-                    <SolidColorBrush x:Key="AppTextPrimaryBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-                    <SolidColorBrush x:Key="AppAccentBrush" Color="{ThemeResource SystemColorHighlightColor}" />
+                    <SolidColorBrush x:Key="AppCardBorderBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="AppTextPrimaryBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="{ThemeResource SystemColorWindowColor}" />
+                    <SolidColorBrush x:Key="AppAccentBrush" Color="{ThemeResource SystemColorWindowColor}" />
                 </ResourceDictionary>
             </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
