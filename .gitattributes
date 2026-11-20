@@ -1,0 +1,2 @@
+# Windows client sources use CRLF line endings.
+apps/windows/** text eol=crlf

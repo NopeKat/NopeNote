@@ -34,7 +34,8 @@
                     MaxWidth="580"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Center"
-                    KeyboardAcceleratorPlacementMode="Hidden"
+                    AutomationProperties.Name="Search notes"
+                    KeyboardAcceleratorPlacementMode="Auto"
                     PlaceholderText="Search notes..."
                     QueryIcon="Find">
                     <muxc:AutoSuggestBox.KeyboardAccelerators>
@@ -79,18 +80,21 @@
             <Button
                 x:Name="GoBackInvokerButton"
                 AutomationProperties.AutomationId="__GoBackInvoker"
+                AutomationProperties.Name="Go back"
                 Click="GoBackInvokerButton_Click"
                 Content="Go back"
                 Style="{StaticResource AutomationHelperStyle}" />
             <Button
                 x:Name="CloseAppInvokerButton"
                 AutomationProperties.AutomationId="__CloseAppInvoker"
+                AutomationProperties.Name="Close app"
                 Click="CloseAppInvokerButton_Click"
                 Content="Close"
                 Style="{StaticResource AutomationHelperStyle}" />
             <Button
                 x:Name="WaitForIdleInvokerButton"
                 AutomationProperties.AutomationId="__WaitForIdleInvoker"
+                AutomationProperties.Name="Wait for idle"
                 Click="WaitForIdleInvokerButton_Click"
                 Content="Wait for idle"
                 Style="{StaticResource AutomationHelperStyle}" />
@@ -108,9 +112,10 @@
                         x:Name="NotesNavItem"
                         Content="Notes"
                         Tag="Notes"
+                        AutomationProperties.Name="Notes"
                         IsSelected="True">
                         <muxc:NavigationViewItem.Icon>
-                            <muxc:FontIcon Glyph="&#xE8A5;" />
+                            <muxc:FontIcon Glyph="&#xE8A5;" AutomationProperties.AccessibilityView="Raw" />
                         </muxc:NavigationViewItem.Icon>
                     </muxc:NavigationViewItem>
                 </muxc:NavigationView.MenuItems>
@@ -118,9 +123,10 @@
                     <muxc:NavigationViewItem
                         x:Name="SettingsNavItem"
                         Content="Settings"
-                        Tag="Settings">
+                        Tag="Settings"
+                        AutomationProperties.Name="Settings">
                         <muxc:NavigationViewItem.Icon>
-                            <muxc:FontIcon Glyph="&#xE713;" />
+                            <muxc:FontIcon Glyph="&#xE713;" AutomationProperties.AccessibilityView="Raw" />
                         </muxc:NavigationViewItem.Icon>
                     </muxc:NavigationViewItem>
                 </muxc:NavigationView.FooterMenuItems>

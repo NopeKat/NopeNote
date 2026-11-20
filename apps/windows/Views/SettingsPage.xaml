@@ -47,11 +47,12 @@
                         Description="Select which app theme to display"
                         Header="App theme">
                         <toolkit:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE790;" />
+                            <FontIcon Glyph="&#xE790;" AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <ComboBox
                             x:Name="ThemeModeComboBox"
                             AutomationProperties.AutomationId="themeModeComboBox"
+                            AutomationProperties.Name="App theme"
                             SelectionChanged="ThemeMode_SelectionChanged">
                             <ComboBoxItem Content="Light" Tag="Light" />
                             <ComboBoxItem Content="Dark" Tag="Dark" />
@@ -63,7 +64,7 @@
                         Description="NopeNote Windows client"
                         Header="About">
                         <toolkit:SettingsExpander.HeaderIcon>
-                            <FontIcon Glyph="&#xE897;" />
+                            <FontIcon Glyph="&#xE897;" AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsExpander.HeaderIcon>
                         <TextBlock
                             Foreground="{ThemeResource AppTextSecondaryBrush}"
