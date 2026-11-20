@@ -38,7 +38,7 @@ public static class ThemeHelper
 
     private static void Apply(ElementTheme theme)
     {
-        foreach (var window in WindowHelper.ActiveWindows)
+        foreach (Window window in WindowHelper.ActiveWindows)
         {
             if (window.Content is FrameworkElement root)
             {

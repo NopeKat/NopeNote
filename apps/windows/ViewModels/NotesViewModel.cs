@@ -6,27 +6,53 @@ namespace NopeNote.Windows.ViewModels;
 
 public sealed class NotesViewModel
 {
+    private readonly ObservableCollection<Note> _allNotes = new ObservableCollection<Note>();
+
     public ObservableCollection<Note> Notes { get; } = new ObservableCollection<Note>();
 
     public bool IsEmpty => Notes.Count == 0;
 
+    public bool IsLoaded { get; private set; }
+
     public async Task LoadAsync()
     {
-        Notes.Clear();
+        _allNotes.Clear();
         System.Collections.Generic.IReadOnlyList<Note> notes = await Note.LoadAllAsync();
         foreach (Note note in notes)
         {
-            Notes.Add(note);
+            _allNotes.Add(note);
+        }
+
+        IsLoaded = true;
+        ApplyFilter(CurrentQuery);
+    }
+
+    public void ApplyFilter(string query)
+    {
+        CurrentQuery = query;
+        Notes.Clear();
+
+        foreach (Note note in _allNotes)
+        {
+            if (string.IsNullOrWhiteSpace(query) ||
+                note.Text.IndexOf(query, System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                Notes.Add(note);
+            }
         }
     }
 
     public void Add(Note note)
     {
-        Notes.Insert(0, note);
+        _allNotes.Insert(0, note);
+        ApplyFilter(CurrentQuery);
     }
 
     public void Remove(Note note)
     {
-        Notes.Remove(note);
+        _allNotes.Remove(note);
+        ApplyFilter(CurrentQuery);
     }
+
+    public string CurrentQuery { get; private set; } = string.Empty;
 }

@@ -12,7 +12,7 @@ public static class WindowHelper
 
     public static Window CreateWindow()
     {
-        var window = new Window();
+        Window window = new();
         TrackWindow(window);
         return window;
     }
@@ -35,7 +35,7 @@ public static class WindowHelper
             return;
         }
 
-        var scale = content.XamlRoot.RasterizationScale;
+        double scale = content.XamlRoot.RasterizationScale;
         presenter.PreferredMinimumWidth = (int)(width * scale);
         presenter.PreferredMinimumHeight = (int)(height * scale);
     }

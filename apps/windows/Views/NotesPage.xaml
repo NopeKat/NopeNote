@@ -8,7 +8,7 @@
 
     <Page.Resources>
         <DataTemplate x:Key="NoteItemTemplate" x:DataType="models:Note">
-            <Grid Padding="12" AutomationProperties.Name="{x:Bind DisplayTitle}">
+            <Grid Padding="12" AutomationProperties.Name="{x:Bind DisplayTitle, Mode=OneWay}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -16,14 +16,14 @@
                 <TextBlock
                     MaxLines="1"
                     Style="{StaticResource BodyStrongTextBlockStyle}"
-                    Text="{x:Bind DisplayTitle}"
+                    Text="{x:Bind DisplayTitle, Mode=OneWay}"
                     TextTrimming="CharacterEllipsis" />
                 <TextBlock
                     Grid.Row="1"
                     MaxLines="2"
                     AutomationProperties.AccessibilityView="Raw"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind Text}"
+                    Text="{x:Bind Text, Mode=OneWay}"
                     TextTrimming="CharacterEllipsis" />
             </Grid>
         </DataTemplate>
@@ -38,29 +38,6 @@
             <ColumnDefinition x:Name="ListColumn" Width="320" />
             <ColumnDefinition x:Name="DetailColumn" Width="*" />
         </Grid.ColumnDefinitions>
-
-        <VisualStateManager.VisualStateGroups>
-            <VisualStateGroup x:Name="LayoutStates">
-                <VisualState x:Name="NarrowLayout">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="0" />
-                    </VisualState.StateTriggers>
-                    <VisualState.Setters>
-                        <Setter Target="ListColumn.Width" Value="*" />
-                        <Setter Target="DetailColumn.Width" Value="0" />
-                    </VisualState.Setters>
-                </VisualState>
-                <VisualState x:Name="WideLayout">
-                    <VisualState.StateTriggers>
-                        <AdaptiveTrigger MinWindowWidth="900" />
-                    </VisualState.StateTriggers>
-                    <VisualState.Setters>
-                        <Setter Target="ListColumn.Width" Value="320" />
-                        <Setter Target="DetailColumn.Width" Value="*" />
-                    </VisualState.Setters>
-                </VisualState>
-            </VisualStateGroup>
-        </VisualStateManager.VisualStateGroups>
 
         <muxc:CommandBar
             x:Name="NotesCommandBar"
@@ -137,19 +114,25 @@
                 AutomationProperties.HeadingLevel="Level2"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Select a note" />
-            <TextBox
-                x:Name="NoteEditor"
-                Grid.Row="1"
-                Margin="0,12,0,0"
-                AcceptsReturn="True"
-                AutomationProperties.Name="Note text"
-                Header="Note"
-                IsEnabled="False"
-                LostFocus="NoteEditor_LostFocus"
-                PlaceholderText="Enter your note"
-                ScrollViewer.VerticalScrollBarVisibility="Auto"
-                TextChanged="NoteEditor_TextChanged"
-                TextWrapping="Wrap" />
+            <StackPanel Grid.Row="1" Margin="0,12,0,0" Spacing="4">
+                <TextBox
+                    x:Name="NoteEditor"
+                    AcceptsReturn="True"
+                    AutomationProperties.Name="Note text"
+                    Header="Note"
+                    IsEnabled="False"
+                    LostFocus="NoteEditor_LostFocus"
+                    PlaceholderText="Enter your note"
+                    ScrollViewer.VerticalScrollBarVisibility="Auto"
+                    Text="{x:Bind SelectedNote.Text, Mode=TwoWay}"
+                    TextWrapping="Wrap" />
+                <TextBlock
+                    x:Name="SaveStatusTextBlock"
+                    AutomationProperties.LiveSetting="Polite"
+                    AutomationProperties.Name="Save status"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="" />
+            </StackPanel>
         </Grid>
     </Grid>
 </Page>

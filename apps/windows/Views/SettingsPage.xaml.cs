@@ -21,7 +21,7 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        var theme = item.Tag?.ToString() switch
+        ElementTheme theme = item.Tag?.ToString() switch
         {
             "Light" => ElementTheme.Light,
             "Dark" => ElementTheme.Dark,
@@ -35,14 +35,14 @@ public sealed partial class SettingsPage : Page
     {
         _updatingThemeSelection = true;
 
-        var tag = ThemeHelper.RootTheme switch
+        string tag = ThemeHelper.RootTheme switch
         {
             ElementTheme.Light => "Light",
             ElementTheme.Dark => "Dark",
             _ => "Default"
         };
 
-        foreach (var item in ThemeModeComboBox.Items)
+        foreach (object item in ThemeModeComboBox.Items)
         {
             if (item is ComboBoxItem comboItem && comboItem.Tag?.ToString() == tag)
             {

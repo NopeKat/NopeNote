@@ -13,7 +13,6 @@
     <LangVersion>14</LangVersion>
     <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-    <WindowsAppSdkSelfContained>true</WindowsAppSdkSelfContained>
     <Configurations>Debug;Release;Debug-Unpackaged;Release-Unpackaged</Configurations>
     <Packaged>true</Packaged>
     <Packaged Condition="'$(Configuration)' == 'Debug-Unpackaged' Or '$(Configuration)' == 'Release-Unpackaged'">false</Packaged>
@@ -29,13 +28,15 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Packaged)' != 'true'">
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSdkSelfContained>true</WindowsAppSdkSelfContained>
     <EnableMsixTooling>false</EnableMsixTooling>
     <EnableMsixTooling Condition="'$(PublishSingleFile)' == 'true'">true</EnableMsixTooling>
-    <WindowsPackageType>None</WindowsPackageType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Packaged)' == 'true'">
     <WindowsPackageType>MSIX</WindowsPackageType>
+    <WindowsAppSdkSelfContained>false</WindowsAppSdkSelfContained>
     <EnableMsixTooling>true</EnableMsixTooling>
     <AppxPackage>true</AppxPackage>
     <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>

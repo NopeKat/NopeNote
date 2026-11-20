@@ -7,30 +7,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
-
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary x:Key="Light">
-                    <StaticResource x:Key="AppCardBackgroundBrush" ResourceKey="SolidBackgroundFillColorBaseBrush" />
-                    <StaticResource x:Key="AppCardBorderBrush" ResourceKey="CardStrokeColorDefaultBrush" />
-                    <StaticResource x:Key="AppTextPrimaryBrush" ResourceKey="TextFillColorPrimaryBrush" />
-                    <StaticResource x:Key="AppTextSecondaryBrush" ResourceKey="TextFillColorSecondaryBrush" />
-                    <StaticResource x:Key="AppAccentBrush" ResourceKey="AccentFillColorDefaultBrush" />
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="Dark">
-                    <StaticResource x:Key="AppCardBackgroundBrush" ResourceKey="SolidBackgroundFillColorBaseBrush" />
-                    <StaticResource x:Key="AppCardBorderBrush" ResourceKey="CardStrokeColorDefaultBrush" />
-                    <StaticResource x:Key="AppTextPrimaryBrush" ResourceKey="TextFillColorPrimaryBrush" />
-                    <StaticResource x:Key="AppTextSecondaryBrush" ResourceKey="TextFillColorSecondaryBrush" />
-                    <StaticResource x:Key="AppAccentBrush" ResourceKey="AccentFillColorDefaultBrush" />
-                </ResourceDictionary>
-                <ResourceDictionary x:Key="HighContrast">
-                    <SolidColorBrush x:Key="AppCardBackgroundBrush" Color="{ThemeResource SystemColorWindowColor}" />
-                    <SolidColorBrush x:Key="AppCardBorderBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-                    <SolidColorBrush x:Key="AppTextPrimaryBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-                    <SolidColorBrush x:Key="AppTextSecondaryBrush" Color="{ThemeResource SystemColorWindowTextColor}" />
-                    <SolidColorBrush x:Key="AppAccentBrush" Color="{ThemeResource SystemColorHighlightColor}" />
-                </ResourceDictionary>
-            </ResourceDictionary.ThemeDictionaries>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

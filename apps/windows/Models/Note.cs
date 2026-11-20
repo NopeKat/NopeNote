@@ -1,13 +1,17 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Windows.Storage;
 
 namespace NopeNote.Windows.Models;
 
-public sealed class Note
+public sealed class Note : INotifyPropertyChanged
 {
     private static readonly StorageFolder StorageFolder = ApplicationData.Current.LocalFolder;
+    private string _text = string.Empty;
+    private DateTime _date = DateTime.Now;
 
     public Note()
     {
@@ -21,11 +25,36 @@ public sealed class Note
         Date = date;
     }
 
+    public event PropertyChangedEventHandler? PropertyChanged;
+
     public string FileName { get; }
 
-    public string Text { get; set; } = string.Empty;
+    public string Text
+    {
+        get => _text;
+        set
+        {
+            if (_text != value)
+            {
+                _text = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(DisplayTitle));
+            }
+        }
+    }
 
-    public DateTime Date { get; set; } = DateTime.Now;
+    public DateTime Date
+    {
+        get => _date;
+        set
+        {
+            if (_date != value)
+            {
+                _date = value;
+                OnPropertyChanged();
+            }
+        }
+    }
 
     public string DisplayTitle =>
         string.IsNullOrWhiteSpace(Text) ? "(Untitled note)" : Text.Split('\n')[0];
@@ -63,5 +92,10 @@ public sealed class Note
         {
             await file.DeleteAsync();
         }
+    }
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

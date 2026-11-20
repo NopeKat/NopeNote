@@ -37,7 +37,8 @@
                     AutomationProperties.Name="Search notes"
                     KeyboardAcceleratorPlacementMode="Auto"
                     PlaceholderText="Search notes..."
-                    QueryIcon="Find">
+                    QueryIcon="Find"
+                    QuerySubmitted="SearchBox_QuerySubmitted">
                     <muxc:AutoSuggestBox.KeyboardAccelerators>
                         <input:KeyboardAccelerator
                             Key="F"
@@ -64,18 +65,21 @@
                 Margin="10,0,0,0"
                 VerticalAlignment="Center"
                 AutomationProperties.AutomationId="__CurrentPage"
-                FontSize="18" />
+                Style="{StaticResource SubtitleTextBlockStyle}" />
             <CheckBox
                 x:Name="IdleStateEnteredCheckBox"
                 AutomationProperties.AutomationId="__IdleStateEntered"
+                AutomationProperties.Name="Idle state entered"
                 Style="{StaticResource AutomationHelperStyle}" />
             <TextBox
                 x:Name="LogReportingTextBox"
                 AutomationProperties.AutomationId="__IdleLog"
+                AutomationProperties.Name="Idle log"
                 Style="{StaticResource AutomationHelperStyle}" />
             <TextBox
                 x:Name="ErrorReportingTextBox"
                 AutomationProperties.AutomationId="__IdleError"
+                AutomationProperties.Name="Idle error"
                 Style="{StaticResource AutomationHelperStyle}" />
             <Button
                 x:Name="GoBackInvokerButton"

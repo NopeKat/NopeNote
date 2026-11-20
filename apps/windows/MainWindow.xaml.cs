@@ -69,6 +69,19 @@ public sealed partial class MainWindow : Window
         args.Handled = true;
     }
 
+    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+    {
+        string query = args.QueryText ?? string.Empty;
+        NoteSearchState.SetQuery(query);
+
+        if (ContentFrame.CurrentSourcePageType != typeof(NotesPage))
+        {
+            ContentFrame.Navigate(typeof(NotesPage));
+        }
+
+        NotesNavItem.IsSelected = true;
+    }
+
     private void RootNavigation_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
         if (_isNavigating || args.SelectedItem is not NavigationViewItem item)
@@ -76,7 +89,7 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        var pageType = item.Tag?.ToString() switch
+        Type pageType = item.Tag?.ToString() switch
         {
             "Settings" => typeof(SettingsPage),
             _ => typeof(NotesPage)
@@ -101,6 +114,7 @@ public sealed partial class MainWindow : Window
         {
             NotesNavItem.IsSelected = true;
             CurrentPageTextBlock.Text = "Notes";
+            SearchBox.Text = NoteSearchState.Query;
         }
 
         _isNavigating = false;
@@ -130,7 +144,7 @@ public sealed partial class MainWindow : Window
 
         await global::Windows.System.Threading.ThreadPool.RunAsync(_ =>
         {
-            ErrorReportingTextBox.Text = IdleSynchronizer.TryWait(out var log);
+            ErrorReportingTextBox.Text = IdleSynchronizer.TryWait(out string log);
             LogReportingTextBox.Text = log;
         });
 

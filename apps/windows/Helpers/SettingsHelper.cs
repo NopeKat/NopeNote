@@ -17,7 +17,7 @@ public sealed class SettingsHelper
 
     private SettingsHelper()
     {
-        var folder = Path.Combine(
+        string folder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "NopeNote");
         Directory.CreateDirectory(folder);
@@ -27,8 +27,8 @@ public sealed class SettingsHelper
 
     public void Save()
     {
-        var dto = new SettingsDto { SelectedAppTheme = SelectedAppTheme };
-        var json = JsonSerializer.Serialize(dto, SettingsJsonContext.Default.SettingsDto);
+        SettingsDto dto = new() { SelectedAppTheme = SelectedAppTheme };
+        string json = JsonSerializer.Serialize(dto, SettingsJsonContext.Default.SettingsDto);
         File.WriteAllText(_settingsPath, json);
     }
 
@@ -41,7 +41,7 @@ public sealed class SettingsHelper
 
         try
         {
-            var dto = JsonSerializer.Deserialize(
+            SettingsDto? dto = JsonSerializer.Deserialize(
                 File.ReadAllText(_settingsPath),
                 SettingsJsonContext.Default.SettingsDto);
 
