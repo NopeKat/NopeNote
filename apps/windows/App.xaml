@@ -6,11 +6,33 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+                <ResourceDictionary Source="ms-appx:///Styles/NoteItemTemplate.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- 取自 WinUI 2.7.0 NavigationView.idl 官方默认值，经 Gallery 3.0.4 NavigationViewPage 验证 -->
             <x:Double x:Key="MasterDetailBreakpointWidth">1008</x:Double>
             <GridLength x:Key="MasterDetailListPaneWidth">320</GridLength>
+
+            <!-- 取自 Gallery 3.0.4 TitleBarWindow.xaml 与 SettingsPage.xaml 的布局值 -->
+            <x:Double x:Key="TitleBarSearchMaxWidth">580</x:Double>
+            <x:Double x:Key="SettingsPageMaxWidth">1064</x:Double>
+            <Thickness x:Key="SettingsPageHeaderMargin">36,24,36,0</Thickness>
+            <Thickness x:Key="SettingsPageContentPadding">36,0,36,0</Thickness>
+            <Thickness x:Key="SettingsSectionHeaderMargin">1,30,0,6</Thickness>
+
+            <!-- NopeNote 自有页面布局值，集中定义避免散落硬编码 -->
+            <Thickness x:Key="NotesDetailPanePadding">24,12,24,12</Thickness>
+            <Thickness x:Key="NotesCommandBarContentMargin">16,8,0,8</Thickness>
+            <Thickness x:Key="NotesListMargin">12</Thickness>
+            <Thickness x:Key="NoteItemPadding">12</Thickness>
+            <Thickness x:Key="AutomationStatusMargin">10,0,0,0</Thickness>
+            <Thickness x:Key="NotesListBorderThickness">0,0,1,0</Thickness>
+            <Thickness x:Key="NotesEditorMargin">0,12,0,0</Thickness>
+            <x:Double x:Key="InlineProgressRingSize">16</x:Double>
+            <x:Double x:Key="StatusSpacing">8</x:Double>
+            <x:Double x:Key="NotesEditorSpacing">4</x:Double>
+            <x:Double x:Key="NotesItemSpacing">8</x:Double>
+            <x:Double x:Key="NotesItemMinWidth">280</x:Double>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

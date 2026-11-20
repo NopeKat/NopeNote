@@ -8,10 +8,23 @@ using System.Threading.Tasks;
 
 namespace NopeNote.Windows.Views;
 
-    public sealed partial class NotesPage : Page
+public sealed partial class NotesPage : Page
+{
+    private enum RetryOperation
     {
-        private bool _isSaving;
+        None,
+        LoadNotes,
+        SaveNote,
+        DeleteNote
+    }
+
+    private bool _isSaving;
+    private bool _isLoadingNotes;
+    private bool _isSearchSubscribed;
+    private bool _loadFailed;
     private Note? _pendingSaveNote;
+    private Note? _retryNote;
+    private RetryOperation _retryOperation = RetryOperation.None;
 
     public NotesPage()
     {
@@ -19,7 +32,6 @@ namespace NopeNote.Windows.Views;
         InitializeComponent();
         Loaded += NotesPage_Loaded;
         SizeChanged += NotesPage_SizeChanged;
-        NoteSearchState.QueryChanged += OnSearchQueryChanged;
         Unloaded += NotesPage_Unloaded;
     }
 
@@ -37,7 +49,11 @@ namespace NopeNote.Windows.Views;
 
     private void NotesPage_Unloaded(object sender, RoutedEventArgs e)
     {
-        NoteSearchState.QueryChanged -= OnSearchQueryChanged;
+        if (_isSearchSubscribed)
+        {
+            NoteSearchState.QueryChanged -= OnSearchQueryChanged;
+            _isSearchSubscribed = false;
+        }
     }
 
     private async void OnSearchQueryChanged(object? sender, EventArgs e)
@@ -48,6 +64,12 @@ namespace NopeNote.Windows.Views;
 
     private async void NotesPage_Loaded(object sender, RoutedEventArgs e)
     {
+        if (!_isSearchSubscribed)
+        {
+            NoteSearchState.QueryChanged += OnSearchQueryChanged;
+            _isSearchSubscribed = true;
+        }
+
         ApplyLayout(ActualWidth < NarrowWidthThreshold);
         await EnsureNotesLoadedAsync();
         ApplySearch();
@@ -55,28 +77,48 @@ namespace NopeNote.Windows.Views;
 
     private async Task EnsureNotesLoadedAsync()
     {
-        if (ViewModel.IsLoaded)
+        if (ViewModel.IsLoaded || _loadFailed || _isLoadingNotes)
         {
             return;
         }
 
-        await ViewModel.LoadAsync();
+        _isLoadingNotes = true;
+        UpdateListState();
+
+        try
+        {
+            await ViewModel.LoadAsync();
+        }
+        catch (Exception exception)
+        {
+            _loadFailed = true;
+            ShowError(
+                "Notes could not be loaded",
+                $"{Describe(exception)} Check access to the local notes folder, then select Retry.",
+                RetryOperation.LoadNotes,
+                null);
+        }
+        finally
+        {
+            _isLoadingNotes = false;
+            UpdateListState();
+        }
     }
 
     private void ApplySearch()
     {
         ViewModel.ApplyFilter(NoteSearchState.Query);
-        UpdateEmptyState();
+        UpdateListState();
     }
 
     private async void NewNoteButton_Click(object sender, RoutedEventArgs e)
     {
         Note note = new Note();
         ViewModel.Add(note);
-        await note.SaveAsync();
         ApplySearch();
         SelectNote(note);
         NoteEditor.Focus(FocusState.Programmatic);
+        await SaveNoteAsync(note);
     }
 
     private async void DeleteNoteButton_Click(object sender, RoutedEventArgs e)
@@ -103,16 +145,7 @@ namespace NopeNote.Windows.Views;
         }
 
         Note noteToDelete = SelectedNote;
-        await noteToDelete.DeleteAsync();
-
-        if (ReferenceEquals(_pendingSaveNote, noteToDelete))
-        {
-            _pendingSaveNote = null;
-        }
-
-        ViewModel.Remove(noteToDelete);
-        ApplySearch();
-        ClearSelection();
+        await DeleteNoteAsync(noteToDelete);
     }
 
     private void NotesItemsView_ItemInvoked(ItemsView sender, ItemsViewItemInvokedEventArgs args)
@@ -131,10 +164,15 @@ namespace NopeNote.Windows.Views;
     private async Task SaveSelectedNoteAsync()
     {
         Note? note = SelectedNote;
-        if (note is null)
+        if (note is not null)
         {
-            return;
+            await SaveNoteAsync(note);
         }
+    }
+
+    private async Task SaveNoteAsync(Note note)
+    {
+        ClearError();
 
         if (_isSaving)
         {
@@ -142,29 +180,161 @@ namespace NopeNote.Windows.Views;
             return;
         }
 
+        await RunSaveQueueAsync(note);
+    }
+
+    private async Task RunSaveQueueAsync(Note note)
+    {
         _isSaving = true;
-        SaveStatusTextBlock.Text = "Saving...";
+        UpdateSaveState();
 
         try
         {
-            do
+            Note? current = note;
+            while (current is not null)
             {
                 _pendingSaveNote = null;
-                await note.SaveAsync();
 
-                if (ReferenceEquals(SelectedNote, note))
+                try
                 {
-                    SaveStatusTextBlock.Text = "Saved";
+                    await current.SaveAsync();
+
+                    if (ReferenceEquals(SelectedNote, current))
+                    {
+                        SaveStatusTextBlock.Text = "Saved";
+                    }
+                }
+                catch (Exception exception)
+                {
+                    if (ReferenceEquals(SelectedNote, current))
+                    {
+                        SaveStatusTextBlock.Text = "Not saved";
+                    }
+
+                    ShowError(
+                        "Note could not be saved",
+                        $"{Describe(exception)} Check access to the local notes folder, then select Retry.",
+                        RetryOperation.SaveNote,
+                        current);
                 }
 
-                note = _pendingSaveNote;
+                current = _pendingSaveNote;
             }
-            while (note is not null);
         }
         finally
         {
             _isSaving = false;
+            UpdateSaveState();
         }
+    }
+
+    private async Task DeleteNoteAsync(Note note)
+    {
+        ClearError();
+
+        try
+        {
+            await note.DeleteAsync();
+        }
+        catch (Exception exception)
+        {
+            ShowError(
+                "Note could not be deleted",
+                $"{Describe(exception)} Check access to the local notes folder, then select Retry.",
+                RetryOperation.DeleteNote,
+                note);
+            return;
+        }
+
+        if (ReferenceEquals(_pendingSaveNote, note))
+        {
+            _pendingSaveNote = null;
+        }
+
+        ViewModel.Remove(note);
+        ApplySearch();
+
+        if (ReferenceEquals(SelectedNote, note))
+        {
+            ClearSelection();
+        }
+    }
+
+    private async void ErrorRetryButton_Click(object sender, RoutedEventArgs e)
+    {
+        RetryOperation operation = _retryOperation;
+        Note? note = _retryNote;
+        ResetErrorState();
+        ErrorInfoBar.IsOpen = false;
+
+        switch (operation)
+        {
+            case RetryOperation.LoadNotes:
+                _loadFailed = false;
+                await EnsureNotesLoadedAsync();
+                ApplySearch();
+                break;
+            case RetryOperation.SaveNote:
+                if (note is not null)
+                {
+                    await SaveNoteAsync(note);
+                }
+
+                break;
+            case RetryOperation.DeleteNote:
+                if (note is not null)
+                {
+                    await DeleteNoteAsync(note);
+                }
+
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void ErrorInfoBar_Closed(InfoBar sender, InfoBarClosedEventArgs args)
+    {
+        if (!ErrorInfoBar.IsOpen)
+        {
+            ResetErrorState();
+        }
+    }
+
+    private void ShowError(string title, string message, RetryOperation operation, Note? note)
+    {
+        ErrorInfoBar.Title = title;
+        ErrorInfoBar.Message = message;
+        ErrorInfoBar.Severity = InfoBarSeverity.Error;
+        _retryOperation = operation;
+        _retryNote = note;
+        ErrorRetryButton.Visibility = operation == RetryOperation.None
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        ErrorInfoBar.IsOpen = true;
+    }
+
+    private void ClearError()
+    {
+        ResetErrorState();
+
+        if (ErrorInfoBar.IsOpen)
+        {
+            ErrorInfoBar.IsOpen = false;
+        }
+    }
+
+    private void ResetErrorState()
+    {
+        _retryOperation = RetryOperation.None;
+        _retryNote = null;
+    }
+
+    private static string Describe(Exception exception)
+    {
+        return string.IsNullOrWhiteSpace(exception.Message)
+            ? exception.GetType().Name
+            : exception.Message;
     }
 
     private void SelectNote(Note note)
@@ -195,14 +365,36 @@ namespace NopeNote.Windows.Views;
         ClearSelection();
     }
 
-    private void UpdateEmptyState()
+    private void UpdateListState()
     {
-        bool isSearching = !string.IsNullOrWhiteSpace(NoteSearchState.Query);
-        EmptyStateTextBlock.Text = isSearching
-            ? "No notes match your search. Clear the search box to see all notes."
-            : "No notes yet. Select New note to create one.";
-        EmptyStateTextBlock.Visibility = ViewModel.IsEmpty ? Visibility.Visible : Visibility.Collapsed;
-        NotesItemsView.Visibility = ViewModel.IsEmpty ? Visibility.Collapsed : Visibility.Visible;
+        bool isLoading = _isLoadingNotes || ViewModel.IsLoading;
+        NotesLoadingRing.IsActive = isLoading;
+        NotesLoadingRing.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
+        NotesItemsView.Visibility = isLoading || ViewModel.IsEmpty
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+        EmptyStateTextBlock.Visibility = isLoading || !ViewModel.IsEmpty
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+
+        if (!isLoading)
+        {
+            bool isSearching = !string.IsNullOrWhiteSpace(NoteSearchState.Query);
+            EmptyStateTextBlock.Text = isSearching
+                ? "No notes match your search. Clear the search box to see all notes."
+                : "No notes yet. Select New note to create one.";
+        }
+    }
+
+    private void UpdateSaveState()
+    {
+        SaveProgressRing.IsActive = _isSaving;
+        SaveProgressRing.Visibility = _isSaving ? Visibility.Visible : Visibility.Collapsed;
+
+        if (_isSaving)
+        {
+            SaveStatusTextBlock.Text = "Saving...";
+        }
     }
 
     private void ApplyLayout(bool isNarrow)

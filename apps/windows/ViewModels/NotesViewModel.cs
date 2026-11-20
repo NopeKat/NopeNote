@@ -14,17 +14,27 @@ public sealed class NotesViewModel
 
     public bool IsLoaded { get; private set; }
 
+    public bool IsLoading { get; private set; }
+
     public async Task LoadAsync()
     {
-        _allNotes.Clear();
-        System.Collections.Generic.IReadOnlyList<Note> notes = await Note.LoadAllAsync();
-        foreach (Note note in notes)
+        IsLoading = true;
+        try
         {
-            _allNotes.Add(note);
-        }
+            _allNotes.Clear();
+            System.Collections.Generic.IReadOnlyList<Note> notes = await Note.LoadAllAsync();
+            foreach (Note note in notes)
+            {
+                _allNotes.Add(note);
+            }
 
-        IsLoaded = true;
-        ApplyFilter(CurrentQuery);
+            IsLoaded = true;
+            ApplyFilter(CurrentQuery);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     public void ApplyFilter(string query)

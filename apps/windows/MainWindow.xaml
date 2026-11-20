@@ -11,6 +11,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!-- Gallery 3.0.4 TitleBarWindow.xaml：返回与窗格切换由 TitleBar 承担，NavigationView 隐藏自带按钮 -->
         <muxc:TitleBar
             x:Name="AppTitleBar"
             Title="NopeNote"
@@ -27,7 +28,7 @@
             <muxc:TitleBar.Content>
                 <muxc:AutoSuggestBox
                     x:Name="SearchBox"
-                    MaxWidth="580"
+                    MaxWidth="{StaticResource TitleBarSearchMaxWidth}"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Center"
                     AutomationProperties.Name="Search notes"
@@ -58,7 +59,7 @@
 
             <TextBlock
                 x:Name="CurrentPageTextBlock"
-                Margin="10,0,0,0"
+                Margin="{StaticResource AutomationStatusMargin}"
                 VerticalAlignment="Center"
                 AutomationProperties.AutomationId="__CurrentPage"
                 Style="{StaticResource SubtitleTextBlockStyle}" />
