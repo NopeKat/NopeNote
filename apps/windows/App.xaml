@@ -7,6 +7,10 @@
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- 取自 WinUI 2.7.0 NavigationView.idl 官方默认值，经 Gallery 3.0.4 NavigationViewPage 验证 -->
+            <x:Double x:Key="MasterDetailBreakpointWidth">1008</x:Double>
+            <GridLength x:Key="MasterDetailListPaneWidth">320</GridLength>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

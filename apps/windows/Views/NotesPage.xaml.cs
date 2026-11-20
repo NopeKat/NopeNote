@@ -8,12 +8,9 @@ using System.Threading.Tasks;
 
 namespace NopeNote.Windows.Views;
 
-public sealed partial class NotesPage : Page
-{
-    private const double NarrowWidthThreshold = 900;
-    private const double ListColumnWidth = 320;
-
-    private bool _isSaving;
+    public sealed partial class NotesPage : Page
+    {
+        private bool _isSaving;
     private Note? _pendingSaveNote;
 
     public NotesPage()
@@ -29,6 +26,9 @@ public sealed partial class NotesPage : Page
     public NotesViewModel ViewModel { get; }
 
     public Note? SelectedNote { get; private set; }
+
+    private static double NarrowWidthThreshold =>
+        (double)Microsoft.UI.Xaml.Application.Current.Resources["MasterDetailBreakpointWidth"];
 
     private void NotesPage_SizeChanged(object sender, SizeChangedEventArgs e)
     {
@@ -207,13 +207,6 @@ public sealed partial class NotesPage : Page
 
     private void ApplyLayout(bool isNarrow)
     {
-        ListColumn.Width = isNarrow
-            ? new Microsoft.UI.Xaml.GridLength(1, Microsoft.UI.Xaml.GridUnitType.Star)
-            : new Microsoft.UI.Xaml.GridLength(ListColumnWidth);
-        DetailColumn.Width = isNarrow
-            ? new Microsoft.UI.Xaml.GridLength(0)
-            : new Microsoft.UI.Xaml.GridLength(1, Microsoft.UI.Xaml.GridUnitType.Star);
-
         bool hasSelection = SelectedNote is not null;
         NotesListPanel.Visibility = isNarrow && hasSelection ? Visibility.Collapsed : Visibility.Visible;
         NoteDetailPanel.Visibility = !isNarrow || hasSelection ? Visibility.Visible : Visibility.Collapsed;
