@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Windows.Storage;
 
 namespace NopeNote.Windows.Models;
 
 public sealed class Note : INotifyPropertyChanged
 {
-    private static readonly StorageFolder StorageFolder = ApplicationData.Current.LocalFolder;
+    private static readonly string NotesDirectory = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "NopeNote",
+        "Notes");
+
     private string _text = string.Empty;
     private DateTime _date = DateTime.Now;
 
@@ -59,39 +63,41 @@ public sealed class Note : INotifyPropertyChanged
     public string DisplayTitle =>
         string.IsNullOrWhiteSpace(Text) ? "(Untitled note)" : Text.Split('\n')[0];
 
-    public static async Task<IReadOnlyList<Note>> LoadAllAsync()
+    public static Task<IReadOnlyList<Note>> LoadAllAsync()
     {
-        IReadOnlyList<IStorageItem> items = await StorageFolder.GetItemsAsync();
         List<Note> notes = new List<Note>();
 
-        foreach (IStorageItem item in items)
+        if (!Directory.Exists(NotesDirectory))
         {
-            if (item is StorageFile file && file.FileType == ".txt")
-            {
-                string text = await FileIO.ReadTextAsync(file);
-                notes.Add(new Note(file.Name, text, file.DateCreated.DateTime));
-            }
+            return Task.FromResult<IReadOnlyList<Note>>(notes);
+        }
+
+        foreach (string path in Directory.EnumerateFiles(NotesDirectory, "*.txt"))
+        {
+            string text = File.ReadAllText(path);
+            notes.Add(new Note(Path.GetFileName(path), text, File.GetCreationTime(path)));
         }
 
         notes.Sort((left, right) => right.Date.CompareTo(left.Date));
-        return notes;
+        return Task.FromResult<IReadOnlyList<Note>>(notes);
     }
 
-    public async Task SaveAsync()
+    public Task SaveAsync()
     {
-        StorageFile file = await StorageFolder.CreateFileAsync(
-            FileName,
-            CreationCollisionOption.ReplaceExisting);
-        await FileIO.WriteTextAsync(file, Text);
+        Directory.CreateDirectory(NotesDirectory);
+        File.WriteAllText(Path.Combine(NotesDirectory, FileName), Text);
+        return Task.CompletedTask;
     }
 
-    public async Task DeleteAsync()
+    public Task DeleteAsync()
     {
-        StorageFile? file = (StorageFile?)await StorageFolder.TryGetItemAsync(FileName);
-        if (file is not null)
+        string path = Path.Combine(NotesDirectory, FileName);
+        if (File.Exists(path))
         {
-            await file.DeleteAsync();
+            File.Delete(path);
         }
+
+        return Task.CompletedTask;
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
