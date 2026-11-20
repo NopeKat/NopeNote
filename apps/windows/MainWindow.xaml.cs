@@ -34,6 +34,7 @@ public sealed partial class MainWindow : Window
 
     private void RootGrid_Loaded(object sender, RoutedEventArgs e)
     {
+        BackdropHelper.Apply(this);
         WindowHelper.SetWindowMinSize(this, 640, 500);
         TitleBarHelper.ApplySystemThemeToCaptionButtons(this, RootGrid.ActualTheme);
     }
