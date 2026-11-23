@@ -18,6 +18,13 @@ public sealed partial class SettingsPage : Page
     public SettingsPage()
     {
         InitializeComponent();
+        AppThemeCard.Header = Strings.Get("SettingsAppThemeHeader");
+        AppThemeCard.Description = Strings.Get("SettingsAppThemeDescription");
+        VaultCard.Header = Strings.Get("SettingsVaultHeader");
+        VersionHistoryCard.Header = Strings.Get("SettingsVersionHistoryHeader");
+        VersionHistoryCard.Description = Strings.Get("SettingsVersionHistoryDescription");
+        AboutExpander.Header = Strings.Get("SettingsAboutHeader");
+        AboutExpander.Description = Strings.Get("SettingsAboutDescription");
         UpdateThemeSelection();
         VaultCard.Description = SettingsHelper.Current.VaultPath;
 

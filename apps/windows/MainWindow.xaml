@@ -28,6 +28,7 @@
             <muxc:TitleBar.Content>
                 <muxc:AutoSuggestBox
                     x:Name="SearchBox"
+                    x:Uid="TitleBarSearch"
                     MaxWidth="{StaticResource TitleBarSearchMaxWidth}"
                     HorizontalAlignment="Stretch"
                     VerticalAlignment="Center"
@@ -111,6 +112,7 @@
                 <muxc:NavigationView.MenuItems>
                     <muxc:NavigationViewItem
                         x:Name="NotesNavItem"
+                        x:Uid="NavNotes"
                         Content="Notes"
                         Tag="Notes"
                         AutomationProperties.Name="Notes"
@@ -121,6 +123,7 @@
                     </muxc:NavigationViewItem>
                     <muxc:NavigationViewItem
                         x:Name="TrashNavItem"
+                        x:Uid="NavTrash"
                         Content="Trash"
                         Tag="Trash"
                         AutomationProperties.Name="Trash">

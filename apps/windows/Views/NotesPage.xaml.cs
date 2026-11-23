@@ -32,6 +32,7 @@ public sealed partial class NotesPage : Page
     {
         ViewModel = new NotesViewModel();
         InitializeComponent();
+        NoteEditor.Header = Strings.Get("NotesEditorHeader");
         Loaded += NotesPage_Loaded;
         SizeChanged += NotesPage_SizeChanged;
         Unloaded += NotesPage_Unloaded;
@@ -95,8 +96,8 @@ public sealed partial class NotesPage : Page
                 _loadFailed = true;
                 NewNoteButton.IsEnabled = false;
                 ShowError(
-                    "Vault could not be opened",
-                    $"{opened.Message} Choose a different vault folder in settings, then select Retry.",
+                    Strings.Get("NotesVaultOpenFailedTitle"),
+                    $"{opened.Message} {Strings.Get("NotesVaultOpenFailedHint")}",
                     RetryOperation.LoadNotes,
                     null);
                 return;
@@ -110,8 +111,8 @@ public sealed partial class NotesPage : Page
         {
             _loadFailed = true;
             ShowError(
-                "Notes could not be loaded",
-                $"{Describe(exception)} Check access to the vault folder, then select Retry.",
+                Strings.Get("NotesLoadFailedTitle"),
+                $"{Describe(exception)} {Strings.Get("NotesLoadFailedHint")}",
                 RetryOperation.LoadNotes,
                 null);
         }
@@ -130,7 +131,7 @@ public sealed partial class NotesPage : Page
         if (opened.Status != VaultOpenStatus.Opened)
         {
             ShowError(
-                "Vault opened read-only",
+                Strings.Get("NotesVaultReadOnlyTitle"),
                 opened.Message,
                 RetryOperation.None,
                 null,
@@ -149,8 +150,8 @@ public sealed partial class NotesPage : Page
         if (!VaultService.Current.IsWritable)
         {
             ShowError(
-                "Vault is read-only",
-                "Notes cannot be created while the vault is open read-only.",
+                Strings.Get("NotesVaultReadOnlyCreateTitle"),
+                Strings.Get("NotesVaultReadOnlyCreateMessage"),
                 RetryOperation.None,
                 null,
                 InfoBarSeverity.Warning);
@@ -175,10 +176,10 @@ public sealed partial class NotesPage : Page
         ContentDialog dialog = new ContentDialog
         {
             XamlRoot = XamlRoot,
-            Title = "Delete note",
-            Content = "This note will be moved to the trash. Continue?",
-            PrimaryButtonText = "Move to trash",
-            CloseButtonText = "Cancel",
+            Title = Strings.Get("NotesDeleteDialogTitle"),
+            Content = Strings.Get("NotesDeleteDialogBody"),
+            PrimaryButtonText = Strings.Get("NotesDeleteDialogPrimary"),
+            CloseButtonText = Strings.Get("CommonCancel"),
             DefaultButton = ContentDialogButton.Close
         };
 
@@ -245,19 +246,19 @@ public sealed partial class NotesPage : Page
 
                     if (ReferenceEquals(SelectedNote, current))
                     {
-                        SaveStatusTextBlock.Text = "Saved";
+                        SaveStatusTextBlock.Text = Strings.Get("NotesStatusSaved");
                     }
                 }
                 catch (Exception exception)
                 {
                     if (ReferenceEquals(SelectedNote, current))
                     {
-                        SaveStatusTextBlock.Text = "Not saved";
+                        SaveStatusTextBlock.Text = Strings.Get("NotesStatusNotSaved");
                     }
 
                     ShowError(
-                        "Note could not be saved",
-                        $"{Describe(exception)} Check access to the vault folder, then select Retry.",
+                        Strings.Get("NotesSaveFailedTitle"),
+                        $"{Describe(exception)} {Strings.Get("NotesLoadFailedHint")}",
                         RetryOperation.SaveNote,
                         current);
                 }
@@ -283,8 +284,8 @@ public sealed partial class NotesPage : Page
         catch (Exception exception)
         {
             ShowError(
-                "Note could not be deleted",
-                $"{Describe(exception)} Check access to the vault folder, then select Retry.",
+                Strings.Get("NotesDeleteFailedTitle"),
+                $"{Describe(exception)} {Strings.Get("NotesLoadFailedHint")}",
                 RetryOperation.DeleteNote,
                 note);
             return;
@@ -403,7 +404,7 @@ public sealed partial class NotesPage : Page
         SelectedNote = null;
         NoteEditor.IsEnabled = false;
         NoteEditor.Text = string.Empty;
-        NoteDateTextBlock.Text = "Select a note";
+        NoteDateTextBlock.Text = Strings.Get("NotesSelectPlaceholder");
         DeleteNoteButton.IsEnabled = false;
         SaveStatusTextBlock.Text = string.Empty;
         Bindings.Update();
@@ -431,8 +432,8 @@ public sealed partial class NotesPage : Page
         {
             bool isSearching = !string.IsNullOrWhiteSpace(NoteSearchState.Query);
             EmptyStateTextBlock.Text = isSearching
-                ? "No notes match your search. Clear the search box to see all notes."
-                : "No notes yet. Select New note to create one.";
+                ? Strings.Get("NotesEmptySearch")
+                : Strings.Get("NotesEmptyDefault");
         }
     }
 
@@ -443,7 +444,7 @@ public sealed partial class NotesPage : Page
 
         if (_isSaving)
         {
-            SaveStatusTextBlock.Text = "Saving...";
+            SaveStatusTextBlock.Text = Strings.Get("NotesStatusSaving");
         }
     }
 

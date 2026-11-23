@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Title bar -->
+  <data name="TitleBarSearch.AutomationProperties.Name" xml:space="preserve">
+    <value>Search notes</value>
+  </data>
+  <data name="TitleBarSearch.PlaceholderText" xml:space="preserve">
+    <value>Search notes...</value>
+  </data>
+
+  <!-- Navigation -->
+  <data name="NavNotes.Content" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="NavNotes.AutomationProperties.Name" xml:space="preserve">
+    <value>Notes</value>
+  </data>
+  <data name="NavTrash.Content" xml:space="preserve">
+    <value>Trash</value>
+  </data>
+  <data name="NavTrash.AutomationProperties.Name" xml:space="preserve">
+    <value>Trash</value>
+  </data>
+
+  <!-- Notes page -->
+  <data name="NotesErrorBar.AutomationProperties.Name" xml:space="preserve">
+    <value>Notes error</value>
+  </data>
+  <data name="NotesRetryButton.Content" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="NotesRetryButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Retry failed operation</value>
+  </data>
+  <data name="NotesBackButton.Label" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="NotesBackButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Back to notes list</value>
+  </data>
+  <data name="NotesNewButton.Label" xml:space="preserve">
+    <value>New note</value>
+  </data>
+  <data name="NotesNewButton.AutomationProperties.Name" xml:space="preserve">
+    <value>New note</value>
+  </data>
+  <data name="NotesDeleteButton.Label" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="NotesDeleteButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Delete note</value>
+  </data>
+  <data name="NotesCommandBarTitle.Text" xml:space="preserve">
+    <value>Quick notes</value>
+  </data>
+  <data name="NotesLoadingRing.AutomationProperties.Name" xml:space="preserve">
+    <value>Loading notes</value>
+  </data>
+  <data name="NotesEmptyState.Text" xml:space="preserve">
+    <value>No notes yet. Select New note to create one.</value>
+  </data>
+  <data name="NotesDateHeader.Text" xml:space="preserve">
+    <value>Select a note</value>
+  </data>
+  <data name="NoteEditor.PlaceholderText" xml:space="preserve">
+    <value>Enter your note</value>
+  </data>
+  <data name="NoteEditor.AutomationProperties.Name" xml:space="preserve">
+    <value>Note text</value>
+  </data>
+  <data name="NotesSaveRing.AutomationProperties.Name" xml:space="preserve">
+    <value>Saving note</value>
+  </data>
+  <data name="NotesSaveStatus.AutomationProperties.Name" xml:space="preserve">
+    <value>Save status</value>
+  </data>
+
+  <!-- Settings page -->
+  <data name="SettingsHeader.Text" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="SettingsSectionBehavior.Text" xml:space="preserve">
+    <value>Appearance &amp; behavior</value>
+  </data>
+  <data name="SettingsThemeComboBox.AutomationProperties.Name" xml:space="preserve">
+    <value>App theme</value>
+  </data>
+  <data name="ThemeLight.Content" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="ThemeDark.Content" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="ThemeSystem.Content" xml:space="preserve">
+    <value>Use system setting</value>
+  </data>
+  <data name="ChangeVaultButton.Content" xml:space="preserve">
+    <value>Change folder</value>
+  </data>
+  <data name="ChangeVaultButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Change vault folder</value>
+  </data>
+  <data name="GitToggle.AutomationProperties.Name" xml:space="preserve">
+    <value>Version history</value>
+  </data>
+  <data name="SettingsAboutVersion.Text" xml:space="preserve">
+    <value>Version 0.1.0.0</value>
+  </data>
+
+  <!-- Trash page -->
+  <data name="TrashHeader.Text" xml:space="preserve">
+    <value>Trash</value>
+  </data>
+  <data name="RestoreButton.Content" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="RestoreButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Restore note</value>
+  </data>
+  <data name="PurgeButton.Content" xml:space="preserve">
+    <value>Delete permanently</value>
+  </data>
+  <data name="PurgeButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Delete note permanently</value>
+  </data>
+  <data name="TrashList.AutomationProperties.Name" xml:space="preserve">
+    <value>Trashed notes</value>
+  </data>
+  <data name="TrashEmptyState.Text" xml:space="preserve">
+    <value>The trash is empty.</value>
+  </data>
+
+  <!-- Notes page runtime strings -->
+  <data name="NotesVaultOpenFailedTitle" xml:space="preserve">
+    <value>Vault could not be opened</value>
+  </data>
+  <data name="NotesVaultOpenFailedHint" xml:space="preserve">
+    <value>Choose a different vault folder in settings, then select Retry.</value>
+  </data>
+  <data name="NotesLoadFailedTitle" xml:space="preserve">
+    <value>Notes could not be loaded</value>
+  </data>
+  <data name="NotesLoadFailedHint" xml:space="preserve">
+    <value>Check access to the vault folder, then select Retry.</value>
+  </data>
+  <data name="NotesVaultReadOnlyTitle" xml:space="preserve">
+    <value>Vault opened read-only</value>
+  </data>
+  <data name="NotesVaultReadOnlyCreateTitle" xml:space="preserve">
+    <value>Vault is read-only</value>
+  </data>
+  <data name="NotesVaultReadOnlyCreateMessage" xml:space="preserve">
+    <value>Notes cannot be created while the vault is open read-only.</value>
+  </data>
+  <data name="NotesDeleteDialogTitle" xml:space="preserve">
+    <value>Delete note</value>
+  </data>
+  <data name="NotesDeleteDialogBody" xml:space="preserve">
+    <value>This note will be moved to the trash. Continue?</value>
+  </data>
+  <data name="NotesDeleteDialogPrimary" xml:space="preserve">
+    <value>Move to trash</value>
+  </data>
+  <data name="CommonCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="NotesSaveFailedTitle" xml:space="preserve">
+    <value>Note could not be saved</value>
+  </data>
+  <data name="NotesDeleteFailedTitle" xml:space="preserve">
+    <value>Note could not be deleted</value>
+  </data>
+  <data name="NotesStatusSaved" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="NotesStatusNotSaved" xml:space="preserve">
+    <value>Not saved</value>
+  </data>
+  <data name="NotesStatusSaving" xml:space="preserve">
+    <value>Saving...</value>
+  </data>
+  <data name="NotesSelectPlaceholder" xml:space="preserve">
+    <value>Select a note</value>
+  </data>
+  <data name="NotesEmptySearch" xml:space="preserve">
+    <value>No notes match your search. Clear the search box to see all notes.</value>
+  </data>
+  <data name="NotesEmptyDefault" xml:space="preserve">
+    <value>No notes yet. Select New note to create one.</value>
+  </data>
+  <data name="NotesEditorHeader" xml:space="preserve">
+    <value>Note</value>
+  </data>
+
+  <!-- Settings page runtime strings -->
+  <data name="SettingsAppThemeHeader" xml:space="preserve">
+    <value>App theme</value>
+  </data>
+  <data name="SettingsAppThemeDescription" xml:space="preserve">
+    <value>Select which app theme to display</value>
+  </data>
+  <data name="SettingsVaultHeader" xml:space="preserve">
+    <value>Vault location</value>
+  </data>
+  <data name="SettingsVersionHistoryHeader" xml:space="preserve">
+    <value>Version history</value>
+  </data>
+  <data name="SettingsVersionHistoryDescription" xml:space="preserve">
+    <value>Record each note change as a commit in the vault's git repository</value>
+  </data>
+  <data name="SettingsAboutHeader" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="SettingsAboutDescription" xml:space="preserve">
+    <value>NopeNote Windows client</value>
+  </data>
+
+  <!-- Trash page runtime strings -->
+  <data name="TrashVaultMissingTitle" xml:space="preserve">
+    <value>Vault unavailable</value>
+  </data>
+  <data name="TrashVaultMissingMessage" xml:space="preserve">
+    <value>Open the notes page first to load the vault.</value>
+  </data>
+  <data name="TrashReadOnlyTitle" xml:space="preserve">
+    <value>Vault opened read-only</value>
+  </data>
+  <data name="TrashReadOnlyMessage" xml:space="preserve">
+    <value>Restoring or deleting notes is disabled.</value>
+  </data>
+  <data name="TrashLoadFailedTitle" xml:space="preserve">
+    <value>Trash could not be loaded</value>
+  </data>
+  <data name="TrashRestoreFailedTitle" xml:space="preserve">
+    <value>Note could not be restored</value>
+  </data>
+  <data name="TrashPurgeDialogTitle" xml:space="preserve">
+    <value>Delete permanently</value>
+  </data>
+  <data name="TrashPurgeDialogBody" xml:space="preserve">
+    <value>This removes the note and its history snapshots. Continue?</value>
+  </data>
+  <data name="TrashPurgeDialogPrimary" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="TrashPurgeFailedTitle" xml:space="preserve">
+    <value>Note could not be deleted</value>
+  </data>
+  <data name="TrashItemDetails" xml:space="preserve">
+    <value>Deleted {0} · Updated {1}</value>
+  </data>
+</root>

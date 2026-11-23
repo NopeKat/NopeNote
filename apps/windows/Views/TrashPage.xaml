@@ -15,6 +15,7 @@
 
         <TextBlock
             x:Name="PageHeader"
+            x:Uid="TrashHeader"
             AutomationProperties.HeadingLevel="Level2"
             Style="{StaticResource TitleTextBlockStyle}"
             Text="Trash" />
@@ -32,12 +33,14 @@
             Spacing="8">
             <Button
                 x:Name="RestoreButton"
+                x:Uid="RestoreButton"
                 AutomationProperties.Name="Restore note"
                 Click="RestoreButton_Click"
                 Content="Restore"
                 IsEnabled="False" />
             <Button
                 x:Name="PurgeButton"
+                x:Uid="PurgeButton"
                 AutomationProperties.Name="Delete note permanently"
                 Click="PurgeButton_Click"
                 Content="Delete permanently"
@@ -46,6 +49,7 @@
 
         <ListView
             x:Name="TrashList"
+            x:Uid="TrashList"
             Grid.Row="3"
             AutomationProperties.Name="Trashed notes"
             SelectionChanged="TrashList_SelectionChanged"
@@ -68,6 +72,7 @@
 
         <TextBlock
             x:Name="EmptyStateTextBlock"
+            x:Uid="TrashEmptyState"
             Grid.Row="3"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"

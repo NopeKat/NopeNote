@@ -42,6 +42,7 @@
 
         <muxc:InfoBar
             x:Name="ErrorInfoBar"
+            x:Uid="NotesErrorBar"
             Grid.Row="0"
             Grid.ColumnSpan="2"
             AutomationProperties.Name="Notes error"
@@ -52,6 +53,7 @@
             <muxc:InfoBar.ActionButton>
                 <Button
                     x:Name="ErrorRetryButton"
+                    x:Uid="NotesRetryButton"
                     AutomationProperties.Name="Retry failed operation"
                     Click="ErrorRetryButton_Click"
                     Content="Retry" />
@@ -65,6 +67,7 @@
             DefaultLabelPosition="Right">
             <muxc:AppBarButton
                 x:Name="BackToListButton"
+                x:Uid="NotesBackButton"
                 AutomationProperties.Name="Back to notes list"
                 Click="BackToListButton_Click"
                 Icon="Back"
@@ -73,6 +76,7 @@
                 Visibility="Collapsed" />
             <muxc:AppBarButton
                 x:Name="NewNoteButton"
+                x:Uid="NotesNewButton"
                 AutomationProperties.Name="New note"
                 Click="NewNoteButton_Click"
                 Icon="Add"
@@ -84,6 +88,7 @@
             </muxc:AppBarButton>
             <muxc:AppBarButton
                 x:Name="DeleteNoteButton"
+                x:Uid="NotesDeleteButton"
                 AutomationProperties.Name="Delete note"
                 Click="DeleteNoteButton_Click"
                 Icon="Delete"
@@ -96,6 +101,7 @@
             </muxc:AppBarButton>
             <muxc:CommandBar.Content>
                 <TextBlock
+                    x:Uid="NotesCommandBarTitle"
                     Margin="{StaticResource NotesCommandBarContentMargin}"
                     AutomationProperties.HeadingLevel="Level2"
                     Style="{StaticResource SubtitleTextBlockStyle}"
@@ -111,6 +117,7 @@
             BorderThickness="{StaticResource NotesListBorderThickness}">
             <muxc:ProgressRing
                 x:Name="NotesLoadingRing"
+                x:Uid="NotesLoadingRing"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 AutomationProperties.Name="Loading notes"
@@ -134,6 +141,7 @@
             </muxc:ItemsView>
             <TextBlock
                 x:Name="EmptyStateTextBlock"
+                x:Uid="NotesEmptyState"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 AutomationProperties.AccessibilityView="Raw"
@@ -153,6 +161,7 @@
             </Grid.RowDefinitions>
             <TextBlock
                 x:Name="NoteDateTextBlock"
+                x:Uid="NotesDateHeader"
                 AutomationProperties.HeadingLevel="Level2"
                 Style="{StaticResource BodyStrongTextBlockStyle}"
                 Text="Select a note" />
@@ -162,9 +171,9 @@
                 Spacing="{StaticResource NotesEditorSpacing}">
                 <TextBox
                     x:Name="NoteEditor"
+                    x:Uid="NoteEditor"
                     AcceptsReturn="True"
                     AutomationProperties.Name="Note text"
-                    Header="Note"
                     IsEnabled="False"
                     LostFocus="NoteEditor_LostFocus"
                     PlaceholderText="Enter your note"
@@ -174,6 +183,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource StatusSpacing}">
                     <muxc:ProgressRing
                         x:Name="SaveProgressRing"
+                        x:Uid="NotesSaveRing"
                         Width="{StaticResource InlineProgressRingSize}"
                         Height="{StaticResource InlineProgressRingSize}"
                         AutomationProperties.Name="Saving note"
@@ -181,6 +191,7 @@
                         Visibility="Collapsed" />
                     <TextBlock
                         x:Name="SaveStatusTextBlock"
+                        x:Uid="NotesSaveStatus"
                         AutomationProperties.LiveSetting="Polite"
                         AutomationProperties.Name="Save status"
                         Style="{StaticResource CaptionTextBlockStyle}"

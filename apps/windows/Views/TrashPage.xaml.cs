@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using NopeNote.Core.Vault;
+using NopeNote.Windows.Helpers;
 using NopeNote.Windows.Services;
 
 namespace NopeNote.Windows.Views;
@@ -15,7 +16,10 @@ public sealed class TrashItem
     {
         Id = summary.Id;
         Title = summary.Title;
-        Details = $"Deleted {summary.DeletedAt.LocalDateTime:g} · Updated {summary.Updated.LocalDateTime:g}";
+        Details = Strings.Format(
+            "TrashItemDetails",
+            summary.DeletedAt.LocalDateTime.ToString("g"),
+            summary.Updated.LocalDateTime.ToString("g"));
     }
 
     public Guid Id { get; }
@@ -45,7 +49,10 @@ public sealed partial class TrashPage : Page
         IVaultStore? store = VaultService.Current.Store;
         if (store is null)
         {
-            ShowStatus("Vault unavailable", "Open the notes page first to load the vault.", InfoBarSeverity.Error);
+            ShowStatus(
+                Strings.Get("TrashVaultMissingTitle"),
+                Strings.Get("TrashVaultMissingMessage"),
+                InfoBarSeverity.Error);
             return;
         }
 
@@ -60,7 +67,10 @@ public sealed partial class TrashPage : Page
 
             if (!store.Capabilities.Writable)
             {
-                ShowStatus("Vault opened read-only", "Restoring or deleting notes is disabled.", InfoBarSeverity.Warning);
+                ShowStatus(
+                    Strings.Get("TrashReadOnlyTitle"),
+                    Strings.Get("TrashReadOnlyMessage"),
+                    InfoBarSeverity.Warning);
             }
             else
             {
@@ -69,7 +79,7 @@ public sealed partial class TrashPage : Page
         }
         catch (Exception exception)
         {
-            ShowStatus("Trash could not be loaded", exception.Message, InfoBarSeverity.Error);
+            ShowStatus(Strings.Get("TrashLoadFailedTitle"), exception.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -102,7 +112,7 @@ public sealed partial class TrashPage : Page
         }
         catch (Exception exception)
         {
-            ShowStatus("Note could not be restored", exception.Message, InfoBarSeverity.Error);
+            ShowStatus(Strings.Get("TrashRestoreFailedTitle"), exception.Message, InfoBarSeverity.Error);
         }
     }
 
@@ -116,10 +126,10 @@ public sealed partial class TrashPage : Page
         ContentDialog dialog = new()
         {
             XamlRoot = XamlRoot,
-            Title = "Delete permanently",
-            Content = "This removes the note and its history snapshots. Continue?",
-            PrimaryButtonText = "Delete",
-            CloseButtonText = "Cancel",
+            Title = Strings.Get("TrashPurgeDialogTitle"),
+            Content = Strings.Get("TrashPurgeDialogBody"),
+            PrimaryButtonText = Strings.Get("TrashPurgeDialogPrimary"),
+            CloseButtonText = Strings.Get("CommonCancel"),
             DefaultButton = ContentDialogButton.Close,
         };
 
@@ -141,7 +151,7 @@ public sealed partial class TrashPage : Page
         }
         catch (Exception exception)
         {
-            ShowStatus("Note could not be deleted", exception.Message, InfoBarSeverity.Error);
+            ShowStatus(Strings.Get("TrashPurgeFailedTitle"), exception.Message, InfoBarSeverity.Error);
         }
     }
 

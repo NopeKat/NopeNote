@@ -22,6 +22,7 @@
 
         <TextBlock
             x:Name="PageHeader"
+            x:Uid="SettingsHeader"
             MaxWidth="{StaticResource SettingsPageMaxWidth}"
             Margin="{StaticResource SettingsPageHeaderMargin}"
             AutomationProperties.HeadingLevel="Level2"
@@ -40,58 +41,54 @@
                     </StackPanel.ChildrenTransitions>
 
                     <TextBlock
+                        x:Uid="SettingsSectionBehavior"
                         Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
                         Text="Appearance &amp; behavior" />
 
-                    <toolkit:SettingsCard
-                        Description="Select which app theme to display"
-                        Header="App theme">
+                    <toolkit:SettingsCard x:Name="AppThemeCard">
                         <toolkit:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE790;" AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <ComboBox
                             x:Name="ThemeModeComboBox"
+                            x:Uid="SettingsThemeComboBox"
                             AutomationProperties.AutomationId="themeModeComboBox"
                             AutomationProperties.Name="App theme"
                             SelectionChanged="ThemeMode_SelectionChanged">
-                            <ComboBoxItem Content="Light" Tag="Light" />
-                            <ComboBoxItem Content="Dark" Tag="Dark" />
-                            <ComboBoxItem Content="Use system setting" Tag="Default" />
+                            <ComboBoxItem x:Uid="ThemeLight" Content="Light" Tag="Light" />
+                            <ComboBoxItem x:Uid="ThemeDark" Content="Dark" Tag="Dark" />
+                            <ComboBoxItem x:Uid="ThemeSystem" Content="Use system setting" Tag="Default" />
                         </ComboBox>
                     </toolkit:SettingsCard>
 
-                    <toolkit:SettingsCard
-                        x:Name="VaultCard"
-                        Description="Vault folder"
-                        Header="Vault location">
+                    <toolkit:SettingsCard x:Name="VaultCard">
                         <toolkit:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE8B7;" AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <Button
+                            x:Uid="ChangeVaultButton"
                             AutomationProperties.Name="Change vault folder"
                             Click="ChangeVaultButton_Click"
                             Content="Change folder" />
                     </toolkit:SettingsCard>
 
-                    <toolkit:SettingsCard
-                        Description="Record each note change as a commit in the vault's git repository"
-                        Header="Version history">
+                    <toolkit:SettingsCard x:Name="VersionHistoryCard">
                         <toolkit:SettingsCard.HeaderIcon>
                             <FontIcon Glyph="&#xE81C;" AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <ToggleSwitch
                             x:Name="GitToggle"
+                            x:Uid="GitToggle"
                             AutomationProperties.Name="Version history"
                             Toggled="GitToggle_Toggled" />
                     </toolkit:SettingsCard>
 
-                    <toolkit:SettingsExpander
-                        Description="NopeNote Windows client"
-                        Header="About">
+                    <toolkit:SettingsExpander x:Name="AboutExpander">
                         <toolkit:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE897;" AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsExpander.HeaderIcon>
                         <TextBlock
+                            x:Uid="SettingsAboutVersion"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             IsTextSelectionEnabled="True"
                             Text="Version 0.1.0.0" />
