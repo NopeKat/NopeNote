@@ -15,6 +15,11 @@ public sealed class SettingsHelper
 
     public ElementTheme SelectedAppTheme { get; set; } = ElementTheme.Default;
 
+    public string VaultPath { get; set; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "NopeNote",
+        "Vault");
+
     private SettingsHelper()
     {
         string folder = Path.Combine(
@@ -27,7 +32,11 @@ public sealed class SettingsHelper
 
     public void Save()
     {
-        SettingsDto dto = new() { SelectedAppTheme = SelectedAppTheme };
+        SettingsDto dto = new()
+        {
+            SelectedAppTheme = SelectedAppTheme,
+            VaultPath = VaultPath,
+        };
         string json = JsonSerializer.Serialize(dto, SettingsJsonContext.Default.SettingsDto);
         File.WriteAllText(_settingsPath, json);
     }
@@ -48,6 +57,10 @@ public sealed class SettingsHelper
             if (dto is not null)
             {
                 SelectedAppTheme = dto.SelectedAppTheme;
+                if (!string.IsNullOrWhiteSpace(dto.VaultPath))
+                {
+                    VaultPath = dto.VaultPath;
+                }
             }
         }
         catch (JsonException)
@@ -55,12 +68,13 @@ public sealed class SettingsHelper
             SelectedAppTheme = ElementTheme.Default;
         }
     }
-
 }
 
 internal sealed class SettingsDto
 {
     public ElementTheme SelectedAppTheme { get; set; }
+
+    public string? VaultPath { get; set; }
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

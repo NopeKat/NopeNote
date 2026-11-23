@@ -51,6 +51,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NopeNote.Core\NopeNote.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Assets\Tiles\NopeNoteIcon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

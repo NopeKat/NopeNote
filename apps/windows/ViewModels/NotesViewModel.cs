@@ -1,14 +1,22 @@
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using NopeNote.Core.Vault;
 using NopeNote.Windows.Models;
 
 namespace NopeNote.Windows.ViewModels;
 
 public sealed class NotesViewModel
 {
-    private readonly ObservableCollection<Note> _allNotes = new ObservableCollection<Note>();
+    private readonly ObservableCollection<Note> _allNotes = new();
 
-    public ObservableCollection<Note> Notes { get; } = new ObservableCollection<Note>();
+    private IVaultStore? _store;
+
+    public ObservableCollection<Note> Notes { get; } = new();
+
+    public IVaultStore Store
+        => _store ?? throw new InvalidOperationException("the vault store has not been attached yet.");
 
     public bool IsEmpty => Notes.Count == 0;
 
@@ -16,13 +24,20 @@ public sealed class NotesViewModel
 
     public bool IsLoading { get; private set; }
 
+    public string CurrentQuery { get; private set; } = string.Empty;
+
+    public void Attach(IVaultStore store)
+    {
+        _store = store ?? throw new ArgumentNullException(nameof(store));
+    }
+
     public async Task LoadAsync()
     {
         IsLoading = true;
         try
         {
             _allNotes.Clear();
-            System.Collections.Generic.IReadOnlyList<Note> notes = await Note.LoadAllAsync();
+            IReadOnlyList<Note> notes = await Note.LoadAllAsync(Store);
             foreach (Note note in notes)
             {
                 _allNotes.Add(note);
@@ -45,7 +60,7 @@ public sealed class NotesViewModel
         foreach (Note note in _allNotes)
         {
             if (string.IsNullOrWhiteSpace(query) ||
-                note.Text.IndexOf(query, System.StringComparison.OrdinalIgnoreCase) >= 0)
+                note.Text.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 Notes.Add(note);
             }
@@ -63,6 +78,4 @@ public sealed class NotesViewModel
         _allNotes.Remove(note);
         ApplyFilter(CurrentQuery);
     }
-
-    public string CurrentQuery { get; private set; } = string.Empty;
 }

@@ -1,7 +1,9 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
 using NopeNote.Windows.Models;
+using NopeNote.Windows.Services;
 using NopeNote.Windows.ViewModels;
 using System;
 using System.Threading.Tasks;
@@ -87,14 +89,29 @@ public sealed partial class NotesPage : Page
 
         try
         {
+            VaultOpenResult opened = await VaultService.Current.GetVaultAsync();
+            if (opened.Store is null)
+            {
+                _loadFailed = true;
+                NewNoteButton.IsEnabled = false;
+                ShowError(
+                    "Vault could not be opened",
+                    $"{opened.Message} Choose a different vault folder in settings, then select Retry.",
+                    RetryOperation.LoadNotes,
+                    null);
+                return;
+            }
+
+            ViewModel.Attach(opened.Store);
             await ViewModel.LoadAsync();
+            ApplyVaultState(opened);
         }
         catch (Exception exception)
         {
             _loadFailed = true;
             ShowError(
                 "Notes could not be loaded",
-                $"{Describe(exception)} Check access to the local notes folder, then select Retry.",
+                $"{Describe(exception)} Check access to the vault folder, then select Retry.",
                 RetryOperation.LoadNotes,
                 null);
         }
@@ -102,6 +119,22 @@ public sealed partial class NotesPage : Page
         {
             _isLoadingNotes = false;
             UpdateListState();
+        }
+    }
+
+    private void ApplyVaultState(VaultOpenResult opened)
+    {
+        bool writable = opened.Store?.Capabilities.Writable == true;
+        NewNoteButton.IsEnabled = writable;
+
+        if (opened.Status != VaultOpenStatus.Opened)
+        {
+            ShowError(
+                "Vault opened read-only",
+                opened.Message,
+                RetryOperation.None,
+                null,
+                InfoBarSeverity.Warning);
         }
     }
 
@@ -113,6 +146,17 @@ public sealed partial class NotesPage : Page
 
     private async void NewNoteButton_Click(object sender, RoutedEventArgs e)
     {
+        if (!VaultService.Current.IsWritable)
+        {
+            ShowError(
+                "Vault is read-only",
+                "Notes cannot be created while the vault is open read-only.",
+                RetryOperation.None,
+                null,
+                InfoBarSeverity.Warning);
+            return;
+        }
+
         Note note = new Note();
         ViewModel.Add(note);
         ApplySearch();
@@ -132,8 +176,8 @@ public sealed partial class NotesPage : Page
         {
             XamlRoot = XamlRoot,
             Title = "Delete note",
-            Content = "This note will be permanently deleted. Continue?",
-            PrimaryButtonText = "Delete",
+            Content = "This note will be moved to the trash. Continue?",
+            PrimaryButtonText = "Move to trash",
             CloseButtonText = "Cancel",
             DefaultButton = ContentDialogButton.Close
         };
@@ -197,7 +241,7 @@ public sealed partial class NotesPage : Page
 
                 try
                 {
-                    await current.SaveAsync();
+                    await current.SaveAsync(ViewModel.Store);
 
                     if (ReferenceEquals(SelectedNote, current))
                     {
@@ -213,7 +257,7 @@ public sealed partial class NotesPage : Page
 
                     ShowError(
                         "Note could not be saved",
-                        $"{Describe(exception)} Check access to the local notes folder, then select Retry.",
+                        $"{Describe(exception)} Check access to the vault folder, then select Retry.",
                         RetryOperation.SaveNote,
                         current);
                 }
@@ -234,13 +278,13 @@ public sealed partial class NotesPage : Page
 
         try
         {
-            await note.DeleteAsync();
+            await note.DeleteAsync(ViewModel.Store);
         }
         catch (Exception exception)
         {
             ShowError(
                 "Note could not be deleted",
-                $"{Describe(exception)} Check access to the local notes folder, then select Retry.",
+                $"{Describe(exception)} Check access to the vault folder, then select Retry.",
                 RetryOperation.DeleteNote,
                 note);
             return;
@@ -271,6 +315,7 @@ public sealed partial class NotesPage : Page
         {
             case RetryOperation.LoadNotes:
                 _loadFailed = false;
+                VaultService.Current.Reset();
                 await EnsureNotesLoadedAsync();
                 ApplySearch();
                 break;
@@ -301,11 +346,16 @@ public sealed partial class NotesPage : Page
         }
     }
 
-    private void ShowError(string title, string message, RetryOperation operation, Note? note)
+    private void ShowError(
+        string title,
+        string message,
+        RetryOperation operation,
+        Note? note,
+        InfoBarSeverity severity = InfoBarSeverity.Error)
     {
         ErrorInfoBar.Title = title;
         ErrorInfoBar.Message = message;
-        ErrorInfoBar.Severity = InfoBarSeverity.Error;
+        ErrorInfoBar.Severity = severity;
         _retryOperation = operation;
         _retryNote = note;
         ErrorRetryButton.Visibility = operation == RetryOperation.None
@@ -342,7 +392,7 @@ public sealed partial class NotesPage : Page
         SelectedNote = note;
         NoteEditor.IsEnabled = true;
         NoteDateTextBlock.Text = note.Date.ToString("g");
-        DeleteNoteButton.IsEnabled = true;
+        DeleteNoteButton.IsEnabled = VaultService.Current.IsWritable;
         SaveStatusTextBlock.Text = string.Empty;
         Bindings.Update();
         ApplyLayout(ActualWidth < NarrowWidthThreshold);

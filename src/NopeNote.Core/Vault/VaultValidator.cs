@@ -12,26 +12,7 @@ namespace NopeNote.Core.Vault;
 /// </summary>
 public static partial class VaultValidator
 {
-    private static readonly string[] RequiredDirectories =
-    {
-        ".vault",
-        ".vault/notes",
-        ".vault/atts",
-        ".vault/todos",
-        ".history",
-        ".meta",
-        ".trash",
-        ".settings",
-        ".sync",
-        ".sync/conflicts",
-        ".plugins",
-        ".tmp",
-        ".tmp/.cache",
-        ".tmp/.downloads",
-    };
-
-    private static readonly HashSet<string> RootMembers = new(StringComparer.Ordinal)
-    {
+    private static readonly HashSet<string> RootMembers = new(StringComparer.Ordinal)    {
         ".nopenote",
         ".vault",
         ".history",
@@ -152,7 +133,7 @@ public static partial class VaultValidator
 
     private static void ValidateStructure(string root, List<VaultValidationIssue> issues)
     {
-        foreach (string directory in RequiredDirectories)
+        foreach (string directory in VaultLayout.RequiredDirectories)
         {
             if (!Directory.Exists(Path.Combine(root, directory)))
             {
