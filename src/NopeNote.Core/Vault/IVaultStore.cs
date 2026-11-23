@@ -19,6 +19,8 @@ public interface IVaultStore
         string body,
         IReadOnlyList<string>? tags = null,
         bool pinned = false,
+        DateTimeOffset? createdAt = null,
+        DateTimeOffset? updatedAt = null,
         CancellationToken cancellationToken = default);
 
     Task<NoteDocument> UpdateNoteAsync(
@@ -35,6 +37,10 @@ public interface IVaultStore
     Task RestoreNoteAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task PurgeNoteAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<TrashNoteSummary>> ListTrashAsync(CancellationToken cancellationToken = default);
+
+    Task<NoteDocument?> ReadTrashAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<VaultSnapshotInfo>> ListHistoryAsync(Guid id, CancellationToken cancellationToken = default);
 

@@ -102,17 +102,25 @@ public sealed class LocalVaultStore : IVaultStore
         string body,
         IReadOnlyList<string>? tags = null,
         bool pinned = false,
+        DateTimeOffset? createdAt = null,
+        DateTimeOffset? updatedAt = null,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureWritable();
 
         Guid id = Guid.NewGuid();
-        DateTimeOffset now = UtcNowSeconds();
+        DateTimeOffset created = createdAt ?? UtcNowSeconds();
+        DateTimeOffset updated = updatedAt ?? (created > UtcNowSeconds() ? created : UtcNowSeconds());
+        if (updated < created)
+        {
+            updated = created;
+        }
+
         string text = NoteFrontMatterWriter.Build(
             id,
-            now,
-            now,
+            created,
+            updated,
             title,
             tags ?? Array.Empty<string>(),
             pinned,
@@ -307,6 +315,107 @@ public sealed class LocalVaultStore : IVaultStore
 
         string relativePath = $".history/{id:D}/{snapshotName}";
         return Task.FromResult<NoteDocument?>(ReadDocument(id, relativePath, File.ReadAllText(path)));
+    }
+
+    public Task<IReadOnlyList<TrashNoteSummary>> ListTrashAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var items = new List<TrashNoteSummary>();
+        if (!Directory.Exists(_trashDirectory))
+        {
+            return Task.FromResult<IReadOnlyList<TrashNoteSummary>>(items);
+        }
+
+        foreach (string path in Directory.EnumerateFiles(_trashDirectory, "*.md", SearchOption.TopDirectoryOnly))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            string name = Path.GetFileNameWithoutExtension(path);
+            if (!TryParseCanonicalId(name, out Guid id))
+            {
+                continue;
+            }
+
+            string text = File.ReadAllText(path);
+            string title;
+            DateTimeOffset updated;
+
+            try
+            {
+                NoteDocument document = ReadDocument(id, TrashRelativePath(id), text);
+                title = document.Summary.Title;
+                updated = document.Summary.Updated;
+            }
+            catch (VaultFormatException)
+            {
+                title = "(Broken note)";
+                updated = new DateTimeOffset(File.GetLastWriteTimeUtc(path));
+            }
+
+            DateTimeOffset deletedAt = updated;
+            if (TryReadFrontMatterValue(text, "deletedAt", out string? deletedText) &&
+                DateTimeOffset.TryParse(
+                    deletedText,
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                    out DateTimeOffset parsed))
+            {
+                deletedAt = parsed;
+            }
+
+            items.Add(new TrashNoteSummary(id, title, updated, deletedAt));
+        }
+
+        items.Sort(static (left, right) => right.DeletedAt.CompareTo(left.DeletedAt));
+        return Task.FromResult<IReadOnlyList<TrashNoteSummary>>(items);
+    }
+
+    public Task<NoteDocument?> ReadTrashAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        string path = TrashPath(id);
+        if (!File.Exists(path))
+        {
+            return Task.FromResult<NoteDocument?>(null);
+        }
+
+        return Task.FromResult<NoteDocument?>(ReadDocument(id, TrashRelativePath(id), File.ReadAllText(path)));
+    }
+
+    private static bool TryReadFrontMatterValue(string text, string key, out string? value)
+    {
+        value = null;
+        string normalized = text.Replace("\r\n", "\n").Replace('\r', '\n');
+        string[] lines = normalized.Split('\n');
+        if (lines.Length == 0 || lines[0].Trim() != "---")
+        {
+            return false;
+        }
+
+        for (int i = 1; i < lines.Length; i++)
+        {
+            string line = lines[i];
+            if (line.Trim() == "---")
+            {
+                return false;
+            }
+
+            int colon = line.IndexOf(':');
+            if (colon <= 0)
+            {
+                continue;
+            }
+
+            if (string.Equals(line[..colon].Trim(), key, StringComparison.Ordinal))
+            {
+                value = line[(colon + 1)..].Trim().Trim('"', '\'');
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void WriteSnapshotIfNeeded(Guid id, string currentText, DateTimeOffset updated)
