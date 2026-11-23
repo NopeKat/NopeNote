@@ -21,7 +21,6 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
         AppWindow.SetIcon("Assets/Tiles/NopeNoteIcon.ico");
-        AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
 
         RootGrid.ActualThemeChanged += RootGrid_ActualThemeChanged;
     }
