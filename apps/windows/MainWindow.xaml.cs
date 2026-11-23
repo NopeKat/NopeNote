@@ -54,11 +54,6 @@ public sealed partial class MainWindow : Window
         AppTitleBar.IsPaneToggleButtonVisible = RootNavigation.PaneDisplayMode != NavigationViewPaneDisplayMode.Top;
     }
 
-    private void AppTitleBar_BackRequested(Microsoft.UI.Xaml.Controls.TitleBar sender, object args)
-    {
-        GoBack();
-    }
-
     private void AppTitleBar_PaneToggleRequested(Microsoft.UI.Xaml.Controls.TitleBar sender, object args)
     {
         RootNavigation.IsPaneOpen = !RootNavigation.IsPaneOpen;

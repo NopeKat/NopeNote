@@ -15,8 +15,7 @@
         <muxc:TitleBar
             x:Name="AppTitleBar"
             Title="NopeNote"
-            BackRequested="AppTitleBar_BackRequested"
-            IsBackButtonVisible="{x:Bind ContentFrame.CanGoBack, Mode=OneWay}"
+            IsBackButtonVisible="False"
             IsPaneToggleButtonVisible="True"
             PaneToggleRequested="AppTitleBar_PaneToggleRequested">
             <muxc:TitleBar.IconSource>
