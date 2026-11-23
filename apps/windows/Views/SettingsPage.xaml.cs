@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Linq;
+using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
 using NopeNote.Windows.Services;
 using global::Windows.Storage.Pickers;
@@ -12,12 +13,17 @@ namespace NopeNote.Windows.Views;
 public sealed partial class SettingsPage : Page
 {
     private bool _updatingThemeSelection;
+    private bool _updatingGitToggle;
 
     public SettingsPage()
     {
         InitializeComponent();
         UpdateThemeSelection();
         VaultCard.Description = SettingsHelper.Current.VaultPath;
+
+        _updatingGitToggle = true;
+        GitToggle.IsOn = VaultSettings.Read(SettingsHelper.Current.VaultPath).GitEnabled;
+        _updatingGitToggle = false;
     }
 
     private void ThemeMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -87,5 +93,26 @@ public sealed partial class SettingsPage : Page
         VaultCard.Description = folder.Path;
 
         Frame.Navigate(typeof(NotesPage));
+    }
+
+    private async void GitToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_updatingGitToggle)
+        {
+            return;
+        }
+
+        bool enabled = GitToggle.IsOn;
+        VaultOpenResult opened = await VaultService.Current.GetVaultAsync();
+        if (opened.Status != VaultOpenStatus.Opened)
+        {
+            _updatingGitToggle = true;
+            GitToggle.IsOn = !enabled;
+            _updatingGitToggle = false;
+            return;
+        }
+
+        VaultSettings.Write(SettingsHelper.Current.VaultPath, new VaultSettings(enabled));
+        VaultService.Current.Reset();
     }
 }

@@ -73,6 +73,18 @@
                             Content="Change folder" />
                     </toolkit:SettingsCard>
 
+                    <toolkit:SettingsCard
+                        Description="Record each note change as a commit in the vault's git repository"
+                        Header="Version history">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE81C;" AutomationProperties.AccessibilityView="Raw" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ToggleSwitch
+                            x:Name="GitToggle"
+                            AutomationProperties.Name="Version history"
+                            Toggled="GitToggle_Toggled" />
+                    </toolkit:SettingsCard>
+
                     <toolkit:SettingsExpander
                         Description="NopeNote Windows client"
                         Header="About">
