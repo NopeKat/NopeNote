@@ -14,6 +14,7 @@ public sealed partial class SettingsPage : Page
 {
     private bool _updatingThemeSelection;
     private bool _updatingGitToggle;
+    private bool _updatingLanguageSelection;
 
     public SettingsPage()
     {
@@ -25,7 +26,10 @@ public sealed partial class SettingsPage : Page
         VersionHistoryCard.Description = Strings.Get("SettingsVersionHistoryDescription");
         AboutExpander.Header = Strings.Get("SettingsAboutHeader");
         AboutExpander.Description = Strings.Get("SettingsAboutDescription");
+        LanguageCard.Header = Strings.Get("SettingsLanguageHeader");
+        LanguageCard.Description = Strings.Get("SettingsLanguageDescription");
         UpdateThemeSelection();
+        UpdateLanguageSelection();
         VaultCard.Description = SettingsHelper.Current.VaultPath;
 
         _updatingGitToggle = true;
@@ -71,6 +75,54 @@ public sealed partial class SettingsPage : Page
         }
 
         _updatingThemeSelection = false;
+    }
+
+    private async void LanguageMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_updatingLanguageSelection || LanguageModeComboBox.SelectedItem is not ComboBoxItem item)
+        {
+            return;
+        }
+
+        string language = item.Tag?.ToString() ?? LanguageHelper.FollowSystem;
+        if (language == LanguageHelper.SelectedLanguage)
+        {
+            return;
+        }
+
+        LanguageHelper.Select(language);
+
+        ContentDialog dialog = new()
+        {
+            XamlRoot = XamlRoot,
+            Title = Strings.Get("LanguageRestartDialogTitle"),
+            Content = Strings.Get("LanguageRestartDialogBody"),
+            PrimaryButtonText = Strings.Get("LanguageRestartDialogPrimary"),
+            CloseButtonText = Strings.Get("CommonLater"),
+            DefaultButton = ContentDialogButton.Close,
+        };
+
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            LanguageHelper.RestartApplication();
+        }
+    }
+
+    private void UpdateLanguageSelection()
+    {
+        _updatingLanguageSelection = true;
+
+        foreach (object item in LanguageModeComboBox.Items)
+        {
+            if (item is ComboBoxItem comboItem &&
+                (comboItem.Tag?.ToString() ?? LanguageHelper.FollowSystem) == LanguageHelper.SelectedLanguage)
+            {
+                LanguageModeComboBox.SelectedItem = comboItem;
+                break;
+            }
+        }
+
+        _updatingLanguageSelection = false;
     }
 
     private async void ChangeVaultButton_Click(object sender, RoutedEventArgs e)

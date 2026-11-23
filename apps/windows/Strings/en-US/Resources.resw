@@ -165,6 +165,21 @@
   <data name="SettingsAboutVersion.Text" xml:space="preserve">
     <value>Version 0.1.0.0</value>
   </data>
+  <data name="SettingsSectionLanguage.Text" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="SettingsLanguageComboBox.AutomationProperties.Name" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="LanguageSystem.Content" xml:space="preserve">
+    <value>Use system setting</value>
+  </data>
+  <data name="LanguageEnglish.Content" xml:space="preserve">
+    <value>English (United States)</value>
+  </data>
+  <data name="LanguageChinese.Content" xml:space="preserve">
+    <value>中文（简体）</value>
+  </data>
 
   <!-- Trash page -->
   <data name="TrashHeader.Text" xml:space="preserve">
@@ -272,6 +287,24 @@
   </data>
   <data name="SettingsAboutDescription" xml:space="preserve">
     <value>NopeNote Windows client</value>
+  </data>
+  <data name="SettingsLanguageHeader" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="SettingsLanguageDescription" xml:space="preserve">
+    <value>Select the language used by the app</value>
+  </data>
+  <data name="LanguageRestartDialogTitle" xml:space="preserve">
+    <value>Restart required</value>
+  </data>
+  <data name="LanguageRestartDialogBody" xml:space="preserve">
+    <value>The app must restart to apply the new language.</value>
+  </data>
+  <data name="LanguageRestartDialogPrimary" xml:space="preserve">
+    <value>Restart now</value>
+  </data>
+  <data name="CommonLater" xml:space="preserve">
+    <value>Later</value>
   </data>
 
   <!-- Trash page runtime strings -->

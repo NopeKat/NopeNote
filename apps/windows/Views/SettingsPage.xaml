@@ -83,6 +83,27 @@
                             Toggled="GitToggle_Toggled" />
                     </toolkit:SettingsCard>
 
+                    <TextBlock
+                        x:Uid="SettingsSectionLanguage"
+                        Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
+                        Text="Language" />
+
+                    <toolkit:SettingsCard x:Name="LanguageCard">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE774;" AutomationProperties.AccessibilityView="Raw" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <ComboBox
+                            x:Name="LanguageModeComboBox"
+                            x:Uid="SettingsLanguageComboBox"
+                            AutomationProperties.AutomationId="languageModeComboBox"
+                            AutomationProperties.Name="Language"
+                            SelectionChanged="LanguageMode_SelectionChanged">
+                            <ComboBoxItem x:Uid="LanguageSystem" Content="Use system setting" Tag="" />
+                            <ComboBoxItem x:Uid="LanguageEnglish" Content="English (United States)" Tag="en-US" />
+                            <ComboBoxItem x:Uid="LanguageChinese" Content="中文（简体）" Tag="zh-Hans" />
+                        </ComboBox>
+                    </toolkit:SettingsCard>
+
                     <toolkit:SettingsExpander x:Name="AboutExpander">
                         <toolkit:SettingsExpander.HeaderIcon>
                             <FontIcon Glyph="&#xE897;" AutomationProperties.AccessibilityView="Raw" />

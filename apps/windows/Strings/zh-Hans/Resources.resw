@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Title bar -->
+  <data name="TitleBarSearch.AutomationProperties.Name" xml:space="preserve">
+    <value>搜索笔记</value>
+  </data>
+  <data name="TitleBarSearch.PlaceholderText" xml:space="preserve">
+    <value>搜索笔记...</value>
+  </data>
+
+  <!-- Navigation -->
+  <data name="NavNotes.Content" xml:space="preserve">
+    <value>笔记</value>
+  </data>
+  <data name="NavNotes.AutomationProperties.Name" xml:space="preserve">
+    <value>笔记</value>
+  </data>
+  <data name="NavTrash.Content" xml:space="preserve">
+    <value>回收站</value>
+  </data>
+  <data name="NavTrash.AutomationProperties.Name" xml:space="preserve">
+    <value>回收站</value>
+  </data>
+
+  <!-- Notes page -->
+  <data name="NotesErrorBar.AutomationProperties.Name" xml:space="preserve">
+    <value>笔记错误</value>
+  </data>
+  <data name="NotesRetryButton.Content" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="NotesRetryButton.AutomationProperties.Name" xml:space="preserve">
+    <value>重试失败的操作</value>
+  </data>
+  <data name="NotesBackButton.Label" xml:space="preserve">
+    <value>返回</value>
+  </data>
+  <data name="NotesBackButton.AutomationProperties.Name" xml:space="preserve">
+    <value>返回笔记列表</value>
+  </data>
+  <data name="NotesNewButton.Label" xml:space="preserve">
+    <value>新建笔记</value>
+  </data>
+  <data name="NotesNewButton.AutomationProperties.Name" xml:space="preserve">
+    <value>新建笔记</value>
+  </data>
+  <data name="NotesDeleteButton.Label" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="NotesDeleteButton.AutomationProperties.Name" xml:space="preserve">
+    <value>删除笔记</value>
+  </data>
+  <data name="NotesCommandBarTitle.Text" xml:space="preserve">
+    <value>快速笔记</value>
+  </data>
+  <data name="NotesLoadingRing.AutomationProperties.Name" xml:space="preserve">
+    <value>正在加载笔记</value>
+  </data>
+  <data name="NotesEmptyState.Text" xml:space="preserve">
+    <value>还没有笔记。选择「新建笔记」创建一条。</value>
+  </data>
+  <data name="NotesDateHeader.Text" xml:space="preserve">
+    <value>选择一条笔记</value>
+  </data>
+  <data name="NoteEditor.PlaceholderText" xml:space="preserve">
+    <value>输入笔记内容</value>
+  </data>
+  <data name="NoteEditor.AutomationProperties.Name" xml:space="preserve">
+    <value>笔记正文</value>
+  </data>
+  <data name="NotesSaveRing.AutomationProperties.Name" xml:space="preserve">
+    <value>正在保存笔记</value>
+  </data>
+  <data name="NotesSaveStatus.AutomationProperties.Name" xml:space="preserve">
+    <value>保存状态</value>
+  </data>
+
+  <!-- Settings page -->
+  <data name="SettingsHeader.Text" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="SettingsSectionBehavior.Text" xml:space="preserve">
+    <value>外观与行为</value>
+  </data>
+  <data name="SettingsThemeComboBox.AutomationProperties.Name" xml:space="preserve">
+    <value>应用主题</value>
+  </data>
+  <data name="ThemeLight.Content" xml:space="preserve">
+    <value>浅色</value>
+  </data>
+  <data name="ThemeDark.Content" xml:space="preserve">
+    <value>深色</value>
+  </data>
+  <data name="ThemeSystem.Content" xml:space="preserve">
+    <value>跟随系统</value>
+  </data>
+  <data name="ChangeVaultButton.Content" xml:space="preserve">
+    <value>更改文件夹</value>
+  </data>
+  <data name="ChangeVaultButton.AutomationProperties.Name" xml:space="preserve">
+    <value>更改仓库文件夹</value>
+  </data>
+  <data name="GitToggle.AutomationProperties.Name" xml:space="preserve">
+    <value>版本历史</value>
+  </data>
+  <data name="SettingsAboutVersion.Text" xml:space="preserve">
+    <value>版本 0.1.0.0</value>
+  </data>
+  <data name="SettingsSectionLanguage.Text" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="SettingsLanguageComboBox.AutomationProperties.Name" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="LanguageSystem.Content" xml:space="preserve">
+    <value>跟随系统</value>
+  </data>
+  <data name="LanguageEnglish.Content" xml:space="preserve">
+    <value>English (United States)</value>
+  </data>
+  <data name="LanguageChinese.Content" xml:space="preserve">
+    <value>中文（简体）</value>
+  </data>
+
+  <!-- Trash page -->
+  <data name="TrashHeader.Text" xml:space="preserve">
+    <value>回收站</value>
+  </data>
+  <data name="RestoreButton.Content" xml:space="preserve">
+    <value>还原</value>
+  </data>
+  <data name="RestoreButton.AutomationProperties.Name" xml:space="preserve">
+    <value>还原笔记</value>
+  </data>
+  <data name="PurgeButton.Content" xml:space="preserve">
+    <value>永久删除</value>
+  </data>
+  <data name="PurgeButton.AutomationProperties.Name" xml:space="preserve">
+    <value>永久删除笔记</value>
+  </data>
+  <data name="TrashList.AutomationProperties.Name" xml:space="preserve">
+    <value>已删除的笔记</value>
+  </data>
+  <data name="TrashEmptyState.Text" xml:space="preserve">
+    <value>回收站为空。</value>
+  </data>
+
+  <!-- Notes page runtime strings -->
+  <data name="NotesVaultOpenFailedTitle" xml:space="preserve">
+    <value>无法打开仓库</value>
+  </data>
+  <data name="NotesVaultOpenFailedHint" xml:space="preserve">
+    <value>请在设置中选择其他仓库文件夹，然后选择「重试」。</value>
+  </data>
+  <data name="NotesLoadFailedTitle" xml:space="preserve">
+    <value>无法加载笔记</value>
+  </data>
+  <data name="NotesLoadFailedHint" xml:space="preserve">
+    <value>请检查仓库文件夹的访问权限，然后选择「重试」。</value>
+  </data>
+  <data name="NotesVaultReadOnlyTitle" xml:space="preserve">
+    <value>仓库以只读方式打开</value>
+  </data>
+  <data name="NotesVaultReadOnlyCreateTitle" xml:space="preserve">
+    <value>仓库为只读</value>
+  </data>
+  <data name="NotesVaultReadOnlyCreateMessage" xml:space="preserve">
+    <value>仓库以只读方式打开时无法新建笔记。</value>
+  </data>
+  <data name="NotesDeleteDialogTitle" xml:space="preserve">
+    <value>删除笔记</value>
+  </data>
+  <data name="NotesDeleteDialogBody" xml:space="preserve">
+    <value>这条笔记将移入回收站。是否继续？</value>
+  </data>
+  <data name="NotesDeleteDialogPrimary" xml:space="preserve">
+    <value>移入回收站</value>
+  </data>
+  <data name="CommonCancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="NotesSaveFailedTitle" xml:space="preserve">
+    <value>无法保存笔记</value>
+  </data>
+  <data name="NotesDeleteFailedTitle" xml:space="preserve">
+    <value>无法删除笔记</value>
+  </data>
+  <data name="NotesStatusSaved" xml:space="preserve">
+    <value>已保存</value>
+  </data>
+  <data name="NotesStatusNotSaved" xml:space="preserve">
+    <value>未保存</value>
+  </data>
+  <data name="NotesStatusSaving" xml:space="preserve">
+    <value>正在保存...</value>
+  </data>
+  <data name="NotesSelectPlaceholder" xml:space="preserve">
+    <value>选择一条笔记</value>
+  </data>
+  <data name="NotesEmptySearch" xml:space="preserve">
+    <value>没有匹配搜索的笔记。清空搜索框可查看全部笔记。</value>
+  </data>
+  <data name="NotesEmptyDefault" xml:space="preserve">
+    <value>还没有笔记。选择「新建笔记」创建一条。</value>
+  </data>
+  <data name="NotesEditorHeader" xml:space="preserve">
+    <value>笔记</value>
+  </data>
+
+  <!-- Settings page runtime strings -->
+  <data name="SettingsAppThemeHeader" xml:space="preserve">
+    <value>应用主题</value>
+  </data>
+  <data name="SettingsAppThemeDescription" xml:space="preserve">
+    <value>选择应用显示的主题</value>
+  </data>
+  <data name="SettingsVaultHeader" xml:space="preserve">
+    <value>仓库位置</value>
+  </data>
+  <data name="SettingsVersionHistoryHeader" xml:space="preserve">
+    <value>版本历史</value>
+  </data>
+  <data name="SettingsVersionHistoryDescription" xml:space="preserve">
+    <value>把每次笔记改动提交到仓库的 Git 仓库</value>
+  </data>
+  <data name="SettingsAboutHeader" xml:space="preserve">
+    <value>关于</value>
+  </data>
+  <data name="SettingsAboutDescription" xml:space="preserve">
+    <value>NopeNote Windows 客户端</value>
+  </data>
+  <data name="SettingsLanguageHeader" xml:space="preserve">
+    <value>语言</value>
+  </data>
+  <data name="SettingsLanguageDescription" xml:space="preserve">
+    <value>选择应用显示语言</value>
+  </data>
+  <data name="LanguageRestartDialogTitle" xml:space="preserve">
+    <value>需要重启</value>
+  </data>
+  <data name="LanguageRestartDialogBody" xml:space="preserve">
+    <value>更改语言后需要重启应用才能生效。</value>
+  </data>
+  <data name="LanguageRestartDialogPrimary" xml:space="preserve">
+    <value>立即重启</value>
+  </data>
+  <data name="CommonLater" xml:space="preserve">
+    <value>稍后</value>
+  </data>
+
+  <!-- Trash page runtime strings -->
+  <data name="TrashVaultMissingTitle" xml:space="preserve">
+    <value>仓库不可用</value>
+  </data>
+  <data name="TrashVaultMissingMessage" xml:space="preserve">
+    <value>请先打开笔记页以加载仓库。</value>
+  </data>
+  <data name="TrashReadOnlyTitle" xml:space="preserve">
+    <value>仓库以只读方式打开</value>
+  </data>
+  <data name="TrashReadOnlyMessage" xml:space="preserve">
+    <value>还原或删除笔记的功能已禁用。</value>
+  </data>
+  <data name="TrashLoadFailedTitle" xml:space="preserve">
+    <value>无法加载回收站</value>
+  </data>
+  <data name="TrashRestoreFailedTitle" xml:space="preserve">
+    <value>无法还原笔记</value>
+  </data>
+  <data name="TrashPurgeDialogTitle" xml:space="preserve">
+    <value>永久删除</value>
+  </data>
+  <data name="TrashPurgeDialogBody" xml:space="preserve">
+    <value>这会删除笔记及其历史快照。是否继续？</value>
+  </data>
+  <data name="TrashPurgeDialogPrimary" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="TrashPurgeFailedTitle" xml:space="preserve">
+    <value>无法删除笔记</value>
+  </data>
+  <data name="TrashItemDetails" xml:space="preserve">
+    <value>删除于 {0} · 更新于 {1}</value>
+  </data>
+</root>

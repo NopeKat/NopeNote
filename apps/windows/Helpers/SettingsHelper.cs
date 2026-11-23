@@ -22,6 +22,8 @@ public sealed class SettingsHelper
 
     public bool LegacyImportDone { get; set; }
 
+    public string SelectedAppLanguage { get; set; } = string.Empty;
+
     private SettingsHelper()
     {
         string folder = Path.Combine(
@@ -39,6 +41,7 @@ public sealed class SettingsHelper
             SelectedAppTheme = SelectedAppTheme,
             VaultPath = VaultPath,
             LegacyImportDone = LegacyImportDone,
+            SelectedAppLanguage = SelectedAppLanguage,
         };
         string json = JsonSerializer.Serialize(dto, SettingsJsonContext.Default.SettingsDto);
         File.WriteAllText(_settingsPath, json);
@@ -61,6 +64,7 @@ public sealed class SettingsHelper
             {
                 SelectedAppTheme = dto.SelectedAppTheme;
                 LegacyImportDone = dto.LegacyImportDone;
+                SelectedAppLanguage = dto.SelectedAppLanguage ?? string.Empty;
                 if (!string.IsNullOrWhiteSpace(dto.VaultPath))
                 {
                     VaultPath = dto.VaultPath;
@@ -81,6 +85,8 @@ internal sealed class SettingsDto
     public string? VaultPath { get; set; }
 
     public bool LegacyImportDone { get; set; }
+
+    public string? SelectedAppLanguage { get; set; }
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

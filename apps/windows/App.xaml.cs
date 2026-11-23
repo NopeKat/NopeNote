@@ -7,6 +7,11 @@ public partial class App : Application
 {
     private MainWindow? _window;
 
+    public App()
+    {
+        LanguageHelper.ApplyStartupOverride();
+    }
+
     protected override void OnLaunched(LaunchActivatedEventArgs args)
     {
         IdleSynchronizer.Init();
