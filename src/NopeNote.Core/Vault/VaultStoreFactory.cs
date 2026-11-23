@@ -51,6 +51,8 @@ public static class VaultStoreFactory
             Path.Combine(root, ".gitattributes"),
             "* text=auto eol=lf\n*.png binary\n*.jpg binary\n*.ico binary\n");
 
+        VaultSettings.Write(root, VaultSettings.Default);
+
         return await OpenAsync(root, cancellationToken).ConfigureAwait(false);
     }
 
