@@ -66,7 +66,12 @@ public sealed partial class MainWindow : Window
 
     private void SearchBox_AcceleratorInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        SearchBox.Focus(FocusState.Programmatic);
+        if (!RootNavigation.IsPaneOpen)
+        {
+            RootNavigation.IsPaneOpen = true;
+        }
+
+        RootGrid.DispatcherQueue.TryEnqueue(() => SearchBox.Focus(FocusState.Programmatic));
         args.Handled = true;
     }
 

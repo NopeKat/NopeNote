@@ -19,32 +19,9 @@
             IsBackButtonVisible="{x:Bind ContentFrame.CanGoBack, Mode=OneWay}"
             IsPaneToggleButtonVisible="True"
             PaneToggleRequested="AppTitleBar_PaneToggleRequested">
-            <muxc:TitleBar.Resources>
-                <HorizontalAlignment x:Key="TitleBarContentHorizontalAlignment">Stretch</HorizontalAlignment>
-            </muxc:TitleBar.Resources>
             <muxc:TitleBar.IconSource>
                 <muxc:ImageIconSource ImageSource="/Assets/Tiles/NopeNoteIcon.ico" />
             </muxc:TitleBar.IconSource>
-            <muxc:TitleBar.Content>
-                <muxc:AutoSuggestBox
-                    x:Name="SearchBox"
-                    x:Uid="TitleBarSearch"
-                    MaxWidth="{StaticResource TitleBarSearchMaxWidth}"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Center"
-                    AutomationProperties.Name="Search notes"
-                    KeyboardAcceleratorPlacementMode="Auto"
-                    PlaceholderText="Search notes..."
-                    QueryIcon="Find"
-                    QuerySubmitted="SearchBox_QuerySubmitted">
-                    <muxc:AutoSuggestBox.KeyboardAccelerators>
-                        <input:KeyboardAccelerator
-                            Key="F"
-                            Invoked="SearchBox_AcceleratorInvoked"
-                            Modifiers="Control" />
-                    </muxc:AutoSuggestBox.KeyboardAccelerators>
-                </muxc:AutoSuggestBox>
-            </muxc:TitleBar.Content>
         </muxc:TitleBar>
 
         <Grid x:Name="AutomationHelpersPanel" Grid.Row="1">
@@ -109,9 +86,30 @@
                 IsBackButtonVisible="Collapsed"
                 IsPaneToggleButtonVisible="False"
                 IsTabStop="False"
+                PaneDisplayMode="Left"
                 DisplayModeChanged="OnPaneDisplayModeChanged"
                 Loaded="OnNavigationViewControlLoaded"
                 SelectionChanged="RootNavigation_SelectionChanged">
+                <muxc:NavigationView.PaneHeader>
+                    <muxc:AutoSuggestBox
+                        x:Name="SearchBox"
+                        x:Uid="NavigationSearch"
+                        Margin="{StaticResource NavigationSearchMargin}"
+                        HorizontalAlignment="Stretch"
+                        AutomationProperties.Name="Search notes"
+                        KeyboardAcceleratorPlacementMode="Auto"
+                        PlaceholderText="Search notes..."
+                        QueryIcon="Find"
+                        QuerySubmitted="SearchBox_QuerySubmitted">
+                        <muxc:AutoSuggestBox.KeyboardAccelerators>
+                            <input:KeyboardAccelerator
+                                Key="F"
+                                Invoked="SearchBox_AcceleratorInvoked"
+                                Modifiers="Control" />
+                        </muxc:AutoSuggestBox.KeyboardAccelerators>
+                    </muxc:AutoSuggestBox>
+                </muxc:NavigationView.PaneHeader>
+
                 <muxc:NavigationView.MenuItems>
                     <muxc:NavigationViewItem
                         x:Name="NotesNavItem"
