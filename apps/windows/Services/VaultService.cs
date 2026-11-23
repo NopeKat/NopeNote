@@ -52,7 +52,21 @@ public sealed class VaultService
         if (result.Status == VaultOpenStatus.Opened && result.Store is not null)
         {
             await EnsureGitAsync(path);
-            await EnsureLegacyImportAsync(result.Store);
+            await EnsureLegacyImportAsync(result.Store, path);
+
+            string settingsFile = Path.Combine(path, ".settings", "settings.json");
+            if (!File.Exists(settingsFile))
+            {
+                VaultSettings.Write(path, VaultSettings.Read(path));
+            }
+
+            if (VaultSettings.Read(path).GitEnabled && Directory.Exists(Path.Combine(path, ".git")))
+            {
+                result = result with
+                {
+                    Store = new GitVaultStore(result.Store, new ProcessGitCommitter(path)),
+                };
+            }
         }
 
         OpenResult = result;
@@ -70,7 +84,7 @@ public sealed class VaultService
         await VaultGit.InitializeAsync(path);
     }
 
-    private static async Task EnsureLegacyImportAsync(IVaultStore store)
+    private static async Task EnsureLegacyImportAsync(IVaultStore store, string vaultPath)
     {
         if (SettingsHelper.Current.LegacyImportDone)
         {
@@ -88,13 +102,19 @@ public sealed class VaultService
             "NopeNote",
             "Notes");
 
+        int imported;
         try
         {
-            await LegacyNotesImporter.ImportAsync(store, legacyDirectory);
+            imported = await LegacyNotesImporter.ImportAsync(store, legacyDirectory);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             return;
+        }
+
+        if (imported > 0)
+        {
+            await VaultGit.CommitAsync(vaultPath, $"meta: import {imported} notes");
         }
 
         SettingsHelper.Current.LegacyImportDone = true;
