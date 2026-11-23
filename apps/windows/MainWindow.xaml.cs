@@ -85,21 +85,22 @@ public sealed partial class MainWindow : Window
 
     private void RootNavigation_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
     {
-        if (_isNavigating || args.SelectedItem is not NavigationViewItem item)
+        if (_isNavigating)
         {
             return;
         }
 
-        Type pageType = item.Tag?.ToString() switch
-        {
-            "Settings" => typeof(SettingsPage),
-            _ => typeof(NotesPage)
-        };
+        // 设置入口沿用 NavigationView 内置页脚项，选中状态由 IsSettingsSelected 表达
+        Type? pageType = args.IsSettingsSelected
+            ? typeof(SettingsPage)
+            : args.SelectedItem is NavigationViewItem ? typeof(NotesPage) : null;
 
-        if (ContentFrame.CurrentSourcePageType != pageType)
+        if (pageType is null || ContentFrame.CurrentSourcePageType == pageType)
         {
-            ContentFrame.Navigate(pageType);
+            return;
         }
+
+        ContentFrame.Navigate(pageType);
     }
 
     private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
@@ -108,7 +109,7 @@ public sealed partial class MainWindow : Window
 
         if (e.SourcePageType == typeof(SettingsPage))
         {
-            SettingsNavItem.IsSelected = true;
+            RootNavigation.SelectedItem = RootNavigation.SettingsItem;
             CurrentPageTextBlock.Text = "Settings";
         }
         else
