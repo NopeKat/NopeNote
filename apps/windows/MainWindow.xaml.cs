@@ -93,7 +93,13 @@ public sealed partial class MainWindow : Window
         // 设置入口沿用 NavigationView 内置页脚项，选中状态由 IsSettingsSelected 表达
         Type? pageType = args.IsSettingsSelected
             ? typeof(SettingsPage)
-            : args.SelectedItem is NavigationViewItem ? typeof(NotesPage) : null;
+            : args.SelectedItem is NavigationViewItem item
+                ? item.Tag?.ToString() switch
+                {
+                    "Trash" => typeof(TrashPage),
+                    _ => typeof(NotesPage),
+                }
+                : null;
 
         if (pageType is null || ContentFrame.CurrentSourcePageType == pageType)
         {
@@ -111,6 +117,12 @@ public sealed partial class MainWindow : Window
         {
             RootNavigation.SelectedItem = RootNavigation.SettingsItem;
             CurrentPageTextBlock.Text = "Settings";
+        }
+        else if (e.SourcePageType == typeof(TrashPage))
+        {
+            TrashNavItem.IsSelected = true;
+            CurrentPageTextBlock.Text = "Trash";
+            SearchBox.Text = NoteSearchState.Query;
         }
         else
         {

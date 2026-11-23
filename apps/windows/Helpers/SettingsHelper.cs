@@ -20,6 +20,8 @@ public sealed class SettingsHelper
         "NopeNote",
         "Vault");
 
+    public bool LegacyImportDone { get; set; }
+
     private SettingsHelper()
     {
         string folder = Path.Combine(
@@ -36,6 +38,7 @@ public sealed class SettingsHelper
         {
             SelectedAppTheme = SelectedAppTheme,
             VaultPath = VaultPath,
+            LegacyImportDone = LegacyImportDone,
         };
         string json = JsonSerializer.Serialize(dto, SettingsJsonContext.Default.SettingsDto);
         File.WriteAllText(_settingsPath, json);
@@ -57,6 +60,7 @@ public sealed class SettingsHelper
             if (dto is not null)
             {
                 SelectedAppTheme = dto.SelectedAppTheme;
+                LegacyImportDone = dto.LegacyImportDone;
                 if (!string.IsNullOrWhiteSpace(dto.VaultPath))
                 {
                     VaultPath = dto.VaultPath;
@@ -75,6 +79,8 @@ internal sealed class SettingsDto
     public ElementTheme SelectedAppTheme { get; set; }
 
     public string? VaultPath { get; set; }
+
+    public bool LegacyImportDone { get; set; }
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

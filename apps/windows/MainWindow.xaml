@@ -119,6 +119,15 @@
                             <muxc:FontIcon Glyph="&#xE8A5;" AutomationProperties.AccessibilityView="Raw" />
                         </muxc:NavigationViewItem.Icon>
                     </muxc:NavigationViewItem>
+                    <muxc:NavigationViewItem
+                        x:Name="TrashNavItem"
+                        Content="Trash"
+                        Tag="Trash"
+                        AutomationProperties.Name="Trash">
+                        <muxc:NavigationViewItem.Icon>
+                            <muxc:FontIcon Glyph="&#xE74D;" AutomationProperties.AccessibilityView="Raw" />
+                        </muxc:NavigationViewItem.Icon>
+                    </muxc:NavigationViewItem>
                 </muxc:NavigationView.MenuItems>
 
                 <Frame x:Name="ContentFrame" Navigated="ContentFrame_Navigated" />

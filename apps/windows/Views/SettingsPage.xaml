@@ -60,6 +60,19 @@
                         </ComboBox>
                     </toolkit:SettingsCard>
 
+                    <toolkit:SettingsCard
+                        x:Name="VaultCard"
+                        Description="Vault folder"
+                        Header="Vault location">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon Glyph="&#xE8B7;" AutomationProperties.AccessibilityView="Raw" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <Button
+                            AutomationProperties.Name="Change vault folder"
+                            Click="ChangeVaultButton_Click"
+                            Content="Change folder" />
+                    </toolkit:SettingsCard>
+
                     <toolkit:SettingsExpander
                         Description="NopeNote Windows client"
                         Header="About">

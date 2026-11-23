@@ -10,8 +10,10 @@ public static class WindowHelper
 
     private static readonly List<Window> ActiveWindowList = new();
 
-    public static Window CreateWindow()
-    {
+    public static nint GetWindowHandle(Window? window)
+        => window is null ? 0 : WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+    public static Window CreateWindow()    {
         Window window = new();
         TrackWindow(window);
         return window;

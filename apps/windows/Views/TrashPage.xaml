@@ -1,0 +1,78 @@
+<Page
+    x:Class="NopeNote.Windows.Views.TrashPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    NavigationCacheMode="Enabled">
+
+    <Grid Padding="{StaticResource SettingsPageContentPadding}" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            x:Name="PageHeader"
+            AutomationProperties.HeadingLevel="Level2"
+            Style="{StaticResource TitleTextBlockStyle}"
+            Text="Trash" />
+
+        <muxc:InfoBar
+            x:Name="StatusInfoBar"
+            Grid.Row="1"
+            IsClosable="True"
+            IsOpen="False"
+            Severity="Warning" />
+
+        <StackPanel
+            Grid.Row="2"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
+                x:Name="RestoreButton"
+                AutomationProperties.Name="Restore note"
+                Click="RestoreButton_Click"
+                Content="Restore"
+                IsEnabled="False" />
+            <Button
+                x:Name="PurgeButton"
+                AutomationProperties.Name="Delete note permanently"
+                Click="PurgeButton_Click"
+                Content="Delete permanently"
+                IsEnabled="False" />
+        </StackPanel>
+
+        <ListView
+            x:Name="TrashList"
+            Grid.Row="3"
+            AutomationProperties.Name="Trashed notes"
+            SelectionChanged="TrashList_SelectionChanged"
+            SelectionMode="Single">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Padding="8" Spacing="2">
+                        <TextBlock
+                            MaxLines="1"
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
+                            Text="{Binding Title}"
+                            TextTrimming="CharacterEllipsis" />
+                        <TextBlock
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{Binding Details}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <TextBlock
+            x:Name="EmptyStateTextBlock"
+            Grid.Row="3"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Style="{StaticResource BodyTextBlockStyle}"
+            Text="The trash is empty."
+            Visibility="Collapsed" />
+    </Grid>
+</Page>
