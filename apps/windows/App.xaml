@@ -25,7 +25,6 @@
             <Thickness x:Key="NotesListMargin">12</Thickness>
             <Thickness x:Key="NoteItemPadding">12</Thickness>
             <Thickness x:Key="AutomationStatusMargin">10,0,0,0</Thickness>
-            <Thickness x:Key="NavigationSearchMargin">12,8,12,8</Thickness>
             <Thickness x:Key="NotesListBorderThickness">0,0,1,0</Thickness>
             <Thickness x:Key="NotesEditorMargin">0,12,0,0</Thickness>
             <x:Double x:Key="InlineProgressRingSize">16</x:Double>

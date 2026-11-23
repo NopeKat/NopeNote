@@ -6,18 +6,22 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls">
 
     <Grid x:Name="RootGrid" Loaded="RootGrid_Loaded">
+        <Grid.KeyboardAccelerators>
+            <input:KeyboardAccelerator
+                Key="F"
+                Invoked="SearchAccelerator_Invoked"
+                Modifiers="Control" />
+        </Grid.KeyboardAccelerators>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!-- Gallery 3.0.4 TitleBarWindow.xaml：返回与窗格切换由 TitleBar 承担，NavigationView 隐藏自带按钮 -->
+        <!-- 标题栏只保留图标与应用名，导航与搜索入口由侧栏承担 -->
         <muxc:TitleBar
             x:Name="AppTitleBar"
             Title="NopeNote"
-            IsBackButtonVisible="False"
-            IsPaneToggleButtonVisible="True"
-            PaneToggleRequested="AppTitleBar_PaneToggleRequested">
+            IsBackButtonVisible="False">
             <muxc:TitleBar.IconSource>
                 <muxc:ImageIconSource ImageSource="/Assets/Tiles/NopeNoteIcon.ico" />
             </muxc:TitleBar.IconSource>
@@ -85,31 +89,18 @@
                 IsBackButtonVisible="Collapsed"
                 IsPaneToggleButtonVisible="False"
                 IsTabStop="False"
-                PaneDisplayMode="Left"
-                DisplayModeChanged="OnPaneDisplayModeChanged"
-                Loaded="OnNavigationViewControlLoaded"
                 SelectionChanged="RootNavigation_SelectionChanged">
-                <muxc:NavigationView.PaneHeader>
-                    <muxc:AutoSuggestBox
-                        x:Name="SearchBox"
-                        x:Uid="NavigationSearch"
-                        Margin="{StaticResource NavigationSearchMargin}"
-                        HorizontalAlignment="Stretch"
-                        AutomationProperties.Name="Search notes"
-                        KeyboardAcceleratorPlacementMode="Auto"
-                        PlaceholderText="Search notes..."
-                        QueryIcon="Find"
-                        QuerySubmitted="SearchBox_QuerySubmitted">
-                        <muxc:AutoSuggestBox.KeyboardAccelerators>
-                            <input:KeyboardAccelerator
-                                Key="F"
-                                Invoked="SearchBox_AcceleratorInvoked"
-                                Modifiers="Control" />
-                        </muxc:AutoSuggestBox.KeyboardAccelerators>
-                    </muxc:AutoSuggestBox>
-                </muxc:NavigationView.PaneHeader>
-
                 <muxc:NavigationView.MenuItems>
+                    <muxc:NavigationViewItem
+                        x:Name="SearchNavItem"
+                        x:Uid="NavSearch"
+                        Content="Search"
+                        Tag="Search"
+                        AutomationProperties.Name="Search notes">
+                        <muxc:NavigationViewItem.Icon>
+                            <muxc:FontIcon Glyph="&#xE721;" AutomationProperties.AccessibilityView="Raw" />
+                        </muxc:NavigationViewItem.Icon>
+                    </muxc:NavigationViewItem>
                     <muxc:NavigationViewItem
                         x:Name="NotesNavItem"
                         x:Uid="NavNotes"

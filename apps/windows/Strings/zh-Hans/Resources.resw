@@ -59,15 +59,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
-  <!-- Navigation search -->
-  <data name="NavigationSearch.AutomationProperties.Name" xml:space="preserve">
+  <!-- Navigation -->
+  <data name="NavSearch.Content" xml:space="preserve">
+    <value>搜索</value>
+  </data>
+  <data name="NavSearch.AutomationProperties.Name" xml:space="preserve">
     <value>搜索笔记</value>
   </data>
-  <data name="NavigationSearch.PlaceholderText" xml:space="preserve">
-    <value>搜索笔记...</value>
-  </data>
-
-  <!-- Navigation -->
   <data name="NavNotes.Content" xml:space="preserve">
     <value>笔记</value>
   </data>
@@ -79,6 +77,32 @@
   </data>
   <data name="NavTrash.AutomationProperties.Name" xml:space="preserve">
     <value>回收站</value>
+  </data>
+
+  <!-- Search page -->
+  <data name="SearchPageTitle.Text" xml:space="preserve">
+    <value>搜索</value>
+  </data>
+  <data name="SearchPageInput.PlaceholderText" xml:space="preserve">
+    <value>搜索笔记...</value>
+  </data>
+  <data name="SearchPageInput.AutomationProperties.Name" xml:space="preserve">
+    <value>搜索笔记</value>
+  </data>
+  <data name="SearchPageEmpty.Text" xml:space="preserve">
+    <value>输入关键词搜索笔记。</value>
+  </data>
+  <data name="SearchPageEmptyHint" xml:space="preserve">
+    <value>输入关键词搜索笔记。</value>
+  </data>
+  <data name="SearchPageLoading.AutomationProperties.Name" xml:space="preserve">
+    <value>正在加载笔记</value>
+  </data>
+  <data name="SearchPageNoResults" xml:space="preserve">
+    <value>没有找到匹配的笔记。</value>
+  </data>
+  <data name="SearchPageVaultError" xml:space="preserve">
+    <value>仓库打开失败，暂时无法搜索。</value>
   </data>
 
   <!-- Notes page -->

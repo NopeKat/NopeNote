@@ -44,43 +44,19 @@ public sealed partial class MainWindow : Window
         TitleBarHelper.ApplySystemThemeToCaptionButtons(this, RootGrid.ActualTheme);
     }
 
-    private void OnPaneDisplayModeChanged(NavigationView sender, NavigationViewDisplayModeChangedEventArgs args)
+    private void SearchAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        AppTitleBar.IsPaneToggleButtonVisible = sender.PaneDisplayMode != NavigationViewPaneDisplayMode.Top;
-    }
-
-    private void OnNavigationViewControlLoaded(object sender, RoutedEventArgs e)
-    {
-        AppTitleBar.IsPaneToggleButtonVisible = RootNavigation.PaneDisplayMode != NavigationViewPaneDisplayMode.Top;
-    }
-
-    private void AppTitleBar_PaneToggleRequested(Microsoft.UI.Xaml.Controls.TitleBar sender, object args)
-    {
-        RootNavigation.IsPaneOpen = !RootNavigation.IsPaneOpen;
-    }
-
-    private void SearchBox_AcceleratorInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
-    {
-        if (!RootNavigation.IsPaneOpen)
+        if (ContentFrame.CurrentSourcePageType == typeof(SearchPage))
         {
-            RootNavigation.IsPaneOpen = true;
+            ((SearchPage)ContentFrame.Content).FocusSearch();
+        }
+        else
+        {
+            ContentFrame.Navigate(typeof(SearchPage));
         }
 
-        RootGrid.DispatcherQueue.TryEnqueue(() => SearchBox.Focus(FocusState.Programmatic));
+        SearchNavItem.IsSelected = true;
         args.Handled = true;
-    }
-
-    private void SearchBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
-    {
-        string query = args.QueryText ?? string.Empty;
-        NoteSearchState.SetQuery(query);
-
-        if (ContentFrame.CurrentSourcePageType != typeof(NotesPage))
-        {
-            ContentFrame.Navigate(typeof(NotesPage));
-        }
-
-        NotesNavItem.IsSelected = true;
     }
 
     private void RootNavigation_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -96,6 +72,7 @@ public sealed partial class MainWindow : Window
             : args.SelectedItem is NavigationViewItem item
                 ? item.Tag?.ToString() switch
                 {
+                    "Search" => typeof(SearchPage),
                     "Trash" => typeof(TrashPage),
                     _ => typeof(NotesPage),
                 }
@@ -122,13 +99,16 @@ public sealed partial class MainWindow : Window
         {
             TrashNavItem.IsSelected = true;
             CurrentPageTextBlock.Text = "Trash";
-            SearchBox.Text = NoteSearchState.Query;
+        }
+        else if (e.SourcePageType == typeof(SearchPage))
+        {
+            SearchNavItem.IsSelected = true;
+            CurrentPageTextBlock.Text = "Search";
         }
         else
         {
             NotesNavItem.IsSelected = true;
             CurrentPageTextBlock.Text = "Notes";
-            SearchBox.Text = NoteSearchState.Query;
         }
 
         _isNavigating = false;

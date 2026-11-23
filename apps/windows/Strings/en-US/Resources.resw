@@ -59,15 +59,13 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
-  <!-- Navigation search -->
-  <data name="NavigationSearch.AutomationProperties.Name" xml:space="preserve">
+  <!-- Navigation -->
+  <data name="NavSearch.Content" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="NavSearch.AutomationProperties.Name" xml:space="preserve">
     <value>Search notes</value>
   </data>
-  <data name="NavigationSearch.PlaceholderText" xml:space="preserve">
-    <value>Search notes...</value>
-  </data>
-
-  <!-- Navigation -->
   <data name="NavNotes.Content" xml:space="preserve">
     <value>Notes</value>
   </data>
@@ -79,6 +77,32 @@
   </data>
   <data name="NavTrash.AutomationProperties.Name" xml:space="preserve">
     <value>Trash</value>
+  </data>
+
+  <!-- Search page -->
+  <data name="SearchPageTitle.Text" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="SearchPageInput.PlaceholderText" xml:space="preserve">
+    <value>Search notes...</value>
+  </data>
+  <data name="SearchPageInput.AutomationProperties.Name" xml:space="preserve">
+    <value>Search notes</value>
+  </data>
+  <data name="SearchPageEmpty.Text" xml:space="preserve">
+    <value>Type a keyword to search your notes.</value>
+  </data>
+  <data name="SearchPageEmptyHint" xml:space="preserve">
+    <value>Type a keyword to search your notes.</value>
+  </data>
+  <data name="SearchPageLoading.AutomationProperties.Name" xml:space="preserve">
+    <value>Loading notes</value>
+  </data>
+  <data name="SearchPageNoResults" xml:space="preserve">
+    <value>No matching notes.</value>
+  </data>
+  <data name="SearchPageVaultError" xml:space="preserve">
+    <value>The vault could not be opened, so search is unavailable.</value>
   </data>
 
   <!-- Notes page -->

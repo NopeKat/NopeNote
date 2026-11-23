@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
 using NopeNote.Windows.Models;
@@ -24,6 +25,7 @@ public sealed partial class NotesPage : Page
     private bool _isLoadingNotes;
     private bool _isSearchSubscribed;
     private bool _loadFailed;
+    private Guid? _pendingNoteId;
     private Note? _pendingSaveNote;
     private Note? _retryNote;
     private RetryOperation _retryOperation = RetryOperation.None;
@@ -41,6 +43,13 @@ public sealed partial class NotesPage : Page
     public NotesViewModel ViewModel { get; }
 
     public Note? SelectedNote { get; private set; }
+
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        _pendingNoteId = e.Parameter is Guid noteId ? noteId : null;
+        TrySelectPendingNote();
+    }
 
     private static double NarrowWidthThreshold =>
         (double)Microsoft.UI.Xaml.Application.Current.Resources["MasterDetailBreakpointWidth"];
@@ -143,6 +152,25 @@ public sealed partial class NotesPage : Page
     {
         ViewModel.ApplyFilter(NoteSearchState.Query);
         UpdateListState();
+        TrySelectPendingNote();
+    }
+
+    private void TrySelectPendingNote()
+    {
+        if (_pendingNoteId is not Guid noteId || !ViewModel.IsLoaded)
+        {
+            return;
+        }
+
+        _pendingNoteId = null;
+        foreach (Note note in ViewModel.Notes)
+        {
+            if (note.Id == noteId)
+            {
+                SelectNote(note);
+                return;
+            }
+        }
     }
 
     private async void NewNoteButton_Click(object sender, RoutedEventArgs e)
