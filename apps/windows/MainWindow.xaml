@@ -58,11 +58,14 @@
                 </Style>
             </Grid.Resources>
 
+            <!-- 自动化测试读取当前页名，保持不可见但留在 UIA 树里 -->
             <TextBlock
                 x:Name="CurrentPageTextBlock"
                 Margin="{StaticResource AutomationStatusMargin}"
                 VerticalAlignment="Center"
                 AutomationProperties.AutomationId="__CurrentPage"
+                IsHitTestVisible="False"
+                Opacity="0"
                 Style="{StaticResource SubtitleTextBlockStyle}" />
             <CheckBox
                 x:Name="IdleStateEnteredCheckBox"
