@@ -5,7 +5,10 @@
     xmlns:input="using:Microsoft.UI.Xaml.Input"
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls">
 
-    <Grid x:Name="RootGrid" Loaded="RootGrid_Loaded">
+    <Grid
+        x:Name="RootGrid"
+        KeyboardAcceleratorPlacementMode="Hidden"
+        Loaded="RootGrid_Loaded">
         <Grid.KeyboardAccelerators>
             <input:KeyboardAccelerator
                 Key="F"
