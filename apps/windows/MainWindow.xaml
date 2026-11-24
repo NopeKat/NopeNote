@@ -106,7 +106,9 @@
                         x:Uid="NavSearch"
                         Content="Search"
                         Tag="Search"
-                        AutomationProperties.Name="Search notes">
+                        AutomationProperties.Name="Search notes"
+                        PointerPressed="NavigationItem_PointerPressed"
+                        Tapped="NavigationItem_Tapped">
                         <muxc:NavigationViewItem.Icon>
                             <muxc:FontIcon Glyph="&#xE721;" AutomationProperties.AccessibilityView="Raw" />
                         </muxc:NavigationViewItem.Icon>
@@ -117,7 +119,9 @@
                         Content="Notes"
                         Tag="Notes"
                         AutomationProperties.Name="Notes"
-                        IsSelected="True">
+                        IsSelected="True"
+                        PointerPressed="NavigationItem_PointerPressed"
+                        Tapped="NavigationItem_Tapped">
                         <muxc:NavigationViewItem.Icon>
                             <muxc:FontIcon Glyph="&#xE8A5;" AutomationProperties.AccessibilityView="Raw" />
                         </muxc:NavigationViewItem.Icon>
@@ -127,7 +131,9 @@
                         x:Uid="NavTrash"
                         Content="Trash"
                         Tag="Trash"
-                        AutomationProperties.Name="Trash">
+                        AutomationProperties.Name="Trash"
+                        PointerPressed="NavigationItem_PointerPressed"
+                        Tapped="NavigationItem_Tapped">
                         <muxc:NavigationViewItem.Icon>
                             <muxc:FontIcon Glyph="&#xE74D;" AutomationProperties.AccessibilityView="Raw" />
                         </muxc:NavigationViewItem.Icon>

@@ -14,6 +14,8 @@ public sealed partial class MainWindow : Window
 {
     private UISettings? _uiSettings;
     private bool _isNavigating;
+    private object? _navItemBeforePress;
+    private bool _paneOpenBeforePress;
 
     public MainWindow()
     {
@@ -54,6 +56,12 @@ public sealed partial class MainWindow : Window
         BackdropHelper.Apply(this);
         WindowHelper.SetWindowMinSize(this, 640, 500);
         TitleBarHelper.ApplySystemThemeToCaptionButtons(this, RootGrid.ActualTheme);
+
+        if (RootNavigation.SettingsItem is NavigationViewItem settingsItem)
+        {
+            settingsItem.PointerPressed += NavigationItem_PointerPressed;
+            settingsItem.Tapped += NavigationItem_Tapped;
+        }
     }
 
     private void RootGrid_ActualThemeChanged(FrameworkElement sender, object args)
@@ -79,6 +87,38 @@ public sealed partial class MainWindow : Window
 
         SearchNavItem.IsSelected = true;
         args.Handled = true;
+    }
+
+    private void NavigationItem_PointerPressed(object sender, PointerRoutedEventArgs e)
+    {
+        if (!e.GetCurrentPoint((UIElement)sender).Properties.IsLeftButtonPressed)
+        {
+            return;
+        }
+
+        // 点击处理会先改变选中项，所以在按下时把点击前的选中项和侧栏状态记下来。
+        _navItemBeforePress = RootNavigation.SelectedItem;
+        _paneOpenBeforePress = RootNavigation.IsPaneOpen;
+    }
+
+    private void NavigationItem_Tapped(object sender, TappedRoutedEventArgs e)
+    {
+        // 只有再次点击当前选中项才切换侧栏；点别的项只切页面，不动侧栏。
+        if (!ReferenceEquals(_navItemBeforePress, sender))
+        {
+            return;
+        }
+
+        if (_paneOpenBeforePress)
+        {
+            RootNavigation.PaneDisplayMode = NavigationViewPaneDisplayMode.LeftCompact;
+            RootNavigation.IsPaneOpen = false;
+        }
+        else
+        {
+            RootNavigation.PaneDisplayMode = NavigationViewPaneDisplayMode.Left;
+            RootNavigation.IsPaneOpen = true;
+        }
     }
 
     private void RootNavigation_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
