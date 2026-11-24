@@ -45,6 +45,12 @@ public sealed partial class MainWindow : Window
 
     private void RootGrid_Loaded(object sender, RoutedEventArgs e)
     {
+        // Remove the classic window menu on title-bar right click and the
+        // shell tooltips on the three caption buttons. The title bar is
+        // registered above, so this subclass sees the non-client messages
+        // before the title bar's own handler.
+        CaptionChromeHelper.SuppressCaptionChrome(WindowHelper.GetWindowHandle(this));
+
         BackdropHelper.Apply(this);
         WindowHelper.SetWindowMinSize(this, 640, 500);
         TitleBarHelper.ApplySystemThemeToCaptionButtons(this, RootGrid.ActualTheme);
