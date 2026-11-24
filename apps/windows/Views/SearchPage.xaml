@@ -5,7 +5,7 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     NavigationCacheMode="Enabled">
 
-    <Grid Padding="24,16,24,16">
+    <Grid x:Name="SearchPageRoot">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -13,8 +13,37 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="PageMarginStates">
+                <VisualState x:Name="WidePageMargins">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="640" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SearchPageHeader.Margin" Value="{StaticResource PageHeaderMargin}" />
+                        <Setter Target="SearchInput.Margin" Value="{StaticResource PageControlMargin}" />
+                        <Setter Target="ErrorInfoBar.Margin" Value="{StaticResource PageInfoBarMargin}" />
+                        <Setter Target="SearchResultsArea.Margin" Value="{StaticResource PageContentMargin}" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="NarrowPageMargins">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="SearchPageHeader.Margin" Value="{StaticResource PageHeaderNarrowMargin}" />
+                        <Setter Target="SearchInput.Margin" Value="{StaticResource PageControlNarrowMargin}" />
+                        <Setter Target="ErrorInfoBar.Margin" Value="{StaticResource PageInfoBarNarrowMargin}" />
+                        <Setter Target="SearchResultsArea.Margin" Value="{StaticResource PageContentNarrowMargin}" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
         <TextBlock
+            x:Name="SearchPageHeader"
             x:Uid="SearchPageTitle"
+            Margin="{StaticResource PageHeaderMargin}"
             AutomationProperties.HeadingLevel="Level2"
             Style="{StaticResource TitleTextBlockStyle}"
             Text="Search" />
@@ -23,7 +52,9 @@
             x:Name="SearchInput"
             x:Uid="SearchPageInput"
             Grid.Row="1"
-            Margin="0,12,0,12"
+            Margin="{StaticResource PageControlMargin}"
+            MaxWidth="720"
+            HorizontalAlignment="Stretch"
             AutomationProperties.Name="Search notes"
             PlaceholderText="Search notes..."
             QuerySubmitted="SearchInput_QuerySubmitted"
@@ -42,6 +73,7 @@
             x:Name="ErrorInfoBar"
             x:Uid="SearchErrorBar"
             Grid.Row="2"
+            Margin="{StaticResource PageInfoBarMargin}"
             IsClosable="False"
             IsOpen="False"
             Severity="Error">
@@ -54,7 +86,12 @@
             </muxc:InfoBar.ActionButton>
         </muxc:InfoBar>
 
-        <Grid Grid.Row="3">
+        <Grid
+            x:Name="SearchResultsArea"
+            Grid.Row="3"
+            Margin="{StaticResource PageContentMargin}"
+            MaxWidth="960"
+            HorizontalAlignment="Stretch">
             <ListView
                 x:Name="ResultsList"
                 x:Uid="SearchResultsList"

@@ -183,8 +183,8 @@
   <data name="SettingsHeader.Text" xml:space="preserve">
     <value>Settings</value>
   </data>
-  <data name="SettingsSectionBehavior.Text" xml:space="preserve">
-    <value>Appearance &amp; behavior</value>
+  <data name="SettingsSectionAppearanceLanguage.Text" xml:space="preserve">
+    <value>Appearance &amp; language</value>
   </data>
   <data name="SettingsThemeComboBox.AutomationProperties.Name" xml:space="preserve">
     <value>App theme</value>
@@ -210,8 +210,11 @@
   <data name="SettingsAboutVersion.Text" xml:space="preserve">
     <value>Version 0.1.0.0</value>
   </data>
-  <data name="SettingsSectionLanguage.Text" xml:space="preserve">
-    <value>Language</value>
+  <data name="SettingsSectionDataHistory.Text" xml:space="preserve">
+    <value>Data &amp; history</value>
+  </data>
+  <data name="SettingsSectionAbout.Text" xml:space="preserve">
+    <value>About</value>
   </data>
   <data name="SettingsLanguageComboBox.AutomationProperties.Name" xml:space="preserve">
     <value>Language</value>

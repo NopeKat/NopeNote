@@ -5,7 +5,7 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     NavigationCacheMode="Enabled">
 
-    <Grid Padding="24,16,24,16" RowSpacing="12">
+    <Grid x:Name="TrashPageRoot">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -13,9 +13,37 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="PageMarginStates">
+                <VisualState x:Name="WidePageMargins">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="640" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="TrashPageHeader.Margin" Value="{StaticResource PageHeaderMargin}" />
+                        <Setter Target="StatusInfoBar.Margin" Value="{StaticResource PageInfoBarMargin}" />
+                        <Setter Target="TrashActions.Margin" Value="{StaticResource PageActionMargin}" />
+                        <Setter Target="TrashContent.Margin" Value="{StaticResource PageContentMargin}" />
+                    </VisualState.Setters>
+                </VisualState>
+                <VisualState x:Name="NarrowPageMargins">
+                    <VisualState.StateTriggers>
+                        <AdaptiveTrigger MinWindowWidth="0" />
+                    </VisualState.StateTriggers>
+                    <VisualState.Setters>
+                        <Setter Target="TrashPageHeader.Margin" Value="{StaticResource PageHeaderNarrowMargin}" />
+                        <Setter Target="StatusInfoBar.Margin" Value="{StaticResource PageInfoBarNarrowMargin}" />
+                        <Setter Target="TrashActions.Margin" Value="{StaticResource PageActionNarrowMargin}" />
+                        <Setter Target="TrashContent.Margin" Value="{StaticResource PageContentNarrowMargin}" />
+                    </VisualState.Setters>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
         <TextBlock
-            x:Name="PageHeader"
+            x:Name="TrashPageHeader"
             x:Uid="TrashHeader"
+            Margin="{StaticResource PageHeaderMargin}"
             AutomationProperties.HeadingLevel="Level2"
             Style="{StaticResource TitleTextBlockStyle}"
             Text="Trash" />
@@ -23,12 +51,15 @@
         <muxc:InfoBar
             x:Name="StatusInfoBar"
             Grid.Row="1"
+            Margin="{StaticResource PageInfoBarMargin}"
             IsClosable="True"
             IsOpen="False"
             Severity="Warning" />
 
         <StackPanel
+            x:Name="TrashActions"
             Grid.Row="2"
+            Margin="{StaticResource PageActionMargin}"
             Orientation="Horizontal"
             Spacing="8">
             <Button
@@ -47,47 +78,46 @@
                 IsEnabled="False" />
         </StackPanel>
 
-        <ListView
-            x:Name="TrashList"
-            x:Uid="TrashList"
-            Grid.Row="3"
-            AutomationProperties.Name="Trashed notes"
-            SelectionChanged="TrashList_SelectionChanged"
-            SelectionMode="Single">
-            <ListView.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Padding="8" Spacing="2">
-                        <TextBlock
-                            MaxLines="1"
-                            Style="{StaticResource BodyStrongTextBlockStyle}"
-                            Text="{Binding Title}"
-                            TextTrimming="CharacterEllipsis" />
-                        <TextBlock
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{Binding Details}" />
-                    </StackPanel>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        <Grid x:Name="TrashContent" Grid.Row="3" Margin="{StaticResource PageContentMargin}">
+            <ListView
+                x:Name="TrashList"
+                x:Uid="TrashList"
+                AutomationProperties.Name="Trashed notes"
+                SelectionChanged="TrashList_SelectionChanged"
+                SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Padding="8" Spacing="2">
+                            <TextBlock
+                                MaxLines="1"
+                                Style="{StaticResource BodyStrongTextBlockStyle}"
+                                Text="{Binding Title}"
+                                TextTrimming="CharacterEllipsis" />
+                            <TextBlock
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{Binding Details}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
 
-        <muxc:ProgressRing
-            x:Name="LoadingRing"
-            x:Uid="TrashLoadingRing"
-            Grid.Row="3"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            AutomationProperties.Name="Loading trash"
-            IsActive="False"
-            Visibility="Collapsed" />
+            <muxc:ProgressRing
+                x:Name="LoadingRing"
+                x:Uid="TrashLoadingRing"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                AutomationProperties.Name="Loading trash"
+                IsActive="False"
+                Visibility="Collapsed" />
 
-        <TextBlock
-            x:Name="EmptyStateTextBlock"
-            x:Uid="TrashEmptyState"
-            Grid.Row="3"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            Style="{StaticResource BodyTextBlockStyle}"
-            Text="The trash is empty."
-            Visibility="Collapsed" />
+            <TextBlock
+                x:Name="EmptyStateTextBlock"
+                x:Uid="TrashEmptyState"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Style="{StaticResource BodyTextBlockStyle}"
+                Text="The trash is empty."
+                Visibility="Collapsed" />
+        </Grid>
     </Grid>
 </Page>

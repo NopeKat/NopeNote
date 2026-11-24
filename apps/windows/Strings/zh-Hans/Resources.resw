@@ -183,8 +183,8 @@
   <data name="SettingsHeader.Text" xml:space="preserve">
     <value>设置</value>
   </data>
-  <data name="SettingsSectionBehavior.Text" xml:space="preserve">
-    <value>外观与行为</value>
+  <data name="SettingsSectionAppearanceLanguage.Text" xml:space="preserve">
+    <value>外观与语言</value>
   </data>
   <data name="SettingsThemeComboBox.AutomationProperties.Name" xml:space="preserve">
     <value>应用主题</value>
@@ -210,8 +210,11 @@
   <data name="SettingsAboutVersion.Text" xml:space="preserve">
     <value>版本 0.1.0.0</value>
   </data>
-  <data name="SettingsSectionLanguage.Text" xml:space="preserve">
-    <value>语言</value>
+  <data name="SettingsSectionDataHistory.Text" xml:space="preserve">
+    <value>数据与历史</value>
+  </data>
+  <data name="SettingsSectionAbout.Text" xml:space="preserve">
+    <value>关于</value>
   </data>
   <data name="SettingsLanguageComboBox.AutomationProperties.Name" xml:space="preserve">
     <value>语言</value>

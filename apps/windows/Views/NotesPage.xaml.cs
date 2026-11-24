@@ -479,8 +479,22 @@ public sealed partial class NotesPage : Page
     private void ApplyLayout(bool isNarrow)
     {
         bool hasSelection = SelectedNote is not null;
-        NotesListPanel.Visibility = isNarrow && hasSelection ? Visibility.Collapsed : Visibility.Visible;
-        NoteDetailPanel.Visibility = !isNarrow || hasSelection ? Visibility.Visible : Visibility.Collapsed;
+
+        if (isNarrow)
+        {
+            ListColumn.Width = hasSelection ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+            DetailColumn.Width = hasSelection ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+            ListPane.Visibility = hasSelection ? Visibility.Collapsed : Visibility.Visible;
+            DetailPane.Visibility = hasSelection ? Visibility.Visible : Visibility.Collapsed;
+        }
+        else
+        {
+            ListColumn.Width = (GridLength)Application.Current.Resources["MasterDetailListPaneWidth"];
+            DetailColumn.Width = new GridLength(1, GridUnitType.Star);
+            ListPane.Visibility = Visibility.Visible;
+            DetailPane.Visibility = Visibility.Visible;
+        }
+
         BackToListButton.Visibility = isNarrow && hasSelection ? Visibility.Visible : Visibility.Collapsed;
     }
 }
