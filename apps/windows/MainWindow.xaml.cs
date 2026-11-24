@@ -37,6 +37,11 @@ public sealed partial class MainWindow : Window
         {
             _uiSettings = null;
         }
+
+        if (AppWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.Maximize();
+        }
     }
 
     internal void InitializeNavigation()
