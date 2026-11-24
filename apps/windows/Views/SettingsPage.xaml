@@ -14,7 +14,7 @@
         </Style>
     </Page.Resources>
 
-    <Grid Padding="24,16,24,16">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -24,6 +24,7 @@
             x:Name="PageHeader"
             x:Uid="SettingsHeader"
             MaxWidth="{StaticResource SettingsPageMaxWidth}"
+            Margin="24,16,24,0"
             AutomationProperties.HeadingLevel="Level2"
             Style="{StaticResource TitleTextBlockStyle}"
             Text="Settings" />
@@ -32,11 +33,11 @@
             Grid.Row="1"
             VerticalScrollBarVisibility="Auto"
             VerticalScrollMode="Auto">
-            <Border>
-                <StackPanel
-                    MaxWidth="{StaticResource SettingsPageMaxWidth}"
-                    HorizontalAlignment="Left"
-                    Spacing="{StaticResource SettingsCardSpacing}">
+            <Grid Padding="24,0,24,16">
+                <Border>
+                    <StackPanel
+                        MaxWidth="{StaticResource SettingsPageMaxWidth}"
+                        Spacing="{StaticResource SettingsCardSpacing}">
                     <StackPanel.ChildrenTransitions>
                         <RepositionThemeTransition />
                     </StackPanel.ChildrenTransitions>
@@ -118,7 +119,8 @@
                             Text="Version 0.1.0.0" />
                     </toolkit:SettingsExpander>
                 </StackPanel>
-            </Border>
+                </Border>
+            </Grid>
         </ScrollView>
     </Grid>
 </Page>
