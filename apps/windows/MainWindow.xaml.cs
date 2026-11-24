@@ -6,11 +6,13 @@ using Microsoft.UI.Xaml.Navigation;
 using NopeNote.Windows.Helpers;
 using NopeNote.Windows.Views;
 using System;
+using Windows.UI.ViewManagement;
 
 namespace NopeNote.Windows;
 
 public sealed partial class MainWindow : Window
 {
+    private UISettings? _uiSettings;
     private bool _isNavigating;
 
     public MainWindow()
@@ -23,6 +25,16 @@ public sealed partial class MainWindow : Window
         AppWindow.SetIcon("Assets/Tiles/NopeNoteIcon.ico");
 
         RootGrid.ActualThemeChanged += RootGrid_ActualThemeChanged;
+
+        try
+        {
+            _uiSettings = new UISettings();
+            _uiSettings.ColorValuesChanged += UISettings_ColorValuesChanged;
+        }
+        catch (Exception)
+        {
+            _uiSettings = null;
+        }
     }
 
     internal void InitializeNavigation()
@@ -39,6 +51,11 @@ public sealed partial class MainWindow : Window
     }
 
     private void RootGrid_ActualThemeChanged(FrameworkElement sender, object args)
+    {
+        TitleBarHelper.ApplySystemThemeToCaptionButtons(this, RootGrid.ActualTheme);
+    }
+
+    private void UISettings_ColorValuesChanged(UISettings sender, object args)
     {
         TitleBarHelper.ApplySystemThemeToCaptionButtons(this, RootGrid.ActualTheme);
     }

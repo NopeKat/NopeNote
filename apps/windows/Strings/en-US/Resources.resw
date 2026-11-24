@@ -104,6 +104,18 @@
   <data name="SearchPageVaultError" xml:space="preserve">
     <value>The vault could not be opened, so search is unavailable.</value>
   </data>
+  <data name="SearchResultsList.AutomationProperties.Name" xml:space="preserve">
+    <value>Search results</value>
+  </data>
+  <data name="SearchErrorBar.Title" xml:space="preserve">
+    <value>Search unavailable</value>
+  </data>
+  <data name="SearchRetryButton.Content" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="SearchRetryButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Retry loading search results</value>
+  </data>
 
   <!-- Notes page -->
   <data name="NotesErrorBar.AutomationProperties.Name" xml:space="preserve">
@@ -135,6 +147,9 @@
   </data>
   <data name="NotesCommandBarTitle.Text" xml:space="preserve">
     <value>Quick notes</value>
+  </data>
+  <data name="NotesUntitled" xml:space="preserve">
+    <value>Untitled note</value>
   </data>
   <data name="NotesLoadingRing.AutomationProperties.Name" xml:space="preserve">
     <value>Loading notes</value>
@@ -223,6 +238,9 @@
   </data>
   <data name="TrashList.AutomationProperties.Name" xml:space="preserve">
     <value>Trashed notes</value>
+  </data>
+  <data name="TrashLoadingRing.AutomationProperties.Name" xml:space="preserve">
+    <value>Loading trash</value>
   </data>
   <data name="TrashEmptyState.Text" xml:space="preserve">
     <value>The trash is empty.</value>

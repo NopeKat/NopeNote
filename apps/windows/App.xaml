@@ -15,13 +15,11 @@
 
             <!-- 取自 Gallery 3.0.4 SettingsPage.xaml 的布局值 -->
             <x:Double x:Key="SettingsPageMaxWidth">1064</x:Double>
-            <Thickness x:Key="SettingsPageHeaderMargin">36,24,36,0</Thickness>
-            <Thickness x:Key="SettingsPageContentPadding">36,0,36,0</Thickness>
             <Thickness x:Key="SettingsSectionHeaderMargin">1,30,0,6</Thickness>
 
             <!-- NopeNote 自有页面布局值，集中定义避免散落硬编码 -->
+            <Thickness x:Key="NotesPageHeaderMargin">24,16,24,0</Thickness>
             <Thickness x:Key="NotesDetailPanePadding">24,12,24,12</Thickness>
-            <Thickness x:Key="NotesCommandBarContentMargin">16,8,0,8</Thickness>
             <Thickness x:Key="NotesListMargin">12</Thickness>
             <Thickness x:Key="NoteItemPadding">12</Thickness>
             <Thickness x:Key="AutomationStatusMargin">10,0,0,0</Thickness>

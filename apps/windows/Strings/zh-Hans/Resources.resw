@@ -104,6 +104,18 @@
   <data name="SearchPageVaultError" xml:space="preserve">
     <value>仓库打开失败，暂时无法搜索。</value>
   </data>
+  <data name="SearchResultsList.AutomationProperties.Name" xml:space="preserve">
+    <value>搜索结果</value>
+  </data>
+  <data name="SearchErrorBar.Title" xml:space="preserve">
+    <value>搜索不可用</value>
+  </data>
+  <data name="SearchRetryButton.Content" xml:space="preserve">
+    <value>重试</value>
+  </data>
+  <data name="SearchRetryButton.AutomationProperties.Name" xml:space="preserve">
+    <value>重试加载搜索结果</value>
+  </data>
 
   <!-- Notes page -->
   <data name="NotesErrorBar.AutomationProperties.Name" xml:space="preserve">
@@ -135,6 +147,9 @@
   </data>
   <data name="NotesCommandBarTitle.Text" xml:space="preserve">
     <value>快速笔记</value>
+  </data>
+  <data name="NotesUntitled" xml:space="preserve">
+    <value>无标题笔记</value>
   </data>
   <data name="NotesLoadingRing.AutomationProperties.Name" xml:space="preserve">
     <value>正在加载笔记</value>
@@ -223,6 +238,9 @@
   </data>
   <data name="TrashList.AutomationProperties.Name" xml:space="preserve">
     <value>已删除的笔记</value>
+  </data>
+  <data name="TrashLoadingRing.AutomationProperties.Name" xml:space="preserve">
+    <value>正在加载回收站</value>
   </data>
   <data name="TrashEmptyState.Text" xml:space="preserve">
     <value>回收站为空。</value>

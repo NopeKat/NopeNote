@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using NopeNote.Core.Notes;
 using NopeNote.Core.Vault;
+using NopeNote.Windows.Helpers;
 
 namespace NopeNote.Windows.Models;
 
@@ -38,7 +39,7 @@ public sealed class Note : INotifyPropertyChanged
 
     public bool IsDraft { get; private set; }
 
-    public string DisplayTitle { get; private set; } = "(Untitled note)";
+    public string DisplayTitle { get; private set; } = Strings.Get("NotesUntitled");
 
     public string Text
     {
@@ -131,7 +132,7 @@ public sealed class Note : INotifyPropertyChanged
             return trimmed.Length <= 80 ? trimmed : trimmed[..80];
         }
 
-        return "(Untitled note)";
+        return Strings.Get("NotesUntitled");
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

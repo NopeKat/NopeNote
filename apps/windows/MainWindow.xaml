@@ -44,6 +44,7 @@
                 Margin="{StaticResource AutomationStatusMargin}"
                 VerticalAlignment="Center"
                 AutomationProperties.AutomationId="__CurrentPage"
+                AutomationProperties.AccessibilityView="Raw"
                 IsHitTestVisible="False"
                 Opacity="0"
                 Style="{StaticResource SubtitleTextBlockStyle}" />
@@ -51,16 +52,19 @@
                 x:Name="IdleStateEnteredCheckBox"
                 AutomationProperties.AutomationId="__IdleStateEntered"
                 AutomationProperties.Name="Idle state entered"
+                AutomationProperties.AccessibilityView="Raw"
                 Style="{StaticResource AutomationHelperStyle}" />
             <TextBox
                 x:Name="LogReportingTextBox"
                 AutomationProperties.AutomationId="__IdleLog"
                 AutomationProperties.Name="Idle log"
+                AutomationProperties.AccessibilityView="Raw"
                 Style="{StaticResource AutomationHelperStyle}" />
             <TextBox
                 x:Name="ErrorReportingTextBox"
                 AutomationProperties.AutomationId="__IdleError"
                 AutomationProperties.Name="Idle error"
+                AutomationProperties.AccessibilityView="Raw"
                 Style="{StaticResource AutomationHelperStyle}" />
             <Button
                 x:Name="GoBackInvokerButton"
@@ -68,6 +72,7 @@
                 AutomationProperties.Name="Go back"
                 Click="GoBackInvokerButton_Click"
                 Content="Go back"
+                AutomationProperties.AccessibilityView="Raw"
                 Style="{StaticResource AutomationHelperStyle}" />
             <Button
                 x:Name="CloseAppInvokerButton"
@@ -75,6 +80,7 @@
                 AutomationProperties.Name="Close app"
                 Click="CloseAppInvokerButton_Click"
                 Content="Close"
+                AutomationProperties.AccessibilityView="Raw"
                 Style="{StaticResource AutomationHelperStyle}" />
             <Button
                 x:Name="WaitForIdleInvokerButton"
@@ -82,6 +88,7 @@
                 AutomationProperties.Name="Wait for idle"
                 Click="WaitForIdleInvokerButton_Click"
                 Content="Wait for idle"
+                AutomationProperties.AccessibilityView="Raw"
                 Style="{StaticResource AutomationHelperStyle}" />
 
             <muxc:NavigationView

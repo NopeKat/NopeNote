@@ -14,7 +14,7 @@
         </Style>
     </Page.Resources>
 
-    <Grid>
+    <Grid Padding="24,16,24,16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -24,24 +24,26 @@
             x:Name="PageHeader"
             x:Uid="SettingsHeader"
             MaxWidth="{StaticResource SettingsPageMaxWidth}"
-            Margin="{StaticResource SettingsPageHeaderMargin}"
             AutomationProperties.HeadingLevel="Level2"
             Style="{StaticResource TitleTextBlockStyle}"
             Text="Settings" />
 
         <ScrollView
             Grid.Row="1"
-            Padding="{StaticResource SettingsPageContentPadding}"
             VerticalScrollBarVisibility="Auto"
             VerticalScrollMode="Auto">
             <Border>
-                <StackPanel MaxWidth="{StaticResource SettingsPageMaxWidth}" Spacing="{StaticResource SettingsCardSpacing}">
+                <StackPanel
+                    MaxWidth="{StaticResource SettingsPageMaxWidth}"
+                    HorizontalAlignment="Left"
+                    Spacing="{StaticResource SettingsCardSpacing}">
                     <StackPanel.ChildrenTransitions>
                         <RepositionThemeTransition />
                     </StackPanel.ChildrenTransitions>
 
                     <TextBlock
                         x:Uid="SettingsSectionBehavior"
+                        AutomationProperties.HeadingLevel="Level3"
                         Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
                         Text="Appearance &amp; behavior" />
 
@@ -85,6 +87,7 @@
 
                     <TextBlock
                         x:Uid="SettingsSectionLanguage"
+                        AutomationProperties.HeadingLevel="Level3"
                         Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
                         Text="Language" />
 

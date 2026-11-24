@@ -39,9 +39,14 @@ public sealed partial class SearchPage : Page
 
     private async Task EnsureNotesLoadedAsync()
     {
-        if (ViewModel.IsLoaded || _isLoading || _loadFailed)
+        if (ViewModel.IsLoaded || _loadFailed)
         {
             ApplyFilter();
+            return;
+        }
+
+        if (_isLoading)
+        {
             return;
         }
 
@@ -53,22 +58,35 @@ public sealed partial class SearchPage : Page
             VaultOpenResult opened = await VaultService.Current.GetVaultAsync();
             if (opened.Store is null)
             {
-                _loadFailed = true;
+                ShowError(opened.Message);
                 return;
             }
 
             ViewModel.Attach(opened.Store);
             await ViewModel.LoadAsync();
+            ErrorInfoBar.IsOpen = false;
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            _loadFailed = true;
+            ShowError(string.IsNullOrWhiteSpace(exception.Message)
+                ? exception.GetType().Name
+                : exception.Message);
         }
         finally
         {
             _isLoading = false;
             ApplyFilter();
         }
+    }
+
+    private void ShowError(string detail)
+    {
+        _loadFailed = true;
+        string hint = Strings.Get("NotesVaultOpenFailedHint");
+        ErrorInfoBar.Message = string.IsNullOrWhiteSpace(detail)
+            ? Strings.Get("SearchPageVaultError")
+            : $"{detail} {hint}";
+        ErrorInfoBar.IsOpen = true;
     }
 
     private void ApplyFilter()
@@ -92,8 +110,7 @@ public sealed partial class SearchPage : Page
         if (_loadFailed)
         {
             ResultsList.Visibility = Visibility.Collapsed;
-            EmptyText.Text = Strings.Get("SearchPageVaultError");
-            EmptyText.Visibility = Visibility.Visible;
+            EmptyText.Visibility = Visibility.Collapsed;
             return;
         }
 
@@ -121,6 +138,14 @@ public sealed partial class SearchPage : Page
     private void SearchInput_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
         ApplyFilter();
+    }
+
+    private async void RetryButton_Click(object sender, RoutedEventArgs e)
+    {
+        _loadFailed = false;
+        ErrorInfoBar.IsOpen = false;
+        VaultService.Current.Reset();
+        await EnsureNotesLoadedAsync();
     }
 
     private void ResultsList_ItemClick(object sender, ItemClickEventArgs e)

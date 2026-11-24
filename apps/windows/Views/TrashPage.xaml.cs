@@ -32,6 +32,7 @@ public sealed class TrashItem
 public sealed partial class TrashPage : Page
 {
     private IReadOnlyList<TrashItem> _items = Array.Empty<TrashItem>();
+    private bool _isLoading;
 
     public TrashPage()
     {
@@ -46,18 +47,20 @@ public sealed partial class TrashPage : Page
 
     private async Task LoadAsync()
     {
-        IVaultStore? store = VaultService.Current.Store;
-        if (store is null)
-        {
-            ShowStatus(
-                Strings.Get("TrashVaultMissingTitle"),
-                Strings.Get("TrashVaultMissingMessage"),
-                InfoBarSeverity.Error);
-            return;
-        }
+        SetLoading(true);
 
         try
         {
+            IVaultStore? store = VaultService.Current.Store;
+            if (store is null)
+            {
+                ShowStatus(
+                    Strings.Get("TrashVaultMissingTitle"),
+                    Strings.Get("TrashVaultMissingMessage"),
+                    InfoBarSeverity.Error);
+                return;
+            }
+
             IReadOnlyList<TrashNoteSummary> summaries = await store.ListTrashAsync();
             _items = summaries.Select(summary => new TrashItem(summary)).ToArray();
             TrashList.ItemsSource = _items;
@@ -81,15 +84,38 @@ public sealed partial class TrashPage : Page
         {
             ShowStatus(Strings.Get("TrashLoadFailedTitle"), exception.Message, InfoBarSeverity.Error);
         }
+        finally
+        {
+            SetLoading(false);
+        }
+    }
+
+    private void SetLoading(bool isLoading)
+    {
+        _isLoading = isLoading;
+        LoadingRing.IsActive = isLoading;
+        LoadingRing.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
+        TrashList.Visibility = isLoading ? Visibility.Collapsed : Visibility.Visible;
+
+        if (isLoading)
+        {
+            EmptyStateTextBlock.Visibility = Visibility.Collapsed;
+        }
+
+        UpdateActionState();
+    }
+
+    private void UpdateActionState()
+    {
+        bool writable = VaultService.Current.IsWritable;
+        bool hasSelection = TrashList.SelectedItem is TrashItem;
+        RestoreButton.IsEnabled = !_isLoading && writable && hasSelection;
+        PurgeButton.IsEnabled = !_isLoading && writable && hasSelection;
     }
 
     private void TrashList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        bool writable = VaultService.Current.IsWritable;
-        bool hasSelection = TrashList.SelectedItem is TrashItem;
-
-        RestoreButton.IsEnabled = writable && hasSelection;
-        PurgeButton.IsEnabled = writable && hasSelection;
+        UpdateActionState();
     }
 
     private async void RestoreButton_Click(object sender, RoutedEventArgs e)
