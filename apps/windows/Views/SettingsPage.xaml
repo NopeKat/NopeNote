@@ -169,6 +169,14 @@
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                             IsTextSelectionEnabled="True"
                             Text="Version 0.1.0.0" />
+                        <toolkit:SettingsExpander.Items>
+                            <toolkit:SettingsCard Header="GitHub">
+                                <HyperlinkButton
+                                    AutomationProperties.Name="Open the NopeNote GitHub repository"
+                                    Content="NopeKat/NopeNote"
+                                    NavigateUri="https://github.com/NopeKat/NopeNote" />
+                            </toolkit:SettingsCard>
+                        </toolkit:SettingsExpander.Items>
                     </toolkit:SettingsExpander>
                 </StackPanel>
                 </Border>
