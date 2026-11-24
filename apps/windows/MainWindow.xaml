@@ -99,6 +99,7 @@
                 IsBackButtonVisible="Collapsed"
                 IsPaneToggleButtonVisible="False"
                 IsTabStop="False"
+                OpenPaneLength="240"
                 SelectionChanged="RootNavigation_SelectionChanged">
                 <muxc:NavigationView.MenuItems>
                     <muxc:NavigationViewItem
