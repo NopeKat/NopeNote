@@ -145,7 +145,7 @@
                 Margin="{StaticResource NotesListMargin}"
                 IsItemInvokedEnabled="True"
                 ItemInvoked="NotesItemsView_ItemInvoked"
-                ItemTemplate="{StaticResource NoteItemTemplate}"
+                ItemTemplate="{StaticResource NoteItemsViewItemTemplate}"
                 ItemsSource="{x:Bind ViewModel.Notes}"
                 SelectionMode="Single">
                 <muxc:ItemsView.Layout>

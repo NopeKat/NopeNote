@@ -3,6 +3,29 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!-- 按 Gallery 3.0.4 AGENTS.md 的渐进式示例原则，只展示标题与摘要两个概念，保持模板小且可复用 -->
+    <DataTemplate x:Key="NoteItemsViewItemTemplate">
+        <ItemContainer AutomationProperties.Name="{Binding DisplayTitle}">
+            <Grid Padding="{StaticResource NoteItemPadding}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock
+                    MaxLines="1"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Text="{Binding DisplayTitle}"
+                    TextTrimming="CharacterEllipsis" />
+                <TextBlock
+                    Grid.Row="1"
+                    MaxLines="2"
+                    AutomationProperties.AccessibilityView="Raw"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{Binding Text}"
+                    TextTrimming="CharacterEllipsis" />
+            </Grid>
+        </ItemContainer>
+    </DataTemplate>
+
     <DataTemplate x:Key="NoteItemTemplate">
         <Grid Padding="{StaticResource NoteItemPadding}" AutomationProperties.Name="{Binding DisplayTitle}">
             <Grid.RowDefinitions>
