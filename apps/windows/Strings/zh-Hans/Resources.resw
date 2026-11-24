@@ -78,6 +78,12 @@
   <data name="NavTrash.AutomationProperties.Name" xml:space="preserve">
     <value>回收站</value>
   </data>
+  <data name="NavSettings.Content" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="NavSettings.AutomationProperties.Name" xml:space="preserve">
+    <value>设置</value>
+  </data>
 
   <!-- Search page -->
   <data name="SearchPageTitle.Text" xml:space="preserve">

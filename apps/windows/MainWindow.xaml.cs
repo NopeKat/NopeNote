@@ -56,12 +56,6 @@ public sealed partial class MainWindow : Window
         BackdropHelper.Apply(this);
         WindowHelper.SetWindowMinSize(this, 640, 500);
         TitleBarHelper.ApplySystemThemeToCaptionButtons(this, RootGrid.ActualTheme);
-
-        if (RootNavigation.SettingsItem is NavigationViewItem settingsItem)
-        {
-            settingsItem.PointerPressed += NavigationItem_PointerPressed;
-            settingsItem.Tapped += NavigationItem_Tapped;
-        }
     }
 
     private void RootGrid_ActualThemeChanged(FrameworkElement sender, object args)
@@ -128,17 +122,16 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        // 设置入口沿用 NavigationView 内置页脚项，选中状态由 IsSettingsSelected 表达
-        Type? pageType = args.IsSettingsSelected
-            ? typeof(SettingsPage)
-            : args.SelectedItem is NavigationViewItem item
-                ? item.Tag?.ToString() switch
-                {
-                    "Search" => typeof(SearchPage),
-                    "Trash" => typeof(TrashPage),
-                    _ => typeof(NotesPage),
-                }
-                : null;
+        // 设置入口现在是普通页脚导航项，和其他导航项共用同一套选中逻辑
+        Type? pageType = args.SelectedItem is NavigationViewItem item
+            ? item.Tag?.ToString() switch
+            {
+                "Search" => typeof(SearchPage),
+                "Trash" => typeof(TrashPage),
+                "Settings" => typeof(SettingsPage),
+                _ => typeof(NotesPage),
+            }
+            : null;
 
         if (pageType is null || ContentFrame.CurrentSourcePageType == pageType)
         {
@@ -154,7 +147,7 @@ public sealed partial class MainWindow : Window
 
         if (e.SourcePageType == typeof(SettingsPage))
         {
-            RootNavigation.SelectedItem = RootNavigation.SettingsItem;
+            SettingsNavItem.IsSelected = true;
             CurrentPageTextBlock.Text = "Settings";
         }
         else if (e.SourcePageType == typeof(TrashPage))

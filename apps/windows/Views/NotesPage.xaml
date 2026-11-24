@@ -81,18 +81,31 @@
                 x:Uid="NotesBackButton"
                 AutomationProperties.Name="Back to notes list"
                 Click="BackToListButton_Click"
-                Icon="Back"
                 KeyboardAcceleratorPlacementMode="Auto"
                 Label="Back"
-                Visibility="Collapsed" />
+                Visibility="Collapsed">
+                <muxc:AppBarButton.Icon>
+                    <muxc:PathIcon
+                        Width="20"
+                        Height="20"
+                        Data="M9.16 16.87a.5.5 0 1 0 .67-.74L3.67 10.5H17.5a.5.5 0 0 0 0-1H3.67l6.16-5.63a.5.5 0 0 0-.67-.74L2.24 9.44a.75.75 0 0 0 0 1.11z"
+                        AutomationProperties.AccessibilityView="Raw" />
+                </muxc:AppBarButton.Icon>
+            </muxc:AppBarButton>
             <muxc:AppBarButton
                 x:Name="NewNoteButton"
                 x:Uid="NotesNewButton"
                 AutomationProperties.Name="New note"
                 Click="NewNoteButton_Click"
-                Icon="Add"
                 KeyboardAcceleratorPlacementMode="Auto"
                 Label="New note">
+                <muxc:AppBarButton.Icon>
+                    <muxc:PathIcon
+                        Width="20"
+                        Height="20"
+                        Data="M10 2.5c.28 0 .5.22.5.5v6.5H17a.5.5 0 0 1 0 1h-6.5V17a.5.5 0 0 1-1 0v-6.5H3a.5.5 0 0 1 0-1h6.5V3c0-.28.22-.5.5-.5"
+                        AutomationProperties.AccessibilityView="Raw" />
+                </muxc:AppBarButton.Icon>
                 <muxc:AppBarButton.KeyboardAccelerators>
                     <input:KeyboardAccelerator Key="N" Modifiers="Control" />
                 </muxc:AppBarButton.KeyboardAccelerators>
@@ -102,10 +115,16 @@
                 x:Uid="NotesDeleteButton"
                 AutomationProperties.Name="Delete note"
                 Click="DeleteNoteButton_Click"
-                Icon="Delete"
                 IsEnabled="False"
                 KeyboardAcceleratorPlacementMode="Auto"
                 Label="Delete">
+                <muxc:AppBarButton.Icon>
+                    <muxc:PathIcon
+                        Width="20"
+                        Height="20"
+                        Data="M8.5 4h3a1.5 1.5 0 0 0-3 0m-1 0a2.5 2.5 0 0 1 5 0h5a.5.5 0 0 1 0 1h-1.05l-1.2 10.34A3 3 0 0 1 12.27 18H7.73a3 3 0 0 1-2.98-2.66L3.55 5H2.5a.5.5 0 0 1 0-1zM5.74 15.23A2 2 0 0 0 7.73 17h4.54a2 2 0 0 0 1.99-1.77L15.44 5H4.56zM8.5 7.5c.28 0 .5.22.5.5v6a.5.5 0 0 1-1 0V8c0-.28.22-.5.5-.5M12 8a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"
+                        AutomationProperties.AccessibilityView="Raw" />
+                </muxc:AppBarButton.Icon>
                 <muxc:AppBarButton.KeyboardAccelerators>
                     <input:KeyboardAccelerator Key="Delete" />
                 </muxc:AppBarButton.KeyboardAccelerators>

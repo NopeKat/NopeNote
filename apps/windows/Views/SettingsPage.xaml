@@ -50,7 +50,11 @@
 
                     <toolkit:SettingsCard x:Name="AppThemeCard">
                         <toolkit:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE790;" AutomationProperties.AccessibilityView="Raw" />
+                            <PathIcon
+                                Width="20"
+                                Height="20"
+                                Data="M10 2a8 8 0 0 1 3.39 15.25c-1.09.5-2.33.44-3.3-.06a2.9 2.9 0 0 1-1.64-2.73q.04-.68.14-1.24.1-.59.14-1.02.03-.44-.08-.73-.09-.3-.45-.57a1 1 0 0 0-.84-.24q-.43.09-1.02.39c-.73.36-1.77.94-2.97.33-1.1-.56-1.43-1.87-1.22-2.92A8 8 0 0 1 10 2m0 1a7 7 0 0 0-6.87 5.66c-.15.78.13 1.54.69 1.83.68.35 1.25.07 2.08-.34.38-.18.83-.4 1.31-.48.52-.07 1.06.03 1.59.43q.58.44.79 1.02c.14.38.16.77.14 1.14s-.1.75-.15 1.12q-.1.55-.13 1.12c-.03.8.42 1.44 1.1 1.8.7.36 1.62.42 2.41.04A7 7 0 0 0 10 3m2.5 10a1 1 0 1 1 0 2 1 1 0 0 1 0-2m2-2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2m0-3a1 1 0 1 1 0 2 1 1 0 0 1 0-2m-2-2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2m-3-.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2"
+                                AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <ComboBox
                             x:Name="ThemeModeComboBox"
@@ -66,7 +70,11 @@
 
                     <toolkit:SettingsCard x:Name="VaultCard">
                         <toolkit:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE8B7;" AutomationProperties.AccessibilityView="Raw" />
+                            <PathIcon
+                                Width="20"
+                                Height="20"
+                                Data="M4.5 3A2.5 2.5 0 0 0 2 5.5v9A2.5 2.5 0 0 0 4.5 17h11a2.5 2.5 0 0 0 2.5-2.5v-7A2.5 2.5 0 0 0 15.5 5H9.7L8.23 3.51A1.8 1.8 0 0 0 6.98 3zM3 5.5C3 4.67 3.67 4 4.5 4h2.48q.32 0 .53.22L8.8 5.5 7.44 6.85a.5.5 0 0 1-.35.15H3zM3 8h4.09c.4 0 .78-.16 1.06-.44L9.7 6h5.79c.83 0 1.5.67 1.5 1.5v7c0 .83-.67 1.5-1.5 1.5h-11A1.5 1.5 0 0 1 3 14.5z"
+                                AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <Button
                             x:Uid="ChangeVaultButton"
@@ -77,7 +85,11 @@
 
                     <toolkit:SettingsCard x:Name="VersionHistoryCard">
                         <toolkit:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE81C;" AutomationProperties.AccessibilityView="Raw" />
+                            <PathIcon
+                                Width="20"
+                                Height="20"
+                                Data="M10 4a6 6 0 1 1-5.98 5.54.5.5 0 1 0-1-.08L3 10a7 7 0 1 0 2-4.9V3.5a.5.5 0 0 0-1 0v3c0 .28.22.5.5.5h3a.5.5 0 0 0 0-1H5.53c1.1-1.23 2.7-2 4.47-2m0 2.5a.5.5 0 0 0-1 0v4c0 .28.22.5.5.5h3a.5.5 0 0 0 0-1H10z"
+                                AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <ToggleSwitch
                             x:Name="GitToggle"
@@ -94,7 +106,11 @@
 
                     <toolkit:SettingsCard x:Name="LanguageCard">
                         <toolkit:SettingsCard.HeaderIcon>
-                            <FontIcon Glyph="&#xE774;" AutomationProperties.AccessibilityView="Raw" />
+                            <PathIcon
+                                Width="20"
+                                Height="20"
+                                Data="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16m0-15c.66 0 1.4.59 2.02 1.9q.33.71.56 1.6H7.42q.23-.89.56-1.6C8.59 3.6 9.34 3 10 3M7.07 4.49q-.4.9-.68 2.01H3.94A7 7 0 0 1 7.7 3.38q-.36.5-.64 1.1M6.2 7.5a16 16 0 0 0 0 5H3.46a7 7 0 0 1 0-5zm.2 6q.26 1.12.68 2.01.28.61.64 1.1a7 7 0 0 1-3.77-3.11zm1.03 0h5.16a9 9 0 0 1-.56 1.6C11.41 16.4 10.66 17 10 17s-1.4-.59-2.02-1.9q-.33-.71-.56-1.6m5.37-1H7.21a15 15 0 0 1 0-5h5.58a15 15 0 0 1 0 5m.82 1h2.45a7 7 0 0 1-3.77 3.12q.36-.5.64-1.1.4-.9.68-2.02m2.93-1h-2.73a16 16 0 0 0 0-5h2.73a7 7 0 0 1 0 5m-4.25-9.12a7 7 0 0 1 3.77 3.12h-2.45a11 11 0 0 0-.68-2.01q-.28-.61-.64-1.1"
+                                AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsCard.HeaderIcon>
                         <ComboBox
                             x:Name="LanguageModeComboBox"
@@ -110,7 +126,11 @@
 
                     <toolkit:SettingsExpander x:Name="AboutExpander">
                         <toolkit:SettingsExpander.HeaderIcon>
-                            <FontIcon Glyph="&#xE897;" AutomationProperties.AccessibilityView="Raw" />
+                            <PathIcon
+                                Width="20"
+                                Height="20"
+                                Data="M10 3a4 4 0 0 0-4 4 .5.5 0 0 0 1 0 3 3 0 0 1 6 0c0 1.25-.7 1.86-1.58 2.62l-.03.03c-.86.73-1.89 1.62-1.89 3.35v.5a.5.5 0 0 0 1 0V13c0-1.25.7-1.86 1.58-2.62l.03-.03C12.97 9.62 14 8.73 14 7a4 4 0 0 0-4-4m0 14a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5"
+                                AutomationProperties.AccessibilityView="Raw" />
                         </toolkit:SettingsExpander.HeaderIcon>
                         <TextBlock
                             x:Uid="SettingsAboutVersion"
