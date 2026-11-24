@@ -85,10 +85,11 @@
                 Label="Back"
                 Visibility="Collapsed">
                 <muxc:AppBarButton.Icon>
+                    <!-- Fluent UI System Icons: arrow_left_16_regular; ink 11.99 x 10.15 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
                     <muxc:PathIcon
-                        Width="20"
-                        Height="20"
-                        Data="M9.16 16.87a.5.5 0 1 0 .67-.74L3.67 10.5H17.5a.5.5 0 0 0 0-1H3.67l6.16-5.63a.5.5 0 0 0-.67-.74L2.24 9.44a.75.75 0 0 0 0 1.11z"
+                        Width="16"
+                        Height="16"
+                        Data="F1 M14.416 8.584A0.584 0.584 0 0 0 14.416 7.416H3.094L7.798 3.179A0.584 0.584 0 1 0 7.027 2.315L1.191 7.568A0.584 0.584 0 0 0 1.191 8.432L7.027 13.685A0.584 0.584 0 1 0 7.798 12.821L3.094 8.584Z"
                         AutomationProperties.AccessibilityView="Raw" />
                 </muxc:AppBarButton.Icon>
             </muxc:AppBarButton>
@@ -100,10 +101,11 @@
                 KeyboardAcceleratorPlacementMode="Auto"
                 Label="New note">
                 <muxc:AppBarButton.Icon>
+                    <!-- Fluent UI System Icons: add_16_regular; ink 12.00 x 12.00 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
                     <muxc:PathIcon
-                        Width="20"
-                        Height="20"
-                        Data="M10 2.5c.28 0 .5.22.5.5v6.5H17a.5.5 0 0 1 0 1h-6.5V17a.5.5 0 0 1-1 0v-6.5H3a.5.5 0 0 1 0-1h6.5V3c0-.28.22-.5.5-.5"
+                        Width="16"
+                        Height="16"
+                        Data="F1 M8 1C8.327 1 8.583 1.257 8.583 1.583V7.417H14.417A0.583 0.583 0 0 1 14.417 8.583H8.583V14.417A0.583 0.583 0 0 1 7.417 14.417V8.583H1.583A0.583 0.583 0 0 1 1.583 7.417H7.417V1.583C7.417 1.257 7.673 1 8 1"
                         AutomationProperties.AccessibilityView="Raw" />
                 </muxc:AppBarButton.Icon>
                 <muxc:AppBarButton.KeyboardAccelerators>
@@ -119,10 +121,11 @@
                 KeyboardAcceleratorPlacementMode="Auto"
                 Label="Delete">
                 <muxc:AppBarButton.Icon>
+                    <!-- Fluent UI System Icons: delete_16_regular; ink 13.00 x 14.01 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
                     <muxc:PathIcon
-                        Width="20"
-                        Height="20"
-                        Data="M8.5 4h3a1.5 1.5 0 0 0-3 0m-1 0a2.5 2.5 0 0 1 5 0h5a.5.5 0 0 1 0 1h-1.05l-1.2 10.34A3 3 0 0 1 12.27 18H7.73a3 3 0 0 1-2.98-2.66L3.55 5H2.5a.5.5 0 0 1 0-1zM5.74 15.23A2 2 0 0 0 7.73 17h4.54a2 2 0 0 0 1.99-1.77L15.44 5H4.56zM8.5 7.5c.28 0 .5.22.5.5v6a.5.5 0 0 1-1 0V8c0-.28.22-.5.5-.5M12 8a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"
+                        Width="16"
+                        Height="16"
+                        Data="F1 M7.001 2.998H8.999A0.999 0.999 0 0 0 7.001 2.998M6.002 2.998A1.998 1.998 0 1 1 9.998 2.998H13.995A0.5 0.5 0 0 1 13.995 3.997H13.435L12.236 12.83A2.498 2.498 0 0 1 9.739 14.988H6.241A2.498 2.498 0 0 1 3.764 12.83L2.575 3.997H2.005A0.5 0.5 0 0 1 2.005 2.998ZM7.001 6.495A0.5 0.5 0 0 0 6.002 6.495V11.491A0.5 0.5 0 0 0 7.001 11.491ZM9.499 5.996C9.779 5.996 9.998 6.216 9.998 6.495V11.491A0.5 0.5 0 0 1 8.999 11.491V6.495C8.999 6.216 9.219 5.996 9.499 5.996M4.763 12.69C4.863 13.44 5.502 13.989 6.251 13.989H9.749A1.499 1.499 0 0 0 11.247 12.69L12.416 3.997H3.574Z"
                         AutomationProperties.AccessibilityView="Raw" />
                 </muxc:AppBarButton.Icon>
                 <muxc:AppBarButton.KeyboardAccelerators>
