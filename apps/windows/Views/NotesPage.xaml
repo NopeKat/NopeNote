@@ -22,6 +22,7 @@
                         <Setter Target="NotesPageHeader.Margin" Value="{StaticResource PageHeaderMargin}" />
                         <Setter Target="NotesCommandBar.Margin" Value="{StaticResource PageCommandBarMargin}" />
                         <Setter Target="DetailHeader.Margin" Value="{StaticResource PageHeaderMargin}" />
+                        <Setter Target="NoteMetaBar.Margin" Value="{StaticResource PageControlMargin}" />
                         <Setter Target="NoteDetailPanel.Padding" Value="{StaticResource NotesDetailPanePadding}" />
                     </VisualState.Setters>
                 </VisualState>
@@ -33,6 +34,7 @@
                         <Setter Target="NotesPageHeader.Margin" Value="{StaticResource PageHeaderNarrowMargin}" />
                         <Setter Target="NotesCommandBar.Margin" Value="{StaticResource PageCommandBarNarrowMargin}" />
                         <Setter Target="DetailHeader.Margin" Value="{StaticResource PageHeaderNarrowMargin}" />
+                        <Setter Target="NoteMetaBar.Margin" Value="{StaticResource PageControlNarrowMargin}" />
                         <Setter Target="NoteDetailPanel.Padding" Value="{StaticResource NotesDetailPaneNarrowPadding}" />
                     </VisualState.Setters>
                 </VisualState>
@@ -180,6 +182,7 @@
             <Grid x:Name="DetailPane" Grid.Column="1">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
@@ -254,8 +257,32 @@
                 </Grid>
 
                 <Grid
-                    x:Name="NoteDetailPanel"
+                    x:Name="NoteMetaBar"
                     Grid.Row="1"
+                    Margin="{StaticResource PageControlMargin}"
+                    ColumnSpacing="12"
+                    Visibility="Collapsed">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Name="TagsEditor"
+                        AutomationProperties.Name="Note tags"
+                        LostFocus="TagsEditor_LostFocus"
+                        PlaceholderText="Tags, separated by commas" />
+                    <CheckBox
+                        x:Name="PinCheckBox"
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        AutomationProperties.Name="Pin note"
+                        Click="PinCheckBox_Click"
+                        Content="Pin" />
+                </Grid>
+
+                <Grid
+                    x:Name="NoteDetailPanel"
+                    Grid.Row="2"
                     Padding="{StaticResource NotesDetailPanePadding}">
                     <Border
                         x:Name="NoteEditorCard"

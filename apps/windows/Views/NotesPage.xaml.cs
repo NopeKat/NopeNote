@@ -28,6 +28,7 @@ public sealed partial class NotesPage : Page
     private bool _loadFailed;
     private int _loadedVersion = -1;
     private bool _isUpdatingTagFilter;
+    private bool _isUpdatingMetadata;
     private Guid? _pendingNoteId;
     private Note? _pendingSaveNote;
     private Note? _retryNote;
@@ -40,6 +41,8 @@ public sealed partial class NotesPage : Page
         InitializeComponent();
         NoteEditor.Header = Strings.Get("NotesEditorHeader");
         HistoryButton.Label = Strings.Get("NotesHistoryButtonLabel");
+        TagsEditor.PlaceholderText = Strings.Get("NotesTagsPlaceholder");
+        PinCheckBox.Content = Strings.Get("NotesPinLabel");
         _autoSaveTimer.Interval = TimeSpan.FromSeconds(1.2);
         _autoSaveTimer.Tick += AutoSaveTimer_Tick;
         Loaded += NotesPage_Loaded;
@@ -111,6 +114,115 @@ public sealed partial class NotesPage : Page
         }
 
         await SaveNoteAsync(note);
+    }
+
+    private void UpdateMetadataBar(Note? note)
+    {
+        if (note is null)
+        {
+            NoteMetaBar.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        _isUpdatingMetadata = true;
+        TagsEditor.Text = string.Join(", ", note.Tags);
+        PinCheckBox.IsChecked = note.IsPinned;
+        NoteMetaBar.Visibility = Visibility.Visible;
+        _isUpdatingMetadata = false;
+    }
+
+    private async void TagsEditor_LostFocus(object sender, RoutedEventArgs e)
+    {
+        await SaveNoteMetadataAsync();
+    }
+
+    private async void PinCheckBox_Click(object sender, RoutedEventArgs e)
+    {
+        if (_isUpdatingMetadata)
+        {
+            return;
+        }
+
+        await SaveNoteMetadataAsync();
+    }
+
+    private async Task SaveNoteMetadataAsync()
+    {
+        Note? note = SelectedNote;
+        IVaultStore? store = VaultService.Current.Store;
+        if (note is null || note.IsDraft || store is null || _isUpdatingMetadata)
+        {
+            return;
+        }
+
+        List<string> tags = ParseTags(TagsEditor.Text);
+        bool pinned = PinCheckBox.IsChecked == true;
+        if (TagsEqual(note.Tags, tags) && pinned == note.IsPinned)
+        {
+            return;
+        }
+
+        // 先落盘正文，避免这次元数据更新把编辑器里没保存的内容覆盖掉。
+        await PersistEditorTextAsync();
+
+        try
+        {
+            NoteDocument updated = await store.UpdateNoteAsync(note.Id, tags: tags, pinned: pinned);
+            note.ApplyRestoredDocument(updated);
+            Bindings.Update();
+            UpdateMetadataBar(note);
+            MarkDataChanged();
+            RefreshNotes();
+            SaveStatusTextBlock.Text = Strings.Get("NotesStatusSaved");
+        }
+        catch (Exception exception)
+        {
+            UpdateMetadataBar(note);
+            ShowError(
+                Strings.Get("NotesMetadataFailedTitle"),
+                $"{Describe(exception)} {Strings.Get("NotesLoadFailedHint")}",
+                RetryOperation.None,
+                null);
+        }
+    }
+
+    private static List<string> ParseTags(string text)
+    {
+        var tags = new List<string>();
+        foreach (string part in text.Split(new[] { ',', '，', '、' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            string tag = part.Trim();
+            if (tag.Length == 0)
+            {
+                continue;
+            }
+
+            if (!tags.Exists(existing =>
+                    string.Equals(existing, tag, StringComparison.OrdinalIgnoreCase)))
+            {
+                tags.Add(tag);
+            }
+        }
+
+        return tags;
+    }
+
+    private static bool TagsEqual(IReadOnlyList<string> left, IReadOnlyList<string> right)
+    {
+        if (left.Count != right.Count)
+        {
+            return false;
+        }
+
+        for (int index = 0; index < left.Count; index++)
+        {
+            if (!string.Equals(left[index], right[index], StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private async Task EnsureNotesLoadedAsync()
@@ -705,6 +817,7 @@ public sealed partial class NotesPage : Page
         NoteDateTextBlock.Text = note.Date.ToString("g");
         DeleteNoteButton.IsEnabled = VaultService.Current.IsWritable;
         HistoryButton.Visibility = Visibility.Visible;
+        UpdateMetadataBar(note);
         SaveStatusTextBlock.Text = string.Empty;
         Bindings.Update();
         ApplyLayout(ActualWidth < NarrowWidthThreshold);
@@ -721,6 +834,7 @@ public sealed partial class NotesPage : Page
         NoteDateTextBlock.Text = Strings.Get("NotesSelectPlaceholder");
         DeleteNoteButton.IsEnabled = false;
         HistoryButton.Visibility = Visibility.Collapsed;
+        UpdateMetadataBar(null);
         SaveStatusTextBlock.Text = string.Empty;
         Bindings.Update();
         ApplyLayout(ActualWidth < NarrowWidthThreshold);

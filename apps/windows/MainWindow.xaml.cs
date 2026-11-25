@@ -20,6 +20,7 @@ public sealed partial class MainWindow : Window
     private bool _paneOpenBeforePress;
     private bool _closeConfirmed;
     private bool _closeFlowRunning;
+    private QuickCaptureWindow? _quickCaptureWindow;
 
     public MainWindow()
     {
@@ -62,10 +63,24 @@ public sealed partial class MainWindow : Window
         // registered above, so this subclass sees the non-client messages
         // before the title bar's own handler.
         CaptionChromeHelper.SuppressCaptionChrome(WindowHelper.GetWindowHandle(this));
+        GlobalHotkey.RegisterQuickCapture(WindowHelper.GetWindowHandle(this), ShowQuickCapture);
 
         BackdropHelper.Apply(this);
         WindowHelper.SetWindowMinSize(this, 640, 500);
         TitleBarHelper.ApplySystemThemeToCaptionButtons(this, RootGrid.ActualTheme);
+    }
+
+    private void ShowQuickCapture()
+    {
+        if (_quickCaptureWindow is null)
+        {
+            _quickCaptureWindow = new QuickCaptureWindow();
+            WindowHelper.TrackWindow(_quickCaptureWindow);
+            _quickCaptureWindow.Closed += (_, _) => _quickCaptureWindow = null;
+        }
+
+        _quickCaptureWindow.Activate();
+        _quickCaptureWindow.FocusInput();
     }
 
     private void RootGrid_ActualThemeChanged(FrameworkElement sender, object args)

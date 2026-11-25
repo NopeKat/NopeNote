@@ -289,6 +289,9 @@
   <data name="CommonCancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="CommonClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
   <data name="NotesSaveFailedTitle" xml:space="preserve">
     <value>Note could not be saved</value>
   </data>
@@ -330,6 +333,54 @@
   </data>
   <data name="NotesAllTags" xml:space="preserve">
     <value>All tags</value>
+  </data>
+  <data name="NotesTagsPlaceholder" xml:space="preserve">
+    <value>Tags, separated by commas</value>
+  </data>
+  <data name="NotesPinLabel" xml:space="preserve">
+    <value>Pin</value>
+  </data>
+  <data name="NotesMetadataFailedTitle" xml:space="preserve">
+    <value>Could not update note details</value>
+  </data>
+  <data name="SettingsExportHeader" xml:space="preserve">
+    <value>Backup</value>
+  </data>
+  <data name="SettingsExportDescription" xml:space="preserve">
+    <value>Save a zip copy of the whole vault.</value>
+  </data>
+  <data name="SettingsExportButton" xml:space="preserve">
+    <value>Export backup</value>
+  </data>
+  <data name="SettingsExportFileType" xml:space="preserve">
+    <value>Zip archive</value>
+  </data>
+  <data name="SettingsExportDoneTitle" xml:space="preserve">
+    <value>Backup saved</value>
+  </data>
+  <data name="SettingsExportDoneMessage" xml:space="preserve">
+    <value>Saved to {0}</value>
+  </data>
+  <data name="SettingsExportFailedTitle" xml:space="preserve">
+    <value>Backup failed</value>
+  </data>
+  <data name="QuickCaptureTitle" xml:space="preserve">
+    <value>Quick capture</value>
+  </data>
+  <data name="QuickCapturePlaceholder" xml:space="preserve">
+    <value>Jot it down…</value>
+  </data>
+  <data name="QuickCaptureHint" xml:space="preserve">
+    <value>Ctrl+Enter saves, Esc closes</value>
+  </data>
+  <data name="QuickCaptureSave" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="QuickCaptureFailed" xml:space="preserve">
+    <value>Could not save the note: {0}</value>
+  </data>
+  <data name="QuickCaptureNoVault" xml:space="preserve">
+    <value>The vault is not ready yet.</value>
   </data>
   <data name="NotesEditorHeader" xml:space="preserve">
     <value>Note</value>

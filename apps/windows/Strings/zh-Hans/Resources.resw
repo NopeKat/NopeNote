@@ -289,6 +289,9 @@
   <data name="CommonCancel" xml:space="preserve">
     <value>取消</value>
   </data>
+  <data name="CommonClose" xml:space="preserve">
+    <value>关闭</value>
+  </data>
   <data name="NotesSaveFailedTitle" xml:space="preserve">
     <value>无法保存笔记</value>
   </data>
@@ -330,6 +333,54 @@
   </data>
   <data name="NotesAllTags" xml:space="preserve">
     <value>全部标签</value>
+  </data>
+  <data name="NotesTagsPlaceholder" xml:space="preserve">
+    <value>标签，用逗号分隔</value>
+  </data>
+  <data name="NotesPinLabel" xml:space="preserve">
+    <value>置顶</value>
+  </data>
+  <data name="NotesMetadataFailedTitle" xml:space="preserve">
+    <value>无法更新笔记信息</value>
+  </data>
+  <data name="SettingsExportHeader" xml:space="preserve">
+    <value>备份</value>
+  </data>
+  <data name="SettingsExportDescription" xml:space="preserve">
+    <value>把整个仓库打包成 zip 副本。</value>
+  </data>
+  <data name="SettingsExportButton" xml:space="preserve">
+    <value>导出备份</value>
+  </data>
+  <data name="SettingsExportFileType" xml:space="preserve">
+    <value>Zip 压缩包</value>
+  </data>
+  <data name="SettingsExportDoneTitle" xml:space="preserve">
+    <value>备份已保存</value>
+  </data>
+  <data name="SettingsExportDoneMessage" xml:space="preserve">
+    <value>已保存到 {0}</value>
+  </data>
+  <data name="SettingsExportFailedTitle" xml:space="preserve">
+    <value>备份失败</value>
+  </data>
+  <data name="QuickCaptureTitle" xml:space="preserve">
+    <value>快速捕捉</value>
+  </data>
+  <data name="QuickCapturePlaceholder" xml:space="preserve">
+    <value>随手记点什么…</value>
+  </data>
+  <data name="QuickCaptureHint" xml:space="preserve">
+    <value>Ctrl+Enter 保存，Esc 关闭</value>
+  </data>
+  <data name="QuickCaptureSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="QuickCaptureFailed" xml:space="preserve">
+    <value>无法保存这条笔记：{0}</value>
+  </data>
+  <data name="QuickCaptureNoVault" xml:space="preserve">
+    <value>仓库还没准备好。</value>
   </data>
   <data name="NotesEditorHeader" xml:space="preserve">
     <value>笔记</value>

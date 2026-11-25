@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
@@ -22,6 +23,9 @@ public sealed partial class SettingsPage : Page
         AppThemeCard.Header = Strings.Get("SettingsAppThemeHeader");
         AppThemeCard.Description = Strings.Get("SettingsAppThemeDescription");
         VaultCard.Header = Strings.Get("SettingsVaultHeader");
+        ExportCard.Header = Strings.Get("SettingsExportHeader");
+        ExportCard.Description = Strings.Get("SettingsExportDescription");
+        ExportButton.Content = Strings.Get("SettingsExportButton");
         VersionHistoryCard.Header = Strings.Get("SettingsVersionHistoryHeader");
         VersionHistoryCard.Description = Strings.Get("SettingsVersionHistoryDescription");
         AboutExpander.Header = Strings.Get("SettingsAboutHeader");
@@ -152,6 +156,57 @@ public sealed partial class SettingsPage : Page
         VaultCard.Description = folder.Path;
 
         Frame.Navigate(typeof(NotesPage));
+    }
+
+    private async void ExportButton_Click(object sender, RoutedEventArgs e)
+    {
+        nint hwnd = WindowHelper.GetWindowHandle(WindowHelper.ActiveWindows.FirstOrDefault());
+        if (hwnd == 0)
+        {
+            return;
+        }
+
+        FileSavePicker picker = new()
+        {
+            SuggestedFileName = $"nopenote-backup-{DateTime.Now:yyyyMMdd-HHmm}.zip",
+        };
+        picker.FileTypeChoices.Add(Strings.Get("SettingsExportFileType"), new List<string> { ".zip" });
+        InitializeWithWindow.Initialize(picker, hwnd);
+
+        global::Windows.Storage.StorageFile? file = await picker.PickSaveFileAsync();
+        if (file is null)
+        {
+            return;
+        }
+
+        ExportButton.IsEnabled = false;
+        try
+        {
+            await VaultExporter.ExportAsync(SettingsHelper.Current.VaultPath, file.Path);
+            ContentDialog doneDialog = new()
+            {
+                XamlRoot = XamlRoot,
+                Title = Strings.Get("SettingsExportDoneTitle"),
+                Content = Strings.Format("SettingsExportDoneMessage", file.Path),
+                CloseButtonText = Strings.Get("CommonClose"),
+            };
+            await doneDialog.ShowAsync();
+        }
+        catch (Exception exception)
+        {
+            ContentDialog failedDialog = new()
+            {
+                XamlRoot = XamlRoot,
+                Title = Strings.Get("SettingsExportFailedTitle"),
+                Content = exception.Message,
+                CloseButtonText = Strings.Get("CommonClose"),
+            };
+            await failedDialog.ShowAsync();
+        }
+        finally
+        {
+            ExportButton.IsEnabled = true;
+        }
     }
 
     private async void GitToggle_Toggled(object sender, RoutedEventArgs e)

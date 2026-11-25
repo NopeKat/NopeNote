@@ -132,6 +132,17 @@
                             Content="Change folder" />
                     </toolkit:SettingsCard>
 
+                    <toolkit:SettingsCard x:Name="ExportCard">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <SymbolIcon Symbol="Save" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <Button
+                            x:Name="ExportButton"
+                            AutomationProperties.Name="Export a backup"
+                            Click="ExportButton_Click"
+                            Content="Export backup" />
+                    </toolkit:SettingsCard>
+
                     <toolkit:SettingsCard x:Name="VersionHistoryCard">
                         <toolkit:SettingsCard.HeaderIcon>
                             <!-- Fluent UI System Icons: history_20_regular; ink 14.75 x 15.20 -> 17.50 px long edge, centered on 20. Source 1 px bands scale with the correction. -->

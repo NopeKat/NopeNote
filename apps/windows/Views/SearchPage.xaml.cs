@@ -1,5 +1,8 @@
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Media;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
 using NopeNote.Windows.Models;
@@ -20,6 +23,7 @@ public sealed partial class SearchPage : Page
     private int _filterVersion;
     private int _loadedVersion = -1;
     private string? _appliedQuery;
+    private readonly SolidColorBrush _highlightBrush = new(Colors.Gold) { Opacity = 0.35 };
 
     public SearchPage()
     {
@@ -112,8 +116,9 @@ public sealed partial class SearchPage : Page
 
     private void ApplyFilter()
     {
-        ViewModel.ApplyFilter(SearchInput.Text);
+        // 先记录关键词，列表重建时模板里的高亮处理才能取到当前值。
         _appliedQuery = SearchInput.Text;
+        ViewModel.ApplyFilter(SearchInput.Text);
         UpdateViewState();
     }
 
@@ -185,6 +190,51 @@ public sealed partial class SearchPage : Page
     {
         _filterVersion++;
         ApplyFilter();
+    }
+
+    private void SearchResultText_DataContextChanged(FrameworkElement sender, DataContextChangedEventArgs args)
+    {
+        if (sender is not TextBlock textBlock)
+        {
+            return;
+        }
+
+        textBlock.TextHighlighters.Clear();
+        if (args.NewValue is Note note)
+        {
+            // 等绑定把 Text 写进来之后再按真实文本算范围。
+            textBlock.DispatcherQueue.TryEnqueue(() => ApplyHighlight(textBlock, note));
+        }
+    }
+
+    private void ApplyHighlight(TextBlock textBlock, Note note)
+    {
+        textBlock.TextHighlighters.Clear();
+
+        string query = _appliedQuery ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return;
+        }
+
+        var highlighter = new TextHighlighter { Background = _highlightBrush };
+        int index = 0;
+        while (highlighter.Ranges.Count < 30)
+        {
+            int match = note.Text.IndexOf(query, index, StringComparison.OrdinalIgnoreCase);
+            if (match < 0)
+            {
+                break;
+            }
+
+            highlighter.Ranges.Add(new TextRange(match, query.Length));
+            index = match + query.Length;
+        }
+
+        if (highlighter.Ranges.Count > 0)
+        {
+            textBlock.TextHighlighters.Add(highlighter);
+        }
     }
 
     private async void RetryButton_Click(object sender, RoutedEventArgs e)

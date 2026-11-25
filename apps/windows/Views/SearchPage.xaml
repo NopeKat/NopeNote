@@ -5,6 +5,53 @@
     xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
     NavigationCacheMode="Enabled">
 
+    <Page.Resources>
+        <DataTemplate x:Key="SearchResultTemplate">
+            <Grid Padding="{StaticResource NoteItemPadding}" AutomationProperties.Name="{Binding DisplayTitle}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Grid ColumnSpacing="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <FontIcon
+                        FontSize="12"
+                        Glyph="&#xE840;"
+                        AutomationProperties.AccessibilityView="Raw"
+                        Visibility="{Binding PinVisibility}" />
+                    <TextBlock
+                        Grid.Column="1"
+                        MaxLines="1"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Text="{Binding DisplayTitle}"
+                        TextTrimming="CharacterEllipsis" />
+                </Grid>
+                <TextBlock
+                    Grid.Row="1"
+                    Margin="0,2,0,0"
+                    MaxLines="1"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{Binding TagText}"
+                    TextTrimming="CharacterEllipsis"
+                    Visibility="{Binding TagVisibility}" />
+                <TextBlock
+                    Grid.Row="2"
+                    Margin="0,2,0,0"
+                    MaxLines="3"
+                    AutomationProperties.AccessibilityView="Raw"
+                    DataContextChanged="SearchResultText_DataContextChanged"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{Binding Text}"
+                    TextTrimming="CharacterEllipsis" />
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
     <Grid x:Name="SearchPageRoot">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -99,7 +146,7 @@
                 IsItemClickEnabled="True"
                 ItemClick="ResultsList_ItemClick"
                 ItemContainerTransitions="{x:Null}"
-                ItemTemplate="{StaticResource NoteItemTemplate}"
+                ItemTemplate="{StaticResource SearchResultTemplate}"
                 ItemsSource="{x:Bind ViewModel.Notes, Mode=OneWay}"
                 SelectionMode="None"
                 Visibility="Collapsed" />

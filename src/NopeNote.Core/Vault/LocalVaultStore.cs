@@ -7,7 +7,7 @@ namespace NopeNote.Core.Vault;
 public sealed class LocalVaultStore : IVaultStore
 {
     private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
-    private static readonly TimeSpan SnapshotThrottle = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan SnapshotThrottle = TimeSpan.FromMinutes(1);
 
     private readonly string _notesDirectory;
     private readonly string _trashDirectory;
