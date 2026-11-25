@@ -41,9 +41,11 @@ public sealed class VaultService
     {
         string path = VaultPath;
 
-        VaultOpenResult result = await VaultStoreFactory.OpenAsync(path);
+        VaultOpenResult result = await VaultStoreFactory.OpenAsync(path).ConfigureAwait(false);
 
-        bool emptyOrMissing = !Directory.Exists(path) || !Directory.EnumerateFileSystemEntries(path).Any();
+        bool emptyOrMissing = await Task.Run(
+            () => !Directory.Exists(path) || !Directory.EnumerateFileSystemEntries(path).Any())
+            .ConfigureAwait(false);
         if (result.Status == VaultOpenStatus.NotAVault && emptyOrMissing)
         {
             result = await VaultStoreFactory.CreateAsync(path);
@@ -51,16 +53,23 @@ public sealed class VaultService
 
         if (result.Status == VaultOpenStatus.Opened && result.Store is not null)
         {
-            await EnsureGitAsync(path);
-            await EnsureLegacyImportAsync(result.Store, path);
+            await EnsureGitAsync(path).ConfigureAwait(false);
+            await EnsureLegacyImportAsync(result.Store, path).ConfigureAwait(false);
 
-            string settingsFile = Path.Combine(path, ".settings", "settings.json");
-            if (!File.Exists(settingsFile))
-            {
-                VaultSettings.Write(path, VaultSettings.Read(path));
-            }
+            VaultSettings settings = await Task.Run(
+                () =>
+                {
+                    string settingsFile = Path.Combine(path, ".settings", "settings.json");
+                    if (!File.Exists(settingsFile))
+                    {
+                        VaultSettings.Write(path, VaultSettings.Read(path));
+                    }
 
-            if (VaultSettings.Read(path).GitEnabled && Directory.Exists(Path.Combine(path, ".git")))
+                    return VaultSettings.Read(path);
+                })
+                .ConfigureAwait(false);
+
+            if (settings.GitEnabled && Directory.Exists(Path.Combine(path, ".git")))
             {
                 result = result with
                 {
@@ -105,7 +114,9 @@ public sealed class VaultService
         int imported;
         try
         {
-            imported = await LegacyNotesImporter.ImportAsync(store, legacyDirectory);
+            imported = await Task.Run(
+                () => LegacyNotesImporter.ImportAsync(store, legacyDirectory))
+                .ConfigureAwait(false);
         }
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
