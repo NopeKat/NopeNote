@@ -12,9 +12,12 @@ namespace NopeNote.Windows.Views;
 
 public sealed partial class SearchPage : Page
 {
+    private static readonly TimeSpan FilterDelay = TimeSpan.FromMilliseconds(200);
+
     private bool _isLoading;
     private bool _isReady;
     private bool _loadFailed;
+    private int _filterVersion;
 
     public SearchPage()
     {
@@ -131,12 +134,27 @@ public sealed partial class SearchPage : Page
     {
         if (_isReady && !_isLoading)
         {
-            ApplyFilter();
+            ScheduleApplyFilter();
         }
+    }
+
+    // 连续输入时只让最后一次生效，避免每个按键都重建结果列表。
+    private async void ScheduleApplyFilter()
+    {
+        int version = ++_filterVersion;
+        await Task.Delay(FilterDelay);
+
+        if (version != _filterVersion || !_isReady || _isLoading)
+        {
+            return;
+        }
+
+        ApplyFilter();
     }
 
     private void SearchInput_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
+        _filterVersion++;
         ApplyFilter();
     }
 
