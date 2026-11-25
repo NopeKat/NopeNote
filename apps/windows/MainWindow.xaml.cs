@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Navigation;
 using NopeNote.Windows.Helpers;
 using NopeNote.Windows.Views;
 using System;
+using System.Threading.Tasks;
 using Windows.UI.ViewManagement;
 
 namespace NopeNote.Windows;
@@ -196,12 +197,16 @@ public sealed partial class MainWindow : Window
     {
         IdleStateEnteredCheckBox.IsChecked = false;
 
-        await global::Windows.System.Threading.ThreadPool.RunAsync(_ =>
+        // 探测放到后台，结果回到 UI 线程再写入辅助控件。
+        string error = string.Empty;
+        string log = string.Empty;
+        await Task.Run(() =>
         {
-            ErrorReportingTextBox.Text = IdleSynchronizer.TryWait(out string log);
-            LogReportingTextBox.Text = log;
+            error = IdleSynchronizer.TryWait(out log);
         });
 
-        IdleStateEnteredCheckBox.IsChecked = string.IsNullOrEmpty(ErrorReportingTextBox.Text);
+        ErrorReportingTextBox.Text = error;
+        LogReportingTextBox.Text = log;
+        IdleStateEnteredCheckBox.IsChecked = string.IsNullOrEmpty(error);
     }
 }
