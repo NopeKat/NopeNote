@@ -1,12 +1,14 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using NopeNote.Core.Notes;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
 using NopeNote.Windows.Models;
 using NopeNote.Windows.Services;
 using NopeNote.Windows.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace NopeNote.Windows.Views;
@@ -25,18 +27,24 @@ public sealed partial class NotesPage : Page
     private bool _isLoadingNotes;
     private bool _loadFailed;
     private int _loadedVersion = -1;
+    private bool _isUpdatingTagFilter;
     private Guid? _pendingNoteId;
     private Note? _pendingSaveNote;
     private Note? _retryNote;
     private RetryOperation _retryOperation = RetryOperation.None;
+    private readonly DispatcherTimer _autoSaveTimer = new();
 
     public NotesPage()
     {
         ViewModel = new NotesViewModel();
         InitializeComponent();
         NoteEditor.Header = Strings.Get("NotesEditorHeader");
+        HistoryButton.Label = Strings.Get("NotesHistoryButtonLabel");
+        _autoSaveTimer.Interval = TimeSpan.FromSeconds(1.2);
+        _autoSaveTimer.Tick += AutoSaveTimer_Tick;
         Loaded += NotesPage_Loaded;
         SizeChanged += NotesPage_SizeChanged;
+        Unloaded += NotesPage_Unloaded;
     }
 
     public NotesViewModel ViewModel { get; }
@@ -64,6 +72,47 @@ public sealed partial class NotesPage : Page
         await EnsureNotesLoadedAsync();
     }
 
+    private async void NotesPage_Unloaded(object sender, RoutedEventArgs e)
+    {
+        _autoSaveTimer.Stop();
+        await PersistEditorTextAsync();
+    }
+
+    private void NoteEditor_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        _autoSaveTimer.Stop();
+
+        if (SelectedNote is null ||
+            string.Equals(NoteEditor.Text, SelectedNote.Text, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _autoSaveTimer.Start();
+    }
+
+    private async void AutoSaveTimer_Tick(object? sender, object e)
+    {
+        _autoSaveTimer.Stop();
+        await PersistEditorTextAsync();
+    }
+
+    private async Task PersistEditorTextAsync()
+    {
+        Note? note = SelectedNote;
+        if (note is null)
+        {
+            return;
+        }
+
+        if (!string.Equals(NoteEditor.Text, note.Text, StringComparison.Ordinal))
+        {
+            note.Text = NoteEditor.Text;
+        }
+
+        await SaveNoteAsync(note);
+    }
+
     private async Task EnsureNotesLoadedAsync()
     {
         if (_loadFailed || _isLoadingNotes)
@@ -82,6 +131,7 @@ public sealed partial class NotesPage : Page
             await ViewModel.LoadAsync();
             _loadedVersion = VaultService.Current.DataVersion;
             UpdateListState();
+            RefreshTagFilter();
             TrySelectPendingNote();
             return;
         }
@@ -108,6 +158,7 @@ public sealed partial class NotesPage : Page
             await ViewModel.LoadAsync();
             _loadedVersion = VaultService.Current.DataVersion;
             ApplyVaultState(opened);
+            RefreshTagFilter();
         }
         catch (Exception exception)
         {
@@ -145,7 +196,86 @@ public sealed partial class NotesPage : Page
     {
         ViewModel.ApplyFilter(string.Empty);
         UpdateListState();
+        RefreshTagFilter();
         TrySelectPendingNote();
+    }
+
+    private void RefreshTagFilter()
+    {
+        _isUpdatingTagFilter = true;
+
+        string? selected = ViewModel.TagFilter;
+        TagFilterComboBox.Items.Clear();
+        TagFilterComboBox.Items.Add(CreateTagItem(Strings.Get("NotesAllTags"), null));
+
+        foreach (string tag in ViewModel.GetAvailableTags())
+        {
+            TagFilterComboBox.Items.Add(CreateTagItem(tag, tag));
+        }
+
+        TagFilterComboBox.SelectedIndex = 0;
+        if (selected is not null)
+        {
+            foreach (object entry in TagFilterComboBox.Items)
+            {
+                if (entry is ComboBoxItem item && string.Equals(item.Tag as string, selected, StringComparison.Ordinal))
+                {
+                    TagFilterComboBox.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        string? effective = (TagFilterComboBox.SelectedItem as ComboBoxItem)?.Tag as string;
+        _isUpdatingTagFilter = false;
+
+        if (!string.Equals(effective, ViewModel.TagFilter, StringComparison.Ordinal))
+        {
+            ViewModel.SetTagFilter(effective);
+        }
+    }
+
+    private static ComboBoxItem CreateTagItem(string content, string? tag)
+    {
+        var item = new ComboBoxItem { Content = content };
+        if (tag is not null)
+        {
+            item.Tag = tag;
+        }
+
+        return item;
+    }
+
+    private void TagFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_isUpdatingTagFilter)
+        {
+            return;
+        }
+
+        string? tag = (TagFilterComboBox.SelectedItem as ComboBoxItem)?.Tag as string;
+        ViewModel.SetTagFilter(tag);
+        UpdateListState();
+
+        if (SelectedNote is not null && !IsNoteVisible(SelectedNote))
+        {
+            ClearSelection();
+        }
+
+        TrySelectPendingNote();
+    }
+
+    private bool IsNoteVisible(Note note)
+    {
+        foreach (Note visible in ViewModel.Notes)
+        {
+            if (ReferenceEquals(visible, note))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // 本页自己已经更新了列表，同时把版本号对齐，避免下次进入再白刷一遍。
@@ -187,6 +317,11 @@ public sealed partial class NotesPage : Page
         }
 
         Note note = new Note();
+        if (ViewModel.TagFilter is not null)
+        {
+            TagFilterComboBox.SelectedIndex = 0;
+        }
+
         ViewModel.Add(note);
         RefreshNotes();
         SelectNote(note);
@@ -340,6 +475,144 @@ public sealed partial class NotesPage : Page
         }
     }
 
+    private async void HistoryButton_Click(object sender, RoutedEventArgs e)
+    {
+        Note? note = SelectedNote;
+        IVaultStore? store = VaultService.Current.Store;
+        if (note is null || store is null || note.IsDraft)
+        {
+            return;
+        }
+
+        // 先把编辑器里待保存的内容落盘，历史列表才包含最新一版。
+        await PersistEditorTextAsync();
+
+        IReadOnlyList<VaultSnapshotInfo> snapshots;
+        try
+        {
+            snapshots = await store.ListHistoryAsync(note.Id);
+        }
+        catch (Exception exception)
+        {
+            ShowError(
+                Strings.Get("NotesHistoryFailedTitle"),
+                $"{Describe(exception)} {Strings.Get("NotesLoadFailedHint")}",
+                RetryOperation.None,
+                null);
+            return;
+        }
+
+        if (snapshots.Count == 0)
+        {
+            ContentDialog emptyDialog = new()
+            {
+                XamlRoot = XamlRoot,
+                Title = Strings.Get("NotesHistoryTitle"),
+                Content = Strings.Get("NotesHistoryEmpty"),
+                CloseButtonText = Strings.Get("CommonCancel"),
+            };
+            await emptyDialog.ShowAsync();
+            return;
+        }
+
+        var items = new List<NoteVersionItem>(snapshots.Count);
+        for (int index = snapshots.Count - 1; index >= 0; index--)
+        {
+            items.Add(new NoteVersionItem(snapshots[index]));
+        }
+
+        var list = new ListView
+        {
+            DisplayMemberPath = "Label",
+            ItemsSource = items,
+            MaxHeight = 200,
+            SelectionMode = ListViewSelectionMode.Single,
+        };
+
+        var preview = new TextBox
+        {
+            AcceptsReturn = true,
+            Height = 160,
+            IsReadOnly = true,
+            Text = string.Empty,
+            TextWrapping = TextWrapping.Wrap,
+        };
+
+        var panel = new StackPanel { Spacing = 8 };
+        panel.Children.Add(list);
+        panel.Children.Add(preview);
+
+        NoteDocument? selectedVersion = null;
+        string? selectedName = null;
+
+        ContentDialog dialog = new()
+        {
+            XamlRoot = XamlRoot,
+            Title = Strings.Get("NotesHistoryTitle"),
+            Content = panel,
+            PrimaryButtonText = Strings.Get("NotesHistoryRestore"),
+            CloseButtonText = Strings.Get("CommonCancel"),
+            DefaultButton = ContentDialogButton.Primary,
+            IsPrimaryButtonEnabled = false,
+        };
+
+        list.SelectionChanged += async (_, _) =>
+        {
+            if (list.SelectedItem is not NoteVersionItem item)
+            {
+                selectedName = null;
+                selectedVersion = null;
+                dialog.IsPrimaryButtonEnabled = false;
+                return;
+            }
+
+            selectedName = item.SnapshotName;
+            selectedVersion = null;
+            dialog.IsPrimaryButtonEnabled = false;
+            preview.Text = string.Empty;
+
+            try
+            {
+                NoteDocument? document = await store.ReadHistoryAsync(note.Id, item.SnapshotName);
+                if (selectedName != item.SnapshotName || document is null)
+                {
+                    return;
+                }
+
+                selectedVersion = document;
+                preview.Text = document.Body;
+                dialog.IsPrimaryButtonEnabled = true;
+            }
+            catch (Exception exception)
+            {
+                preview.Text = Describe(exception);
+            }
+        };
+
+        ContentDialogResult result = await dialog.ShowAsync();
+        if (result != ContentDialogResult.Primary || selectedVersion is null)
+        {
+            return;
+        }
+
+        try
+        {
+            NoteDocument updated = await store.UpdateNoteAsync(note.Id, body: selectedVersion.Body);
+            note.ApplyRestoredDocument(updated);
+            Bindings.Update();
+            MarkDataChanged();
+            SaveStatusTextBlock.Text = Strings.Get("NotesHistoryRestored");
+        }
+        catch (Exception exception)
+        {
+            ShowError(
+                Strings.Get("NotesHistoryFailedTitle"),
+                $"{Describe(exception)} {Strings.Get("NotesLoadFailedHint")}",
+                RetryOperation.None,
+                null);
+        }
+    }
+
     private async void ErrorRetryButton_Click(object sender, RoutedEventArgs e)
     {
         RetryOperation operation = _retryOperation;
@@ -424,10 +697,14 @@ public sealed partial class NotesPage : Page
 
     private void SelectNote(Note note)
     {
+        _autoSaveTimer.Stop();
+        _ = PersistEditorTextAsync();
+
         SelectedNote = note;
         NoteEditor.IsEnabled = true;
         NoteDateTextBlock.Text = note.Date.ToString("g");
         DeleteNoteButton.IsEnabled = VaultService.Current.IsWritable;
+        HistoryButton.Visibility = Visibility.Visible;
         SaveStatusTextBlock.Text = string.Empty;
         Bindings.Update();
         ApplyLayout(ActualWidth < NarrowWidthThreshold);
@@ -435,11 +712,15 @@ public sealed partial class NotesPage : Page
 
     private void ClearSelection()
     {
+        _autoSaveTimer.Stop();
+        _ = PersistEditorTextAsync();
+
         SelectedNote = null;
         NoteEditor.IsEnabled = false;
         NoteEditor.Text = string.Empty;
         NoteDateTextBlock.Text = Strings.Get("NotesSelectPlaceholder");
         DeleteNoteButton.IsEnabled = false;
+        HistoryButton.Visibility = Visibility.Collapsed;
         SaveStatusTextBlock.Text = string.Empty;
         Bindings.Update();
         ApplyLayout(ActualWidth < NarrowWidthThreshold);
@@ -482,6 +763,8 @@ public sealed partial class NotesPage : Page
 
     internal async Task<bool> FlushBeforeCloseAsync()
     {
+        _autoSaveTimer.Stop();
+
         for (int attempt = 0; attempt < 3; attempt++)
         {
             while (_isSaving)
@@ -543,4 +826,17 @@ public sealed partial class NotesPage : Page
 
         BackToListButton.Visibility = isNarrow && hasSelection ? Visibility.Visible : Visibility.Collapsed;
     }
+}
+
+internal sealed class NoteVersionItem
+{
+    public NoteVersionItem(VaultSnapshotInfo snapshot)
+    {
+        SnapshotName = snapshot.Name;
+        Label = snapshot.TakenAt.LocalDateTime.ToString("g");
+    }
+
+    public string SnapshotName { get; }
+
+    public string Label { get; }
 }

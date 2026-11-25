@@ -310,6 +310,27 @@
   <data name="NotesEmptyDefault" xml:space="preserve">
     <value>No notes yet. Select New note to create one.</value>
   </data>
+  <data name="NotesHistoryButtonLabel" xml:space="preserve">
+    <value>History</value>
+  </data>
+  <data name="NotesHistoryTitle" xml:space="preserve">
+    <value>Version history</value>
+  </data>
+  <data name="NotesHistoryEmpty" xml:space="preserve">
+    <value>This note has no earlier versions yet.</value>
+  </data>
+  <data name="NotesHistoryRestore" xml:space="preserve">
+    <value>Restore this version</value>
+  </data>
+  <data name="NotesHistoryRestored" xml:space="preserve">
+    <value>This version was restored</value>
+  </data>
+  <data name="NotesHistoryFailedTitle" xml:space="preserve">
+    <value>Could not open version history</value>
+  </data>
+  <data name="NotesAllTags" xml:space="preserve">
+    <value>All tags</value>
+  </data>
   <data name="NotesEditorHeader" xml:space="preserve">
     <value>Note</value>
   </data>

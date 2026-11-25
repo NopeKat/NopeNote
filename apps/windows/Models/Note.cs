@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Microsoft.UI.Xaml;
 using NopeNote.Core.Notes;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
@@ -21,15 +22,18 @@ public sealed class Note : INotifyPropertyChanged
     public Note()
     {
         IsDraft = true;
+        Tags = Array.Empty<string>();
     }
 
-    private Note(Guid id, string text, string title, DateTimeOffset updated)
+    private Note(Guid id, string text, string title, IReadOnlyList<string> tags, bool pinned, DateTimeOffset updated)
     {
         Id = id;
         _text = text;
         _savedText = text;
         _updated = updated;
         DisplayTitle = title;
+        Tags = tags;
+        IsPinned = pinned;
         IsDraft = false;
     }
 
@@ -40,6 +44,16 @@ public sealed class Note : INotifyPropertyChanged
     public bool IsDraft { get; private set; }
 
     public string DisplayTitle { get; private set; } = Strings.Get("NotesUntitled");
+
+    public IReadOnlyList<string> Tags { get; private set; }
+
+    public bool IsPinned { get; private set; }
+
+    public string TagText => string.Join(" · ", Tags);
+
+    public Visibility TagVisibility => Tags.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+
+    public Visibility PinVisibility => IsPinned ? Visibility.Visible : Visibility.Collapsed;
 
     public string Text
     {
@@ -74,7 +88,7 @@ public sealed class Note : INotifyPropertyChanged
                 continue;
             }
 
-            notes.Add(new Note(summary.Id, document.Body, summary.Title, summary.Updated));
+            notes.Add(new Note(summary.Id, document.Body, summary.Title, summary.Tags, summary.Pinned, summary.Updated));
         }
 
         return notes;
@@ -100,8 +114,13 @@ public sealed class Note : INotifyPropertyChanged
         _savedText = document.Body;
         _updated = document.Summary.Updated;
         DisplayTitle = document.Summary.Title;
+        Tags = document.Summary.Tags;
+        IsPinned = document.Summary.Pinned;
         OnPropertyChanged(nameof(Date));
         OnPropertyChanged(nameof(DisplayTitle));
+        OnPropertyChanged(nameof(TagText));
+        OnPropertyChanged(nameof(TagVisibility));
+        OnPropertyChanged(nameof(PinVisibility));
     }
 
     public async Task DeleteAsync(IVaultStore store)
@@ -112,6 +131,23 @@ public sealed class Note : INotifyPropertyChanged
         }
 
         await store.TrashNoteAsync(Id);
+    }
+
+    /// <summary>恢复历史版本后同步内存状态，避免再触发一次多余保存。</summary>
+    public void ApplyRestoredDocument(NoteDocument document)
+    {
+        _text = document.Body;
+        _savedText = document.Body;
+        _updated = document.Summary.Updated;
+        DisplayTitle = document.Summary.Title;
+        Tags = document.Summary.Tags;
+        IsPinned = document.Summary.Pinned;
+        OnPropertyChanged(nameof(Text));
+        OnPropertyChanged(nameof(Date));
+        OnPropertyChanged(nameof(DisplayTitle));
+        OnPropertyChanged(nameof(TagText));
+        OnPropertyChanged(nameof(TagVisibility));
+        OnPropertyChanged(nameof(PinVisibility));
     }
 
     private static string DeriveTitle(string text)
