@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -25,7 +26,30 @@ public sealed class VaultService
 
     public bool IsWritable => Store?.Capabilities.Writable == true;
 
+    public bool HasPendingCommits => Store is GitVaultStore git && git.HasPendingCommits;
+
     public string VaultPath => SettingsHelper.Current.VaultPath;
+
+    /// <summary>Waits for queued git commits, bounded by <paramref name="timeout"/>.</summary>
+    public async Task<bool> FlushCommitsAsync(TimeSpan timeout)
+    {
+        IVaultStore? store = Store;
+        if (store is not GitVaultStore git)
+        {
+            return true;
+        }
+
+        try
+        {
+            await git.FlushAsync().WaitAsync(timeout).ConfigureAwait(false);
+            return true;
+        }
+        catch (Exception exception) when (exception is TimeoutException or IOException)
+        {
+            Debug.WriteLine($"nopenote: git flush failed: {exception.Message}");
+            return false;
+        }
+    }
 
     public Task<VaultOpenResult> GetVaultAsync()
         => _opening ??= OpenAsync();
@@ -73,7 +97,11 @@ public sealed class VaultService
             {
                 result = result with
                 {
-                    Store = new GitVaultStore(result.Store, new ProcessGitCommitter(path)),
+                    Store = new GitVaultStore(
+                        result.Store,
+                        new ProcessGitCommitter(path),
+                        onCommitFailed: exception => Debug.WriteLine(
+                            $"nopenote: git commit failed: {exception.Message}")),
                 };
             }
         }

@@ -11,9 +11,10 @@ public sealed class GitVaultStoreTests
     {
         using var fixture = new VaultFixture();
         var committer = new RecordingCommitter();
-        IVaultStore store = Decorated(await OpenAsync(fixture), committer, TimeSpan.Zero);
+        GitVaultStore store = Decorated(await OpenAsync(fixture), committer, TimeSpan.Zero);
 
         NoteDocument note = await store.CreateNoteAsync("t", "b");
+        await store.FlushAsync();
 
         Assert.Equal($"note: create {note.Summary.Id:D}", Assert.Single(committer.Messages));
     }
@@ -23,10 +24,11 @@ public sealed class GitVaultStoreTests
     {
         using var fixture = new VaultFixture();
         var committer = new RecordingCommitter();
-        IVaultStore store = Decorated(await OpenAsync(fixture), committer, TimeSpan.Zero);
+        GitVaultStore store = Decorated(await OpenAsync(fixture), committer, TimeSpan.Zero);
 
         await store.UpdateNoteAsync(VaultFixture.NoteId, "第一版");
         await store.UpdateNoteAsync(VaultFixture.NoteId, "第二版");
+        await store.FlushAsync();
 
         Assert.Equal(2, committer.Messages.Count);
         Assert.All(committer.Messages, message => Assert.Equal($"note: update {VaultFixture.NoteId:D}", message));
@@ -55,11 +57,12 @@ public sealed class GitVaultStoreTests
     {
         using var fixture = new VaultFixture();
         var committer = new RecordingCommitter();
-        IVaultStore store = Decorated(await OpenAsync(fixture), committer, TimeSpan.Zero);
+        GitVaultStore store = Decorated(await OpenAsync(fixture), committer, TimeSpan.Zero);
 
         await store.TrashNoteAsync(VaultFixture.NoteId);
         await store.RestoreNoteAsync(VaultFixture.NoteId);
         await store.PurgeNoteAsync(VaultFixture.NoteId);
+        await store.FlushAsync();
 
         Assert.Equal(
             new[]
@@ -128,8 +131,8 @@ public sealed class GitVaultStoreTests
         }
     }
 
-    private static IVaultStore Decorated(IVaultStore inner, IVaultGitCommitter committer, TimeSpan debounce)
-        => new GitVaultStore(inner, committer, debounce);
+    private static GitVaultStore Decorated(IVaultStore inner, IVaultGitCommitter committer, TimeSpan debounce)
+        => new(inner, committer, debounce);
 
     private static async Task<IVaultStore> OpenAsync(VaultFixture fixture)
     {
