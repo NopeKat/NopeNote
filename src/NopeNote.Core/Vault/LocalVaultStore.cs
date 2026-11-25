@@ -15,6 +15,10 @@ public sealed class LocalVaultStore : IVaultStore
     private readonly string _conflictsDirectory;
     private readonly string _deviceId;
 
+    // All vault IO runs off the calling thread and is serialized here so
+    // writes and reads never interleave on the same files.
+    private readonly SemaphoreSlim _ioGate = new(1, 1);
+
     public LocalVaultStore(
         string rootPath,
         VaultMetadata metadata,
@@ -38,6 +42,9 @@ public sealed class LocalVaultStore : IVaultStore
     public VaultCapabilities Capabilities { get; }
 
     public Task<NoteScanResult> ScanNotesAsync(CancellationToken cancellationToken = default)
+        => RunAsync(() => ScanNotesCore(cancellationToken), cancellationToken);
+
+    private NoteScanResult ScanNotesCore(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -46,7 +53,7 @@ public sealed class LocalVaultStore : IVaultStore
 
         if (!Directory.Exists(_notesDirectory))
         {
-            return Task.FromResult(new NoteScanResult(notes, issues));
+            return new NoteScanResult(notes, issues);
         }
 
         foreach (string path in Directory.EnumerateFiles(_notesDirectory, "*.md", SearchOption.TopDirectoryOnly))
@@ -81,20 +88,23 @@ public sealed class LocalVaultStore : IVaultStore
             return byUpdated != 0 ? byUpdated : right.Id.CompareTo(left.Id);
         });
 
-        return Task.FromResult(new NoteScanResult(notes, issues));
+        return new NoteScanResult(notes, issues);
     }
 
     public Task<NoteDocument?> ReadNoteAsync(Guid id, CancellationToken cancellationToken = default)
+        => RunAsync(() => ReadNoteCore(id, cancellationToken), cancellationToken);
+
+    private NoteDocument? ReadNoteCore(Guid id, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         string? text = ReadNoteFile(id);
         if (text is null)
         {
-            return Task.FromResult<NoteDocument?>(null);
+            return null;
         }
 
-        return Task.FromResult<NoteDocument?>(ReadDocument(id, NoteRelativePath(id), text));
+        return ReadDocument(id, NoteRelativePath(id), text);
     }
 
     public Task<NoteDocument> CreateNoteAsync(
@@ -105,6 +115,18 @@ public sealed class LocalVaultStore : IVaultStore
         DateTimeOffset? createdAt = null,
         DateTimeOffset? updatedAt = null,
         CancellationToken cancellationToken = default)
+        => RunAsync(
+            () => CreateNoteCore(title, body, tags, pinned, createdAt, updatedAt, cancellationToken),
+            cancellationToken);
+
+    private NoteDocument CreateNoteCore(
+        string title,
+        string body,
+        IReadOnlyList<string>? tags,
+        bool pinned,
+        DateTimeOffset? createdAt,
+        DateTimeOffset? updatedAt,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureWritable();
@@ -127,7 +149,7 @@ public sealed class LocalVaultStore : IVaultStore
             body);
 
         WriteText(NotePath(id), text);
-        return Task.FromResult(ReadDocument(id, NoteRelativePath(id), text));
+        return ReadDocument(id, NoteRelativePath(id), text);
     }
 
     public Task<NoteDocument> UpdateNoteAsync(
@@ -138,6 +160,18 @@ public sealed class LocalVaultStore : IVaultStore
         bool? pinned = null,
         DateTimeOffset? expectedUpdated = null,
         CancellationToken cancellationToken = default)
+        => RunAsync(
+            () => UpdateNoteCore(id, body, title, tags, pinned, expectedUpdated, cancellationToken),
+            cancellationToken);
+
+    private NoteDocument UpdateNoteCore(
+        Guid id,
+        string? body,
+        string? title,
+        IReadOnlyList<string>? tags,
+        bool? pinned,
+        DateTimeOffset? expectedUpdated,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureWritable();
@@ -171,10 +205,13 @@ public sealed class LocalVaultStore : IVaultStore
         WriteSnapshotIfNeeded(id, currentText, updated);
         WriteText(NotePath(id), text, currentText);
 
-        return Task.FromResult(ReadDocument(id, NoteRelativePath(id), text));
+        return ReadDocument(id, NoteRelativePath(id), text);
     }
 
     public Task TrashNoteAsync(Guid id, CancellationToken cancellationToken = default)
+        => RunAsync(() => TrashNoteCore(id, cancellationToken), cancellationToken);
+
+    private void TrashNoteCore(Guid id, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureWritable();
@@ -202,11 +239,12 @@ public sealed class LocalVaultStore : IVaultStore
         string trashPath = TrashPath(id);
         WriteText(trashPath, text);
         File.Delete(NotePath(id));
-
-        return Task.CompletedTask;
     }
 
     public Task RestoreNoteAsync(Guid id, CancellationToken cancellationToken = default)
+        => RunAsync(() => RestoreNoteCore(id, cancellationToken), cancellationToken);
+
+    private void RestoreNoteCore(Guid id, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureWritable();
@@ -232,11 +270,12 @@ public sealed class LocalVaultStore : IVaultStore
 
         WriteText(NotePath(id), text);
         File.Delete(trashPath);
-
-        return Task.CompletedTask;
     }
 
     public Task PurgeNoteAsync(Guid id, CancellationToken cancellationToken = default)
+        => RunAsync(() => PurgeNoteCore(id, cancellationToken), cancellationToken);
+
+    private void PurgeNoteCore(Guid id, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         EnsureWritable();
@@ -268,13 +307,14 @@ public sealed class LocalVaultStore : IVaultStore
         {
             throw new VaultNoteNotFoundException(id);
         }
-
-        return Task.CompletedTask;
     }
 
     public Task<IReadOnlyList<VaultSnapshotInfo>> ListHistoryAsync(
         Guid id,
         CancellationToken cancellationToken = default)
+        => RunAsync(() => ListHistoryCore(id, cancellationToken), cancellationToken);
+
+    private IReadOnlyList<VaultSnapshotInfo> ListHistoryCore(Guid id, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -282,7 +322,7 @@ public sealed class LocalVaultStore : IVaultStore
         string directory = Path.Combine(_historyDirectory, id.ToString("D"));
         if (!Directory.Exists(directory))
         {
-            return Task.FromResult<IReadOnlyList<VaultSnapshotInfo>>(snapshots);
+            return snapshots;
         }
 
         foreach (string path in Directory.EnumerateFiles(directory, "*.md", SearchOption.TopDirectoryOnly))
@@ -297,34 +337,43 @@ public sealed class LocalVaultStore : IVaultStore
         }
 
         snapshots.Sort(static (left, right) => left.TakenAt.CompareTo(right.TakenAt));
-        return Task.FromResult<IReadOnlyList<VaultSnapshotInfo>>(snapshots);
+        return snapshots;
     }
 
     public Task<NoteDocument?> ReadHistoryAsync(
         Guid id,
         string snapshotName,
         CancellationToken cancellationToken = default)
+        => RunAsync(() => ReadHistoryCore(id, snapshotName, cancellationToken), cancellationToken);
+
+    private NoteDocument? ReadHistoryCore(
+        Guid id,
+        string snapshotName,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         string path = Path.Combine(_historyDirectory, id.ToString("D"), snapshotName);
         if (!File.Exists(path))
         {
-            return Task.FromResult<NoteDocument?>(null);
+            return null;
         }
 
         string relativePath = $".history/{id:D}/{snapshotName}";
-        return Task.FromResult<NoteDocument?>(ReadDocument(id, relativePath, File.ReadAllText(path)));
+        return ReadDocument(id, relativePath, File.ReadAllText(path));
     }
 
     public Task<IReadOnlyList<TrashNoteSummary>> ListTrashAsync(CancellationToken cancellationToken = default)
+        => RunAsync(() => ListTrashCore(cancellationToken), cancellationToken);
+
+    private IReadOnlyList<TrashNoteSummary> ListTrashCore(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var items = new List<TrashNoteSummary>();
         if (!Directory.Exists(_trashDirectory))
         {
-            return Task.FromResult<IReadOnlyList<TrashNoteSummary>>(items);
+            return items;
         }
 
         foreach (string path in Directory.EnumerateFiles(_trashDirectory, "*.md", SearchOption.TopDirectoryOnly))
@@ -368,20 +417,23 @@ public sealed class LocalVaultStore : IVaultStore
         }
 
         items.Sort(static (left, right) => right.DeletedAt.CompareTo(left.DeletedAt));
-        return Task.FromResult<IReadOnlyList<TrashNoteSummary>>(items);
+        return items;
     }
 
     public Task<NoteDocument?> ReadTrashAsync(Guid id, CancellationToken cancellationToken = default)
+        => RunAsync(() => ReadTrashCore(id, cancellationToken), cancellationToken);
+
+    private NoteDocument? ReadTrashCore(Guid id, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         string path = TrashPath(id);
         if (!File.Exists(path))
         {
-            return Task.FromResult<NoteDocument?>(null);
+            return null;
         }
 
-        return Task.FromResult<NoteDocument?>(ReadDocument(id, TrashRelativePath(id), File.ReadAllText(path)));
+        return ReadDocument(id, TrashRelativePath(id), File.ReadAllText(path));
     }
 
     private static bool TryReadFrontMatterValue(string text, string key, out string? value)
@@ -456,6 +508,32 @@ public sealed class LocalVaultStore : IVaultStore
         string relativePath = $".sync/conflicts/{name}";
         WriteText(Path.Combine(_conflictsDirectory, name), text);
         return relativePath;
+    }
+
+    private async Task<T> RunAsync<T>(Func<T> action, CancellationToken cancellationToken)
+    {
+        await _ioGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await Task.Run(action, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _ioGate.Release();
+        }
+    }
+
+    private async Task RunAsync(Action action, CancellationToken cancellationToken)
+    {
+        await _ioGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await Task.Run(action, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _ioGate.Release();
+        }
     }
 
     private void EnsureWritable()
