@@ -8,9 +8,14 @@ public static class VaultStoreFactory
     /// Initializes a new vault in an empty directory and then opens it.
     /// The caller decides the location; the directory must not already hold files.
     /// </summary>
-    public static async Task<VaultOpenResult> CreateAsync(
+    public static Task<VaultOpenResult> CreateAsync(
         string rootPath,
         CancellationToken cancellationToken = default)
+        => Task.Run(() => CreateCore(rootPath, cancellationToken), cancellationToken);
+
+    private static VaultOpenResult CreateCore(
+        string rootPath,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -53,22 +58,25 @@ public static class VaultStoreFactory
 
         VaultSettings.Write(root, VaultSettings.Default);
 
-        return await OpenAsync(root, cancellationToken).ConfigureAwait(false);
+        return OpenCore(root, cancellationToken);
     }
 
     private static void WriteText(string path, string text)
         => File.WriteAllText(path, text, Utf8NoBom);
 
     public static Task<VaultOpenResult> OpenAsync(string rootPath, CancellationToken cancellationToken = default)
+        => Task.Run(() => OpenCore(rootPath, cancellationToken), cancellationToken);
+
+    private static VaultOpenResult OpenCore(string rootPath, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!Directory.Exists(rootPath))
         {
-            return Task.FromResult(new VaultOpenResult(
+            return new VaultOpenResult(
                 VaultOpenStatus.NotAVault,
                 null,
-                "仓库目录不存在。"));
+                "仓库目录不存在。");
         }
 
         VaultMetadata metadata;
@@ -78,18 +86,18 @@ public static class VaultStoreFactory
         }
         catch (VaultFormatException exception)
         {
-            return Task.FromResult(new VaultOpenResult(
+            return new VaultOpenResult(
                 VaultOpenStatus.NotAVault,
                 null,
-                exception.Message));
+                exception.Message);
         }
 
         if (!string.Equals(metadata.Schema, "nopenote.vault", StringComparison.Ordinal))
         {
-            return Task.FromResult(new VaultOpenResult(
+            return new VaultOpenResult(
                 VaultOpenStatus.NotAVault,
                 null,
-                ".nopenote schema 不是 nopenote.vault。"));
+                ".nopenote schema 不是 nopenote.vault。");
         }
 
         if (metadata.FormatVersion > 1)
@@ -98,10 +106,10 @@ public static class VaultStoreFactory
                 rootPath,
                 metadata,
                 new VaultCapabilities(false, false, false, false));
-            return Task.FromResult(new VaultOpenResult(
+            return new VaultOpenResult(
                 VaultOpenStatus.ReadOnly,
                 readOnlyStore,
-                $"仓库格式版本 {metadata.FormatVersion} 高于当前客户端支持的 1。"));
+                $"仓库格式版本 {metadata.FormatVersion} 高于当前客户端支持的 1。");
         }
 
         if (metadata.Encrypted)
@@ -110,10 +118,10 @@ public static class VaultStoreFactory
                 rootPath,
                 metadata,
                 new VaultCapabilities(false, false, false, false));
-            return Task.FromResult(new VaultOpenResult(
+            return new VaultOpenResult(
                 VaultOpenStatus.ReadOnly,
                 readOnlyStore,
-                "仓库已加密，当前版本不支持解密写入。"));
+                "仓库已加密，当前版本不支持解密写入。");
         }
 
         VaultCapabilities capabilities;
@@ -127,13 +135,13 @@ public static class VaultStoreFactory
                 rootPath,
                 metadata,
                 new VaultCapabilities(false, false, false, false));
-            return Task.FromResult(new VaultOpenResult(
+            return new VaultOpenResult(
                 VaultOpenStatus.ReadOnly,
                 readOnlyStore,
-                $"目录不可写或能力探测失败：{exception.Message}"));
+                $"目录不可写或能力探测失败：{exception.Message}");
         }
 
         var store = new LocalVaultStore(rootPath, metadata, capabilities);
-        return Task.FromResult(new VaultOpenResult(VaultOpenStatus.Opened, store, "仓库已打开。"));
+        return new VaultOpenResult(VaultOpenStatus.Opened, store, "仓库已打开。");
     }
 }
