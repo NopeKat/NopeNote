@@ -307,9 +307,6 @@
   <data name="NotesSelectPlaceholder" xml:space="preserve">
     <value>选择一条笔记</value>
   </data>
-  <data name="NotesEmptySearch" xml:space="preserve">
-    <value>没有匹配搜索的笔记。清空搜索框可查看全部笔记。</value>
-  </data>
   <data name="NotesEmptyDefault" xml:space="preserve">
     <value>还没有笔记。选择「新建笔记」创建一条。</value>
   </data>

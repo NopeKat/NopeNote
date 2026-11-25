@@ -89,6 +89,8 @@ public static class VaultProbe
         }
         catch (IOException)
         {
+            // 探测残留的清理是尽力而为：文件仍被占用时留给下次覆盖，
+            // 不影响本次探测结论，所以不向上传递。
         }
     }
 }

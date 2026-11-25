@@ -307,9 +307,6 @@
   <data name="NotesSelectPlaceholder" xml:space="preserve">
     <value>Select a note</value>
   </data>
-  <data name="NotesEmptySearch" xml:space="preserve">
-    <value>No notes match your search. Clear the search box to see all notes.</value>
-  </data>
   <data name="NotesEmptyDefault" xml:space="preserve">
     <value>No notes yet. Select New note to create one.</value>
   </data>

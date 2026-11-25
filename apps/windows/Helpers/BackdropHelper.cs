@@ -2,7 +2,6 @@ using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using System;
 
 namespace NopeNote.Windows.Helpers;
 
@@ -31,15 +30,10 @@ public static class BackdropHelper
 
     private static Brush GetSolidFallbackBrush()
     {
-        try
+        if (Application.Current.Resources.TryGetValue("SolidBackgroundFillColorBaseBrush", out object? value)
+            && value is Brush brush)
         {
-            if (Application.Current.Resources["SolidBackgroundFillColorBaseBrush"] is Brush brush)
-            {
-                return brush;
-            }
-        }
-        catch (Exception)
-        {
+            return brush;
         }
 
         return new SolidColorBrush(ThemeHelper.IsDarkTheme()

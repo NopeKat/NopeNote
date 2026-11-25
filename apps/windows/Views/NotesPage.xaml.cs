@@ -23,7 +23,6 @@ public sealed partial class NotesPage : Page
 
     private bool _isSaving;
     private bool _isLoadingNotes;
-    private bool _isSearchSubscribed;
     private bool _loadFailed;
     private Guid? _pendingNoteId;
     private Note? _pendingSaveNote;
@@ -37,7 +36,6 @@ public sealed partial class NotesPage : Page
         NoteEditor.Header = Strings.Get("NotesEditorHeader");
         Loaded += NotesPage_Loaded;
         SizeChanged += NotesPage_SizeChanged;
-        Unloaded += NotesPage_Unloaded;
     }
 
     public NotesViewModel ViewModel { get; }
@@ -59,32 +57,11 @@ public sealed partial class NotesPage : Page
         ApplyLayout(e.NewSize.Width < NarrowWidthThreshold);
     }
 
-    private void NotesPage_Unloaded(object sender, RoutedEventArgs e)
-    {
-        if (_isSearchSubscribed)
-        {
-            NoteSearchState.QueryChanged -= OnSearchQueryChanged;
-            _isSearchSubscribed = false;
-        }
-    }
-
-    private async void OnSearchQueryChanged(object? sender, EventArgs e)
-    {
-        await EnsureNotesLoadedAsync();
-        ApplySearch();
-    }
-
     private async void NotesPage_Loaded(object sender, RoutedEventArgs e)
     {
-        if (!_isSearchSubscribed)
-        {
-            NoteSearchState.QueryChanged += OnSearchQueryChanged;
-            _isSearchSubscribed = true;
-        }
-
         ApplyLayout(ActualWidth < NarrowWidthThreshold);
         await EnsureNotesLoadedAsync();
-        ApplySearch();
+        RefreshNotes();
     }
 
     private async Task EnsureNotesLoadedAsync()
@@ -148,9 +125,9 @@ public sealed partial class NotesPage : Page
         }
     }
 
-    private void ApplySearch()
+    private void RefreshNotes()
     {
-        ViewModel.ApplyFilter(NoteSearchState.Query);
+        ViewModel.ApplyFilter(string.Empty);
         UpdateListState();
         TrySelectPendingNote();
     }
@@ -188,7 +165,7 @@ public sealed partial class NotesPage : Page
 
         Note note = new Note();
         ViewModel.Add(note);
-        ApplySearch();
+        RefreshNotes();
         SelectNote(note);
         NoteEditor.Focus(FocusState.Programmatic);
         await SaveNoteAsync(note);
@@ -325,7 +302,7 @@ public sealed partial class NotesPage : Page
         }
 
         ViewModel.Remove(note);
-        ApplySearch();
+        RefreshNotes();
 
         if (ReferenceEquals(SelectedNote, note))
         {
@@ -346,7 +323,7 @@ public sealed partial class NotesPage : Page
                 _loadFailed = false;
                 VaultService.Current.Reset();
                 await EnsureNotesLoadedAsync();
-                ApplySearch();
+                RefreshNotes();
                 break;
             case RetryOperation.SaveNote:
                 if (note is not null)
@@ -458,10 +435,7 @@ public sealed partial class NotesPage : Page
 
         if (!isLoading)
         {
-            bool isSearching = !string.IsNullOrWhiteSpace(NoteSearchState.Query);
-            EmptyStateTextBlock.Text = isSearching
-                ? Strings.Get("NotesEmptySearch")
-                : Strings.Get("NotesEmptyDefault");
+            EmptyStateTextBlock.Text = Strings.Get("NotesEmptyDefault");
         }
     }
 

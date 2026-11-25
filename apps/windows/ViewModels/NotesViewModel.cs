@@ -67,15 +67,15 @@ public sealed class NotesViewModel
         }
     }
 
+    // 只维护数据源，列表重建交给调用方统一做一次（RefreshNotes），
+    // 避免新建/删除时在 ViewModel 和页面各过滤一遍。
     public void Add(Note note)
     {
         _allNotes.Insert(0, note);
-        ApplyFilter(CurrentQuery);
     }
 
     public void Remove(Note note)
     {
         _allNotes.Remove(note);
-        ApplyFilter(CurrentQuery);
     }
 }

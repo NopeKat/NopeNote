@@ -13,12 +13,6 @@ public static class WindowHelper
     public static nint GetWindowHandle(Window? window)
         => window is null ? 0 : WinRT.Interop.WindowNative.GetWindowHandle(window);
 
-    public static Window CreateWindow()    {
-        Window window = new();
-        TrackWindow(window);
-        return window;
-    }
-
     public static void TrackWindow(Window window)
     {
         window.Closed += (_, _) => ActiveWindowList.Remove(window);

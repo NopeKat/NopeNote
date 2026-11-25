@@ -12,20 +12,8 @@ internal sealed class VaultFixture : IDisposable
 
     public static readonly Guid SecondNoteId = Guid.Parse("22222222-2222-4222-8222-222222222222");
 
-    private static readonly string[] Directories =
-    {
-        ".vault/notes",
-        ".vault/atts",
-        ".vault/todos",
-        ".history",
-        ".meta",
-        ".trash",
-        ".settings",
-        ".sync/conflicts",
-        ".plugins",
-        ".tmp/.cache",
-        ".tmp/.downloads",
-    };
+    // 与生产代码共用同一份目录清单，避免规范增减目录时测试数据跟着漂移。
+    private static readonly IReadOnlyList<string> Directories = VaultLayout.RequiredDirectories;
 
     public VaultFixture(string? root = null)
     {

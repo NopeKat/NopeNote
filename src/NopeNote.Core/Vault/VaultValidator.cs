@@ -12,7 +12,8 @@ namespace NopeNote.Core.Vault;
 /// </summary>
 public static partial class VaultValidator
 {
-    private static readonly HashSet<string> RootMembers = new(StringComparer.Ordinal)    {
+    private static readonly HashSet<string> RootMembers = new(StringComparer.Ordinal)
+    {
         ".nopenote",
         ".vault",
         ".history",

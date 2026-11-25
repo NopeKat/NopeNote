@@ -60,207 +60,207 @@
         </muxc:InfoBar>
 
         <Grid x:Name="PanesGrid" Grid.Row="1">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition x:Name="ListColumn" Width="{StaticResource MasterDetailListPaneWidth}" />
-            <ColumnDefinition x:Name="DetailColumn" Width="*" />
-        </Grid.ColumnDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="ListColumn" Width="{StaticResource MasterDetailListPaneWidth}" />
+                <ColumnDefinition x:Name="DetailColumn" Width="*" />
+            </Grid.ColumnDefinitions>
 
-        <Grid x:Name="ListPane" Grid.Column="0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
+            <Grid x:Name="ListPane" Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
 
-            <TextBlock
-                x:Name="NotesPageHeader"
-                x:Uid="NotesCommandBarTitle"
-                Grid.Row="0"
-                Margin="{StaticResource PageHeaderMargin}"
-                AutomationProperties.HeadingLevel="Level2"
-                Style="{StaticResource TitleTextBlockStyle}"
-                Text="Quick notes" />
+                <TextBlock
+                    x:Name="NotesPageHeader"
+                    x:Uid="NotesCommandBarTitle"
+                    Grid.Row="0"
+                    Margin="{StaticResource PageHeaderMargin}"
+                    AutomationProperties.HeadingLevel="Level2"
+                    Style="{StaticResource TitleTextBlockStyle}"
+                    Text="Quick notes" />
 
-            <muxc:CommandBar
-                x:Name="NotesCommandBar"
-                Grid.Row="1"
-                Margin="{StaticResource PageCommandBarMargin}"
-                DefaultLabelPosition="Right">
-            <muxc:AppBarButton
-                x:Name="NewNoteButton"
-                x:Uid="NotesNewButton"
-                AutomationProperties.Name="New note"
-                Click="NewNoteButton_Click"
-                KeyboardAcceleratorPlacementMode="Auto"
-                Label="New note">
-                <muxc:AppBarButton.Icon>
-                    <!-- Fluent UI System Icons: add_16_regular; ink 12.00 x 12.00 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
-                    <muxc:PathIcon
-                        Width="16"
-                        Height="16"
-                        Data="F1 M8 1C8.327 1 8.583 1.257 8.583 1.583V7.417H14.417A0.583 0.583 0 0 1 14.417 8.583H8.583V14.417A0.583 0.583 0 0 1 7.417 14.417V8.583H1.583A0.583 0.583 0 0 1 1.583 7.417H7.417V1.583C7.417 1.257 7.673 1 8 1"
-                        AutomationProperties.AccessibilityView="Raw" />
-                </muxc:AppBarButton.Icon>
-                <muxc:AppBarButton.KeyboardAccelerators>
-                    <input:KeyboardAccelerator Key="N" Modifiers="Control" />
-                </muxc:AppBarButton.KeyboardAccelerators>
-            </muxc:AppBarButton>
-            <muxc:AppBarButton
-                x:Name="DeleteNoteButton"
-                x:Uid="NotesDeleteButton"
-                AutomationProperties.Name="Delete note"
-                Click="DeleteNoteButton_Click"
-                IsEnabled="False"
-                KeyboardAcceleratorPlacementMode="Auto"
-                Label="Delete">
-                <muxc:AppBarButton.Icon>
-                    <!-- Fluent UI System Icons: delete_16_regular; ink 13.00 x 14.01 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
-                    <muxc:PathIcon
-                        Width="16"
-                        Height="16"
-                        Data="F1 M7.001 2.998H8.999A0.999 0.999 0 0 0 7.001 2.998M6.002 2.998A1.998 1.998 0 1 1 9.998 2.998H13.995A0.5 0.5 0 0 1 13.995 3.997H13.435L12.236 12.83A2.498 2.498 0 0 1 9.739 14.988H6.241A2.498 2.498 0 0 1 3.764 12.83L2.575 3.997H2.005A0.5 0.5 0 0 1 2.005 2.998ZM7.001 6.495A0.5 0.5 0 0 0 6.002 6.495V11.491A0.5 0.5 0 0 0 7.001 11.491ZM9.499 5.996C9.779 5.996 9.998 6.216 9.998 6.495V11.491A0.5 0.5 0 0 1 8.999 11.491V6.495C8.999 6.216 9.219 5.996 9.499 5.996M4.763 12.69C4.863 13.44 5.502 13.989 6.251 13.989H9.749A1.499 1.499 0 0 0 11.247 12.69L12.416 3.997H3.574Z"
-                        AutomationProperties.AccessibilityView="Raw" />
-                </muxc:AppBarButton.Icon>
-                <muxc:AppBarButton.KeyboardAccelerators>
-                    <input:KeyboardAccelerator Key="Delete" />
-                </muxc:AppBarButton.KeyboardAccelerators>
-            </muxc:AppBarButton>
-        </muxc:CommandBar>
-
-        <Grid
-            x:Name="NotesListPanel"
-            Grid.Row="2"
-            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-            BorderThickness="{StaticResource NotesListBorderThickness}">
-            <muxc:ProgressRing
-                x:Name="NotesLoadingRing"
-                x:Uid="NotesLoadingRing"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                AutomationProperties.Name="Loading notes"
-                IsActive="False"
-                Visibility="Collapsed" />
-            <muxc:ItemsView
-                x:Name="NotesItemsView"
-                Margin="{StaticResource NotesListMargin}"
-                IsItemInvokedEnabled="True"
-                ItemInvoked="NotesItemsView_ItemInvoked"
-                ItemTemplate="{StaticResource NoteItemsViewItemTemplate}"
-                ItemsSource="{x:Bind ViewModel.Notes}"
-                SelectionMode="Single">
-                <muxc:ItemsView.Layout>
-                    <muxc:UniformGridLayout
-                        ItemsJustification="Start"
-                        MinColumnSpacing="{StaticResource NotesItemSpacing}"
-                        MinItemWidth="{StaticResource NotesItemMinWidth}"
-                        MinRowSpacing="{StaticResource NotesItemSpacing}" />
-                </muxc:ItemsView.Layout>
-            </muxc:ItemsView>
-            <TextBlock
-                x:Name="EmptyStateTextBlock"
-                x:Uid="NotesEmptyState"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Style="{StaticResource BodyTextBlockStyle}"
-                Text="No notes yet. Select New note to create one."
-                Visibility="Collapsed" />
-        </Grid>
-        </Grid>
-
-        <Grid x:Name="DetailPane" Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <Grid x:Name="DetailHeader" Grid.Row="0" Margin="{StaticResource PageHeaderMargin}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
+                <muxc:CommandBar
+                    x:Name="NotesCommandBar"
+                    Grid.Row="1"
+                    Margin="{StaticResource PageCommandBarMargin}"
+                    DefaultLabelPosition="Right">
                 <muxc:AppBarButton
-                    x:Name="BackToListButton"
-                    x:Uid="NotesBackButton"
-                    Grid.Column="0"
-                    Margin="0,0,8,0"
-                    AutomationProperties.Name="Back to notes list"
-                    Click="BackToListButton_Click"
+                    x:Name="NewNoteButton"
+                    x:Uid="NotesNewButton"
+                    AutomationProperties.Name="New note"
+                    Click="NewNoteButton_Click"
                     KeyboardAcceleratorPlacementMode="Auto"
-                    Label="Back"
-                    Visibility="Collapsed">
+                    Label="New note">
                     <muxc:AppBarButton.Icon>
-                        <!-- Fluent UI System Icons: arrow_left_16_regular; ink 11.99 x 10.15 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
+                        <!-- Fluent UI System Icons: add_16_regular; ink 12.00 x 12.00 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
                         <muxc:PathIcon
                             Width="16"
                             Height="16"
-                            Data="F1 M14.416 8.584A0.584 0.584 0 0 0 14.416 7.416H3.094L7.798 3.179A0.584 0.584 0 1 0 7.027 2.315L1.191 7.568A0.584 0.584 0 0 0 1.191 8.432L7.027 13.685A0.584 0.584 0 1 0 7.798 12.821L3.094 8.584Z"
+                            Data="F1 M8 1C8.327 1 8.583 1.257 8.583 1.583V7.417H14.417A0.583 0.583 0 0 1 14.417 8.583H8.583V14.417A0.583 0.583 0 0 1 7.417 14.417V8.583H1.583A0.583 0.583 0 0 1 1.583 7.417H7.417V1.583C7.417 1.257 7.673 1 8 1"
                             AutomationProperties.AccessibilityView="Raw" />
                     </muxc:AppBarButton.Icon>
+                    <muxc:AppBarButton.KeyboardAccelerators>
+                        <input:KeyboardAccelerator Key="N" Modifiers="Control" />
+                    </muxc:AppBarButton.KeyboardAccelerators>
                 </muxc:AppBarButton>
-
-                <TextBlock
-                    x:Name="NoteDateTextBlock"
-                    x:Uid="NotesDateHeader"
-                    Grid.Column="1"
-                    VerticalAlignment="Center"
-                    Style="{StaticResource BodyStrongTextBlockStyle}"
-                    Text="Select a note"
-                    TextTrimming="CharacterEllipsis" />
-
-                <StackPanel
-                    Grid.Column="2"
-                    Margin="12,0,0,0"
-                    VerticalAlignment="Center"
-                    Orientation="Horizontal"
-                    Spacing="{StaticResource StatusSpacing}">
-                    <muxc:ProgressRing
-                        x:Name="SaveProgressRing"
-                        x:Uid="NotesSaveRing"
-                        Width="{StaticResource InlineProgressRingSize}"
-                        Height="{StaticResource InlineProgressRingSize}"
-                        AutomationProperties.Name="Saving note"
-                        IsActive="False"
-                        Visibility="Collapsed" />
-                    <TextBlock
-                        x:Name="SaveStatusTextBlock"
-                        x:Uid="NotesSaveStatus"
-                        AutomationProperties.LiveSetting="Polite"
-                        AutomationProperties.Name="Save status"
-                        Style="{StaticResource CaptionTextBlockStyle}"
-                        Text="" />
-                </StackPanel>
-            </Grid>
+                <muxc:AppBarButton
+                    x:Name="DeleteNoteButton"
+                    x:Uid="NotesDeleteButton"
+                    AutomationProperties.Name="Delete note"
+                    Click="DeleteNoteButton_Click"
+                    IsEnabled="False"
+                    KeyboardAcceleratorPlacementMode="Auto"
+                    Label="Delete">
+                    <muxc:AppBarButton.Icon>
+                        <!-- Fluent UI System Icons: delete_16_regular; ink 13.00 x 14.01 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
+                        <muxc:PathIcon
+                            Width="16"
+                            Height="16"
+                            Data="F1 M7.001 2.998H8.999A0.999 0.999 0 0 0 7.001 2.998M6.002 2.998A1.998 1.998 0 1 1 9.998 2.998H13.995A0.5 0.5 0 0 1 13.995 3.997H13.435L12.236 12.83A2.498 2.498 0 0 1 9.739 14.988H6.241A2.498 2.498 0 0 1 3.764 12.83L2.575 3.997H2.005A0.5 0.5 0 0 1 2.005 2.998ZM7.001 6.495A0.5 0.5 0 0 0 6.002 6.495V11.491A0.5 0.5 0 0 0 7.001 11.491ZM9.499 5.996C9.779 5.996 9.998 6.216 9.998 6.495V11.491A0.5 0.5 0 0 1 8.999 11.491V6.495C8.999 6.216 9.219 5.996 9.499 5.996M4.763 12.69C4.863 13.44 5.502 13.989 6.251 13.989H9.749A1.499 1.499 0 0 0 11.247 12.69L12.416 3.997H3.574Z"
+                            AutomationProperties.AccessibilityView="Raw" />
+                    </muxc:AppBarButton.Icon>
+                    <muxc:AppBarButton.KeyboardAccelerators>
+                        <input:KeyboardAccelerator Key="Delete" />
+                    </muxc:AppBarButton.KeyboardAccelerators>
+                </muxc:AppBarButton>
+            </muxc:CommandBar>
 
             <Grid
-                x:Name="NoteDetailPanel"
-                Grid.Row="1"
-                Padding="{StaticResource NotesDetailPanePadding}">
-                <Border
-                    x:Name="NoteEditorCard"
-                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                    BorderThickness="1"
-                    CornerRadius="8"
-                    Padding="16">
-                    <TextBox
-                        x:Name="NoteEditor"
-                        x:Uid="NoteEditor"
-                        AcceptsReturn="True"
-                        AutomationProperties.Name="Note text"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        IsEnabled="False"
-                        LostFocus="NoteEditor_LostFocus"
-                        PlaceholderText="Enter your note"
-                        ScrollViewer.VerticalScrollBarVisibility="Auto"
-                        Text="{x:Bind SelectedNote.Text, Mode=TwoWay}"
-                        TextWrapping="Wrap"
-                        VerticalAlignment="Stretch" />
-                </Border>
+                x:Name="NotesListPanel"
+                Grid.Row="2"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="{StaticResource NotesListBorderThickness}">
+                <muxc:ProgressRing
+                    x:Name="NotesLoadingRing"
+                    x:Uid="NotesLoadingRing"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    AutomationProperties.Name="Loading notes"
+                    IsActive="False"
+                    Visibility="Collapsed" />
+                <muxc:ItemsView
+                    x:Name="NotesItemsView"
+                    Margin="{StaticResource NotesListMargin}"
+                    IsItemInvokedEnabled="True"
+                    ItemInvoked="NotesItemsView_ItemInvoked"
+                    ItemTemplate="{StaticResource NoteItemsViewItemTemplate}"
+                    ItemsSource="{x:Bind ViewModel.Notes}"
+                    SelectionMode="Single">
+                    <muxc:ItemsView.Layout>
+                        <muxc:UniformGridLayout
+                            ItemsJustification="Start"
+                            MinColumnSpacing="{StaticResource NotesItemSpacing}"
+                            MinItemWidth="{StaticResource NotesItemMinWidth}"
+                            MinRowSpacing="{StaticResource NotesItemSpacing}" />
+                    </muxc:ItemsView.Layout>
+                </muxc:ItemsView>
+                <TextBlock
+                    x:Name="EmptyStateTextBlock"
+                    x:Uid="NotesEmptyState"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Text="No notes yet. Select New note to create one."
+                    Visibility="Collapsed" />
             </Grid>
-        </Grid>
+            </Grid>
+
+            <Grid x:Name="DetailPane" Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid x:Name="DetailHeader" Grid.Row="0" Margin="{StaticResource PageHeaderMargin}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <muxc:AppBarButton
+                        x:Name="BackToListButton"
+                        x:Uid="NotesBackButton"
+                        Grid.Column="0"
+                        Margin="0,0,8,0"
+                        AutomationProperties.Name="Back to notes list"
+                        Click="BackToListButton_Click"
+                        KeyboardAcceleratorPlacementMode="Auto"
+                        Label="Back"
+                        Visibility="Collapsed">
+                        <muxc:AppBarButton.Icon>
+                            <!-- Fluent UI System Icons: arrow_left_16_regular; ink 11.99 x 10.15 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
+                            <muxc:PathIcon
+                                Width="16"
+                                Height="16"
+                                Data="F1 M14.416 8.584A0.584 0.584 0 0 0 14.416 7.416H3.094L7.798 3.179A0.584 0.584 0 1 0 7.027 2.315L1.191 7.568A0.584 0.584 0 0 0 1.191 8.432L7.027 13.685A0.584 0.584 0 1 0 7.798 12.821L3.094 8.584Z"
+                                AutomationProperties.AccessibilityView="Raw" />
+                        </muxc:AppBarButton.Icon>
+                    </muxc:AppBarButton>
+
+                    <TextBlock
+                        x:Name="NoteDateTextBlock"
+                        x:Uid="NotesDateHeader"
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Text="Select a note"
+                        TextTrimming="CharacterEllipsis" />
+
+                    <StackPanel
+                        Grid.Column="2"
+                        Margin="12,0,0,0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal"
+                        Spacing="{StaticResource StatusSpacing}">
+                        <muxc:ProgressRing
+                            x:Name="SaveProgressRing"
+                            x:Uid="NotesSaveRing"
+                            Width="{StaticResource InlineProgressRingSize}"
+                            Height="{StaticResource InlineProgressRingSize}"
+                            AutomationProperties.Name="Saving note"
+                            IsActive="False"
+                            Visibility="Collapsed" />
+                        <TextBlock
+                            x:Name="SaveStatusTextBlock"
+                            x:Uid="NotesSaveStatus"
+                            AutomationProperties.LiveSetting="Polite"
+                            AutomationProperties.Name="Save status"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="" />
+                    </StackPanel>
+                </Grid>
+
+                <Grid
+                    x:Name="NoteDetailPanel"
+                    Grid.Row="1"
+                    Padding="{StaticResource NotesDetailPanePadding}">
+                    <Border
+                        x:Name="NoteEditorCard"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16">
+                        <TextBox
+                            x:Name="NoteEditor"
+                            x:Uid="NoteEditor"
+                            AcceptsReturn="True"
+                            AutomationProperties.Name="Note text"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            IsEnabled="False"
+                            LostFocus="NoteEditor_LostFocus"
+                            PlaceholderText="Enter your note"
+                            ScrollViewer.VerticalScrollBarVisibility="Auto"
+                            Text="{x:Bind SelectedNote.Text, Mode=TwoWay}"
+                            TextWrapping="Wrap"
+                            VerticalAlignment="Stretch" />
+                    </Border>
+                </Grid>
+            </Grid>
         </Grid>
     </Grid>
 </Page>
