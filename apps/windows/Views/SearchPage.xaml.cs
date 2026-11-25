@@ -18,6 +18,8 @@ public sealed partial class SearchPage : Page
     private bool _isReady;
     private bool _loadFailed;
     private int _filterVersion;
+    private int _loadedVersion = -1;
+    private string? _appliedQuery;
 
     public SearchPage()
     {
@@ -42,8 +44,23 @@ public sealed partial class SearchPage : Page
 
     private async Task EnsureNotesLoadedAsync()
     {
-        if (ViewModel.IsLoaded || _loadFailed)
+        if (_loadFailed)
         {
+            ApplyFilterIfChanged();
+            return;
+        }
+
+        // 页面缓存复用同一个实例，仓库和版本都没变就不重过滤。
+        if (ViewModel.IsLoaded && ReferenceEquals(ViewModel.StoreOrNull, VaultService.Current.Store))
+        {
+            if (_loadedVersion == VaultService.Current.DataVersion)
+            {
+                ApplyFilterIfChanged();
+                return;
+            }
+
+            await ViewModel.LoadAsync();
+            _loadedVersion = VaultService.Current.DataVersion;
             ApplyFilter();
             return;
         }
@@ -67,6 +84,7 @@ public sealed partial class SearchPage : Page
 
             ViewModel.Attach(opened.Store);
             await ViewModel.LoadAsync();
+            _loadedVersion = VaultService.Current.DataVersion;
             ErrorInfoBar.IsOpen = false;
         }
         catch (Exception exception)
@@ -95,7 +113,18 @@ public sealed partial class SearchPage : Page
     private void ApplyFilter()
     {
         ViewModel.ApplyFilter(SearchInput.Text);
+        _appliedQuery = SearchInput.Text;
         UpdateViewState();
+    }
+
+    private void ApplyFilterIfChanged()
+    {
+        if (string.Equals(SearchInput.Text, _appliedQuery, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        ApplyFilter();
     }
 
     private void UpdateViewState()

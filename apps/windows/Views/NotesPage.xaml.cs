@@ -24,6 +24,7 @@ public sealed partial class NotesPage : Page
     private bool _isSaving;
     private bool _isLoadingNotes;
     private bool _loadFailed;
+    private int _loadedVersion = -1;
     private Guid? _pendingNoteId;
     private Note? _pendingSaveNote;
     private Note? _retryNote;
@@ -61,13 +62,27 @@ public sealed partial class NotesPage : Page
     {
         ApplyLayout(ActualWidth < NarrowWidthThreshold);
         await EnsureNotesLoadedAsync();
-        RefreshNotes();
     }
 
     private async Task EnsureNotesLoadedAsync()
     {
-        if (ViewModel.IsLoaded || _loadFailed || _isLoadingNotes)
+        if (_loadFailed || _isLoadingNotes)
         {
+            return;
+        }
+
+        // 页面缓存会复用同一个实例：仓库和版本都没变就不必再重建列表。
+        if (ViewModel.IsLoaded && ReferenceEquals(ViewModel.StoreOrNull, VaultService.Current.Store))
+        {
+            if (_loadedVersion == VaultService.Current.DataVersion)
+            {
+                return;
+            }
+
+            await ViewModel.LoadAsync();
+            _loadedVersion = VaultService.Current.DataVersion;
+            UpdateListState();
+            TrySelectPendingNote();
             return;
         }
 
@@ -91,6 +106,7 @@ public sealed partial class NotesPage : Page
 
             ViewModel.Attach(opened.Store);
             await ViewModel.LoadAsync();
+            _loadedVersion = VaultService.Current.DataVersion;
             ApplyVaultState(opened);
         }
         catch (Exception exception)
@@ -130,6 +146,13 @@ public sealed partial class NotesPage : Page
         ViewModel.ApplyFilter(string.Empty);
         UpdateListState();
         TrySelectPendingNote();
+    }
+
+    // 本页自己已经更新了列表，同时把版本号对齐，避免下次进入再白刷一遍。
+    private void MarkDataChanged()
+    {
+        VaultService.Current.NotifyDataChanged();
+        _loadedVersion = VaultService.Current.DataVersion;
     }
 
     private void TrySelectPendingNote()
@@ -247,7 +270,13 @@ public sealed partial class NotesPage : Page
 
                 try
                 {
+                    bool hadUnsavedChanges = current.HasUnsavedChanges;
                     await current.SaveAsync(ViewModel.Store);
+
+                    if (hadUnsavedChanges)
+                    {
+                        MarkDataChanged();
+                    }
 
                     if (ReferenceEquals(SelectedNote, current))
                     {
@@ -302,6 +331,7 @@ public sealed partial class NotesPage : Page
         }
 
         ViewModel.Remove(note);
+        MarkDataChanged();
         RefreshNotes();
 
         if (ReferenceEquals(SelectedNote, note))
@@ -323,7 +353,6 @@ public sealed partial class NotesPage : Page
                 _loadFailed = false;
                 VaultService.Current.Reset();
                 await EnsureNotesLoadedAsync();
-                RefreshNotes();
                 break;
             case RetryOperation.SaveNote:
                 if (note is not null)

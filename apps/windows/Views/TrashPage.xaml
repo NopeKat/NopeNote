@@ -83,6 +83,7 @@
                 x:Name="TrashList"
                 x:Uid="TrashList"
                 AutomationProperties.Name="Trashed notes"
+                ItemContainerTransitions="{x:Null}"
                 SelectionChanged="TrashList_SelectionChanged"
                 SelectionMode="Single">
                 <ListView.ItemTemplate>

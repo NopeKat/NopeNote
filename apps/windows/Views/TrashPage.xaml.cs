@@ -33,6 +33,8 @@ public sealed partial class TrashPage : Page
 {
     private IReadOnlyList<TrashItem> _items = Array.Empty<TrashItem>();
     private bool _isLoading;
+    private IVaultStore? _loadedStore;
+    private int _loadedVersion = -1;
 
     public TrashPage()
     {
@@ -42,6 +44,14 @@ public sealed partial class TrashPage : Page
 
     private async void TrashPage_Loaded(object sender, RoutedEventArgs e)
     {
+        IVaultStore? store = VaultService.Current.Store;
+        if (_loadedStore is not null &&
+            ReferenceEquals(_loadedStore, store) &&
+            _loadedVersion == VaultService.Current.DataVersion)
+        {
+            return;
+        }
+
         await LoadAsync();
     }
 
@@ -65,8 +75,9 @@ public sealed partial class TrashPage : Page
             _items = summaries.Select(summary => new TrashItem(summary)).ToArray();
             TrashList.ItemsSource = _items;
             TrashList.SelectedItem = null;
-
-            EmptyStateTextBlock.Visibility = _items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+            _loadedStore = store;
+            _loadedVersion = VaultService.Current.DataVersion;
+            UpdateEmptyState();
 
             if (!store.Capabilities.Writable)
             {
@@ -113,6 +124,27 @@ public sealed partial class TrashPage : Page
         PurgeButton.IsEnabled = !_isLoading && writable && hasSelection;
     }
 
+    private void UpdateEmptyState()
+    {
+        EmptyStateTextBlock.Visibility = _items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    // 本页列表已就地更新，同时抬高版本号，让其他缓存页面下次进入时重新加载。
+    private void MarkDataChanged()
+    {
+        VaultService.Current.NotifyDataChanged();
+        _loadedVersion = VaultService.Current.DataVersion;
+    }
+
+    private void RemoveItem(TrashItem item)
+    {
+        _items = _items.Where(existing => existing.Id != item.Id).ToArray();
+        TrashList.ItemsSource = _items;
+        TrashList.SelectedItem = null;
+        UpdateEmptyState();
+        UpdateActionState();
+    }
+
     private void TrashList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         UpdateActionState();
@@ -134,7 +166,8 @@ public sealed partial class TrashPage : Page
         try
         {
             await store.RestoreNoteAsync(item.Id);
-            await LoadAsync();
+            MarkDataChanged();
+            RemoveItem(item);
         }
         catch (Exception exception)
         {
@@ -173,7 +206,8 @@ public sealed partial class TrashPage : Page
         try
         {
             await store.PurgeNoteAsync(item.Id);
-            await LoadAsync();
+            MarkDataChanged();
+            RemoveItem(item);
         }
         catch (Exception exception)
         {

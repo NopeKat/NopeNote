@@ -1,22 +1,36 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Threading.Tasks;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Models;
 
 namespace NopeNote.Windows.ViewModels;
 
-public sealed class NotesViewModel
+public sealed class NotesViewModel : INotifyPropertyChanged
 {
-    private readonly ObservableCollection<Note> _allNotes = new();
+    private readonly List<Note> _allNotes = new();
 
     private IVaultStore? _store;
+    private IReadOnlyList<Note> _notes = Array.Empty<Note>();
 
-    public ObservableCollection<Note> Notes { get; } = new();
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    // 过滤结果整份替换、一次通知，避免清空后逐项添加时触发 N 次集合变更。
+    public IReadOnlyList<Note> Notes
+    {
+        get => _notes;
+        private set
+        {
+            _notes = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Notes)));
+        }
+    }
 
     public IVaultStore Store
         => _store ?? throw new InvalidOperationException("the vault store has not been attached yet.");
+
+    public IVaultStore? StoreOrNull => _store;
 
     public bool IsEmpty => Notes.Count == 0;
 
@@ -55,16 +69,18 @@ public sealed class NotesViewModel
     public void ApplyFilter(string query)
     {
         CurrentQuery = query;
-        Notes.Clear();
+        var filtered = new List<Note>(_allNotes.Count);
 
         foreach (Note note in _allNotes)
         {
             if (string.IsNullOrWhiteSpace(query) ||
                 note.Text.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                Notes.Add(note);
+                filtered.Add(note);
             }
         }
+
+        Notes = filtered;
     }
 
     // 只维护数据源，列表重建交给调用方统一做一次（RefreshNotes），

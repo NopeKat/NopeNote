@@ -26,6 +26,14 @@ public sealed class VaultService
 
     public bool IsWritable => Store?.Capabilities.Writable == true;
 
+    /// <summary>每次笔记数据发生增删改后递增，缓存页面据此判断是否需要重新加载。</summary>
+    public int DataVersion { get; private set; }
+
+    public void NotifyDataChanged()
+    {
+        DataVersion++;
+    }
+
     public bool HasPendingCommits => Store is GitVaultStore git && git.HasPendingCommits;
 
     public string VaultPath => SettingsHelper.Current.VaultPath;

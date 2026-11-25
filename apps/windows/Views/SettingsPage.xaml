@@ -62,9 +62,6 @@
                     <StackPanel
                         MaxWidth="{StaticResource SettingsPageMaxWidth}"
                         Spacing="{StaticResource SettingsCardSpacing}">
-                    <StackPanel.ChildrenTransitions>
-                        <RepositionThemeTransition />
-                    </StackPanel.ChildrenTransitions>
 
                     <TextBlock
                         x:Uid="SettingsSectionAppearanceLanguage"
