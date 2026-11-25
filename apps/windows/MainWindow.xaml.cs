@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using NopeNote.Windows.Helpers;
+using NopeNote.Windows.Services;
 using NopeNote.Windows.Views;
 using System;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ public sealed partial class MainWindow : Window
     private bool _isNavigating;
     private object? _navItemBeforePress;
     private bool _paneOpenBeforePress;
+    private bool _closeConfirmed;
+    private bool _closeFlowRunning;
 
     public MainWindow()
     {
@@ -26,6 +29,7 @@ public sealed partial class MainWindow : Window
         ExtendsContentIntoTitleBar = true;
         SetTitleBar(AppTitleBar);
         AppWindow.SetIcon("Assets/Tiles/NopeNoteIcon.ico");
+        AppWindow.Closing += AppWindow_Closing;
 
         RootGrid.ActualThemeChanged += RootGrid_ActualThemeChanged;
 
@@ -190,7 +194,75 @@ public sealed partial class MainWindow : Window
 
     private void CloseAppInvokerButton_Click(object sender, RoutedEventArgs e)
     {
-        Application.Current.Exit();
+        // 走窗口关闭流程，确保未保存的内容和待提交的 git 变更都得到处理。
+        Close();
+    }
+
+    private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+    {
+        if (_closeConfirmed)
+        {
+            return;
+        }
+
+        if (_closeFlowRunning)
+        {
+            args.Cancel = true;
+            return;
+        }
+
+        bool hasWork = VaultService.Current.HasPendingCommits ||
+            (ContentFrame.Content is NotesPage notes && notes.HasUnsavedWork());
+
+        if (!hasWork)
+        {
+            return;
+        }
+
+        args.Cancel = true;
+        _closeFlowRunning = true;
+
+        bool canClose = false;
+        try
+        {
+            bool saved = true;
+            if (ContentFrame.Content is NotesPage page)
+            {
+                saved = await page.FlushBeforeCloseAsync();
+            }
+
+            bool committed = saved &&
+                await VaultService.Current.FlushCommitsAsync(TimeSpan.FromSeconds(10));
+
+            canClose = saved && committed
+                ? true
+                : await ConfirmCloseWithoutSavingAsync();
+        }
+        finally
+        {
+            _closeFlowRunning = false;
+        }
+
+        if (canClose)
+        {
+            _closeConfirmed = true;
+            Close();
+        }
+    }
+
+    private async Task<bool> ConfirmCloseWithoutSavingAsync()
+    {
+        ContentDialog dialog = new()
+        {
+            XamlRoot = ContentFrame.XamlRoot,
+            Title = Strings.Get("CloseUnsavedTitle"),
+            Content = Strings.Get("CloseUnsavedBody"),
+            PrimaryButtonText = Strings.Get("CloseUnsavedPrimary"),
+            CloseButtonText = Strings.Get("CloseUnsavedCancel"),
+            DefaultButton = ContentDialogButton.Close,
+        };
+
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     private async void WaitForIdleInvokerButton_Click(object sender, RoutedEventArgs e)

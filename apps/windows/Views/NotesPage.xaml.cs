@@ -465,6 +465,49 @@ public sealed partial class NotesPage : Page
         }
     }
 
+    internal bool HasUnsavedWork()
+    {
+        Note? note = SelectedNote;
+        if (note is null)
+        {
+            return false;
+        }
+
+        // 文本框还没失焦时，输入还停留在控件里，也要算作未保存内容。
+        return NoteEditor.Text != note.Text || note.HasUnsavedChanges;
+    }
+
+    internal async Task<bool> FlushBeforeCloseAsync()
+    {
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            while (_isSaving)
+            {
+                await Task.Delay(50);
+            }
+
+            Note? note = SelectedNote;
+            if (note is null)
+            {
+                return true;
+            }
+
+            if (NoteEditor.Text != note.Text)
+            {
+                note.Text = NoteEditor.Text;
+            }
+
+            if (!note.HasUnsavedChanges)
+            {
+                return true;
+            }
+
+            await SaveNoteAsync(note);
+        }
+
+        return !HasUnsavedWork();
+    }
+
     private void UpdateSaveState()
     {
         SaveProgressRing.IsActive = _isSaving;

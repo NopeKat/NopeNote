@@ -392,4 +392,16 @@
   <data name="TrashItemDetails" xml:space="preserve">
     <value>删除于 {0} · 更新于 {1}</value>
   </data>
+  <data name="CloseUnsavedTitle" xml:space="preserve">
+    <value>部分内容可能未保存</value>
+  </data>
+  <data name="CloseUnsavedBody" xml:space="preserve">
+    <value>最新笔记改动或 Git 提交未能完成。仍要关闭应用吗？</value>
+  </data>
+  <data name="CloseUnsavedPrimary" xml:space="preserve">
+    <value>仍要关闭</value>
+  </data>
+  <data name="CloseUnsavedCancel" xml:space="preserve">
+    <value>继续编辑</value>
+  </data>
 </root>
