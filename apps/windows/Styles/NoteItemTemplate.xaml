@@ -10,11 +10,13 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Grid ColumnSpacing="6">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <FontIcon
                         FontSize="12"
@@ -27,6 +29,12 @@
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         Text="{Binding DisplayTitle}"
                         TextTrimming="CharacterEllipsis" />
+                    <CheckBox
+                        Grid.Column="2"
+                        MinWidth="0"
+                        AutomationProperties.Name="{Binding SelectionCheckName}"
+                        IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                        Visibility="{Binding SelectionVisibility}" />
                 </Grid>
                 <TextBlock
                     Grid.Row="1"
@@ -39,6 +47,15 @@
                     Visibility="{Binding TagVisibility}" />
                 <TextBlock
                     Grid.Row="2"
+                    Margin="0,2,0,0"
+                    MaxLines="1"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{Binding FolderText}"
+                    TextTrimming="CharacterEllipsis"
+                    Visibility="{Binding FolderVisibility}" />
+                <TextBlock
+                    Grid.Row="3"
                     Margin="0,2,0,0"
                     MaxLines="2"
                     AutomationProperties.AccessibilityView="Raw"
@@ -55,11 +72,13 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
             <Grid ColumnSpacing="6">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <FontIcon
                     FontSize="12"
@@ -72,6 +91,12 @@
                     Style="{StaticResource BodyStrongTextBlockStyle}"
                     Text="{Binding DisplayTitle}"
                     TextTrimming="CharacterEllipsis" />
+                <CheckBox
+                    Grid.Column="2"
+                    MinWidth="0"
+                    AutomationProperties.Name="Select note"
+                    IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                    Visibility="{Binding SelectionVisibility}" />
             </Grid>
             <TextBlock
                 Grid.Row="1"
@@ -84,6 +109,15 @@
                 Visibility="{Binding TagVisibility}" />
             <TextBlock
                 Grid.Row="2"
+                Margin="0,2,0,0"
+                MaxLines="1"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="{Binding FolderText}"
+                TextTrimming="CharacterEllipsis"
+                Visibility="{Binding FolderVisibility}" />
+            <TextBlock
+                Grid.Row="3"
                 Margin="0,2,0,0"
                 MaxLines="2"
                 AutomationProperties.AccessibilityView="Raw"

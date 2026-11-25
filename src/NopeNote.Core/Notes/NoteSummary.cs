@@ -8,4 +8,5 @@ public sealed record NoteSummary(
     DateTimeOffset Updated,
     IReadOnlyList<string> Tags,
     bool Pinned,
+    string Folder,
     string RelativePath);

@@ -72,6 +72,7 @@
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                 </Grid.RowDefinitions>
 
@@ -109,6 +110,35 @@
                     </muxc:AppBarButton.KeyboardAccelerators>
                 </muxc:AppBarButton>
                 <muxc:AppBarButton
+                    x:Name="DailyNoteButton"
+                    AutomationProperties.Name="Open today's note"
+                    Click="DailyNoteButton_Click"
+                    Label="Daily">
+                    <muxc:AppBarButton.Icon>
+                        <SymbolIcon Symbol="Calendar" />
+                    </muxc:AppBarButton.Icon>
+                </muxc:AppBarButton>
+                <muxc:AppBarButton
+                    x:Name="TemplateButton"
+                    AutomationProperties.Name="New note from template"
+                    Label="Template">
+                    <muxc:AppBarButton.Icon>
+                        <SymbolIcon Symbol="Page" />
+                    </muxc:AppBarButton.Icon>
+                    <muxc:AppBarButton.Flyout>
+                        <MenuFlyout x:Name="TemplateMenu" Placement="Bottom" />
+                    </muxc:AppBarButton.Flyout>
+                </muxc:AppBarButton>
+                <muxc:AppBarButton
+                    x:Name="BatchButton"
+                    AutomationProperties.Name="Select multiple notes"
+                    Click="BatchButton_Click"
+                    Label="Select">
+                    <muxc:AppBarButton.Icon>
+                        <SymbolIcon Symbol="SelectAll" />
+                    </muxc:AppBarButton.Icon>
+                </muxc:AppBarButton>
+                <muxc:AppBarButton
                     x:Name="DeleteNoteButton"
                     x:Uid="NotesDeleteButton"
                     AutomationProperties.Name="Delete note"
@@ -130,18 +160,64 @@
                 </muxc:AppBarButton>
             </muxc:CommandBar>
 
-            <ComboBox
-                x:Name="TagFilterComboBox"
+            <Grid
+                x:Name="FilterBar"
                 Grid.Row="2"
                 Margin="12,0,12,8"
-                MinWidth="160"
-                HorizontalAlignment="Left"
-                AutomationProperties.Name="Filter notes by tag"
-                SelectionChanged="TagFilter_SelectionChanged" />
+                ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <ComboBox
+                    x:Name="TagFilterComboBox"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="Filter notes by tag"
+                    SelectionChanged="TagFilter_SelectionChanged" />
+                <ComboBox
+                    x:Name="FolderFilterComboBox"
+                    Grid.Column="1"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="Filter notes by folder"
+                    SelectionChanged="FolderFilter_SelectionChanged" />
+            </Grid>
+
+            <ScrollViewer
+                x:Name="BatchBar"
+                Grid.Row="3"
+                Margin="12,0,12,8"
+                HorizontalScrollBarVisibility="Auto"
+                HorizontalScrollMode="Enabled"
+                VerticalScrollBarVisibility="Disabled"
+                Visibility="Collapsed">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock
+                        x:Name="BatchCountTextBlock"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionTextBlockStyle}" />
+                    <Button
+                        x:Name="BatchTagButton"
+                        Click="BatchTagButton_Click"
+                        Content="Add tag" />
+                    <Button
+                        x:Name="BatchMoveButton"
+                        Click="BatchFolderButton_Click"
+                        Content="Move" />
+                    <Button
+                        x:Name="BatchDeleteButton"
+                        Click="BatchDeleteButton_Click"
+                        Content="Delete" />
+                    <Button
+                        x:Name="BatchDoneButton"
+                        Click="BatchCancelButton_Click"
+                        Content="Done" />
+                </StackPanel>
+            </ScrollViewer>
 
             <Grid
                 x:Name="NotesListPanel"
-                Grid.Row="3"
+                Grid.Row="4"
                 BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
                 BorderThickness="{StaticResource NotesListBorderThickness}">
                 <muxc:ProgressRing
@@ -229,6 +305,51 @@
                         Orientation="Horizontal"
                         Spacing="{StaticResource StatusSpacing}">
                         <muxc:AppBarButton
+                            x:Name="ShareButton"
+                            AutomationProperties.Name="Share or export this note"
+                            Label="Share"
+                            Visibility="Collapsed">
+                            <muxc:AppBarButton.Icon>
+                                <SymbolIcon Symbol="Share" />
+                            </muxc:AppBarButton.Icon>
+                            <muxc:AppBarButton.Flyout>
+                                <MenuFlyout Placement="Bottom">
+                                    <MenuFlyoutItem
+                                        x:Name="ExportMarkdownItem"
+                                        Click="ExportMarkdownButton_Click"
+                                        Text="Export Markdown" />
+                                    <MenuFlyoutItem
+                                        x:Name="ExportHtmlItem"
+                                        Click="ExportHtmlButton_Click"
+                                        Text="Export HTML" />
+                                    <MenuFlyoutItem
+                                        x:Name="CopyNoteItem"
+                                        Click="CopyNoteButton_Click"
+                                        Text="Copy text" />
+                                </MenuFlyout>
+                            </muxc:AppBarButton.Flyout>
+                        </muxc:AppBarButton>
+                        <muxc:AppBarButton
+                            x:Name="OpenWindowButton"
+                            AutomationProperties.Name="Open this note in a new window"
+                            Click="OpenWindowButton_Click"
+                            Label="Window"
+                            Visibility="Collapsed">
+                            <muxc:AppBarButton.Icon>
+                                <muxc:FontIcon FontSize="16" Glyph="&#xE8A7;" />
+                            </muxc:AppBarButton.Icon>
+                        </muxc:AppBarButton>
+                        <muxc:AppBarToggleButton
+                            x:Name="PreviewToggle"
+                            AutomationProperties.Name="Toggle Markdown preview"
+                            Click="PreviewToggle_Click"
+                            Label="Preview"
+                            Visibility="Collapsed">
+                            <muxc:AppBarToggleButton.Icon>
+                                <muxc:FontIcon FontSize="16" Glyph="&#xE890;" />
+                            </muxc:AppBarToggleButton.Icon>
+                        </muxc:AppBarToggleButton>
+                        <muxc:AppBarButton
                             x:Name="HistoryButton"
                             Click="HistoryButton_Click"
                             Label="History"
@@ -264,6 +385,7 @@
                     Visibility="Collapsed">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="180" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBox
@@ -271,9 +393,16 @@
                         AutomationProperties.Name="Note tags"
                         LostFocus="TagsEditor_LostFocus"
                         PlaceholderText="Tags, separated by commas" />
+                    <ComboBox
+                        x:Name="FolderEditor"
+                        Grid.Column="1"
+                        AutomationProperties.Name="Note folder"
+                        IsEditable="True"
+                        LostFocus="FolderEditor_LostFocus"
+                        SelectionChanged="FolderEditor_SelectionChanged" />
                     <CheckBox
                         x:Name="PinCheckBox"
-                        Grid.Column="1"
+                        Grid.Column="2"
                         VerticalAlignment="Center"
                         AutomationProperties.Name="Pin note"
                         Click="PinCheckBox_Click"
@@ -284,6 +413,11 @@
                     x:Name="NoteDetailPanel"
                     Grid.Row="2"
                     Padding="{StaticResource NotesDetailPanePadding}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
                     <Border
                         x:Name="NoteEditorCard"
                         Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
@@ -291,13 +425,67 @@
                         BorderThickness="1"
                         CornerRadius="8"
                         Padding="16">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <ScrollViewer
+                                x:Name="MarkdownToolbar"
+                                Margin="0,0,0,8"
+                                HorizontalScrollBarVisibility="Auto"
+                                HorizontalScrollMode="Enabled"
+                                VerticalScrollBarVisibility="Disabled">
+                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                <Button
+                                    Click="BoldButton_Click"
+                                    Content="B"
+                                    FontWeight="SemiBold"
+                                    ToolTipService.ToolTip="Bold" />
+                                <Button
+                                    Click="ItalicButton_Click"
+                                    Content="I"
+                                    FontStyle="Italic"
+                                    ToolTipService.ToolTip="Italic" />
+                                <Button
+                                    Click="HeadingButton_Click"
+                                    Content="H2"
+                                    ToolTipService.ToolTip="Heading" />
+                                <Button
+                                    Click="BulletButton_Click"
+                                    Content="•"
+                                    ToolTipService.ToolTip="Bulleted list" />
+                                <Button
+                                    Click="ChecklistButton_Click"
+                                    Content="☑"
+                                    ToolTipService.ToolTip="Checklist" />
+                                <Button
+                                    Click="CodeButton_Click"
+                                    Content="&lt;/&gt;"
+                                    ToolTipService.ToolTip="Inline code" />
+                                <Button
+                                    Click="TableButton_Click"
+                                    Content="▦"
+                                    ToolTipService.ToolTip="Insert table" />
+                                <Button
+                                    Click="LinkButton_Click"
+                                    Content="[["
+                                    ToolTipService.ToolTip="Link a note" />
+                                </StackPanel>
+                            </ScrollViewer>
+
                         <TextBox
                             x:Name="NoteEditor"
+                            Grid.Row="1"
                             x:Uid="NoteEditor"
                             AcceptsReturn="True"
+                            AllowDrop="True"
                             AutomationProperties.Name="Note text"
                             Background="Transparent"
                             BorderThickness="0"
+                            DragOver="NoteEditor_DragOver"
+                            Drop="NoteEditor_Drop"
                             IsEnabled="False"
                             LostFocus="NoteEditor_LostFocus"
                             PlaceholderText="Enter your note"
@@ -306,7 +494,49 @@
                             TextChanged="NoteEditor_TextChanged"
                             TextWrapping="Wrap"
                             VerticalAlignment="Stretch" />
+                        </Grid>
                     </Border>
+
+                    <Border
+                        x:Name="PreviewCard"
+                        Grid.Row="0"
+                        Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="16"
+                        Visibility="Collapsed">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto">
+                            <StackPanel x:Name="PreviewPanel" Spacing="6" />
+                        </ScrollViewer>
+                    </Border>
+
+                    <muxc:Expander
+                        x:Name="BacklinksExpander"
+                        Grid.Row="1"
+                        Margin="0,8,0,0"
+                        HorizontalAlignment="Stretch"
+                        IsExpanded="False"
+                        Visibility="Collapsed">
+                        <muxc:Expander.Header>
+                            <TextBlock x:Name="BacklinksHeader" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                        </muxc:Expander.Header>
+                        <ListView
+                            x:Name="BacklinksList"
+                            MaxHeight="140"
+                            IsItemClickEnabled="True"
+                            ItemClick="BacklinksList_ItemClick"
+                            SelectionMode="None">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock
+                                        Padding="8,6,8,6"
+                                        Text="{Binding DisplayTitle}"
+                                        TextTrimming="CharacterEllipsis" />
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                    </muxc:Expander>
                 </Grid>
             </Grid>
         </Grid>

@@ -334,6 +334,9 @@
   <data name="NotesAllTags" xml:space="preserve">
     <value>All tags</value>
   </data>
+  <data name="NotesTagFilterHeader" xml:space="preserve">
+    <value>Tag</value>
+  </data>
   <data name="NotesTagsPlaceholder" xml:space="preserve">
     <value>Tags, separated by commas</value>
   </data>
@@ -472,5 +475,224 @@
   </data>
   <data name="CloseUnsavedCancel" xml:space="preserve">
     <value>Keep working</value>
+  </data>
+  <data name="NotesAllFolders" xml:space="preserve">
+    <value>All folders</value>
+  </data>
+  <data name="NotesFolderFilterHeader" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="NotesFolderPlaceholder" xml:space="preserve">
+    <value>Folder path</value>
+  </data>
+  <data name="NotesPreviewButton" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="NotesShareButton" xml:space="preserve">
+    <value>Share</value>
+  </data>
+  <data name="NotesOpenWindowButton" xml:space="preserve">
+    <value>Window</value>
+  </data>
+  <data name="NotesBatchButton" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="NotesBatchDone" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="NotesBatchCount" xml:space="preserve">
+    <value>{0} selected</value>
+  </data>
+  <data name="NotesBatchTagTitle" xml:space="preserve">
+    <value>Add tag to selected notes</value>
+  </data>
+  <data name="NotesBatchApply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="NotesBatchAddTag" xml:space="preserve">
+    <value>Add tag</value>
+  </data>
+  <data name="NotesBatchMove" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="NotesBatchDelete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="NotesBatchFolderTitle" xml:space="preserve">
+    <value>Move selected notes</value>
+  </data>
+  <data name="NotesBatchDeleteTitle" xml:space="preserve">
+    <value>Delete selected notes</value>
+  </data>
+  <data name="NotesBatchDeleteBody" xml:space="preserve">
+    <value>Move {0} notes to trash?</value>
+  </data>
+  <data name="NotesNoTemplates" xml:space="preserve">
+    <value>No templates yet. Save one below.</value>
+  </data>
+  <data name="NotesSaveAsTemplate" xml:space="preserve">
+    <value>Save current note as template…</value>
+  </data>
+  <data name="NotesTemplateFailedTitle" xml:space="preserve">
+    <value>Template could not be opened</value>
+  </data>
+  <data name="NotesTemplateNamePlaceholder" xml:space="preserve">
+    <value>Template name</value>
+  </data>
+  <data name="NotesSaveTemplateTitle" xml:space="preserve">
+    <value>Save as template</value>
+  </data>
+  <data name="NotesBoldPlaceholder" xml:space="preserve">
+    <value>bold text</value>
+  </data>
+  <data name="NotesItalicPlaceholder" xml:space="preserve">
+    <value>italic text</value>
+  </data>
+  <data name="NotesCodePlaceholder" xml:space="preserve">
+    <value>code</value>
+  </data>
+  <data name="NotesAttachmentFailedTitle" xml:space="preserve">
+    <value>Attachment could not be added</value>
+  </data>
+  <data name="NotesAttachmentDropCaption" xml:space="preserve">
+    <value>Drop to attach</value>
+  </data>
+  <data name="NotesExportMarkdownType" xml:space="preserve">
+    <value>Markdown</value>
+  </data>
+  <data name="NotesExportHtmlType" xml:space="preserve">
+    <value>HTML</value>
+  </data>
+  <data name="NotesExportDone" xml:space="preserve">
+    <value>Exported</value>
+  </data>
+  <data name="NotesExportMarkdownMenu" xml:space="preserve">
+    <value>Export Markdown</value>
+  </data>
+  <data name="NotesExportHtmlMenu" xml:space="preserve">
+    <value>Export HTML</value>
+  </data>
+  <data name="NotesCopyMenu" xml:space="preserve">
+    <value>Copy text</value>
+  </data>
+  <data name="NotesCopyDone" xml:space="preserve">
+    <value>Copied</value>
+  </data>
+  <data name="NotesBacklinksHeader" xml:space="preserve">
+    <value>Linked mentions ({0})</value>
+  </data>
+  <data name="NotesLinkNoteTitle" xml:space="preserve">
+    <value>Link a note</value>
+  </data>
+  <data name="NotesSelectNote" xml:space="preserve">
+    <value>Select note</value>
+  </data>
+  <data name="NotesDailyButton" xml:space="preserve">
+    <value>Daily</value>
+  </data>
+  <data name="NotesTemplateButton" xml:space="preserve">
+    <value>Template</value>
+  </data>
+  <data name="NotesPreviewEmpty" xml:space="preserve">
+    <value>Nothing to preview.</value>
+  </data>
+  <data name="SearchTitleOnly" xml:space="preserve">
+    <value>Title only</value>
+  </data>
+  <data name="SearchDateAny" xml:space="preserve">
+    <value>Any time</value>
+  </data>
+  <data name="SearchDateWeek" xml:space="preserve">
+    <value>Last 7 days</value>
+  </data>
+  <data name="SearchDateMonth" xml:space="preserve">
+    <value>Last 30 days</value>
+  </data>
+  <data name="SearchDateYear" xml:space="preserve">
+    <value>Last year</value>
+  </data>
+  <data name="SettingsLockHeader" xml:space="preserve">
+    <value>App lock</value>
+  </data>
+  <data name="SettingsLockEnabled" xml:space="preserve">
+    <value>A password is required when the app starts.</value>
+  </data>
+  <data name="SettingsLockDisabled" xml:space="preserve">
+    <value>Ask for a password when the app starts.</value>
+  </data>
+  <data name="SettingsLockManage" xml:space="preserve">
+    <value>Manage lock</value>
+  </data>
+  <data name="SettingsLockSet" xml:space="preserve">
+    <value>Set password</value>
+  </data>
+  <data name="SettingsLockManageTitle" xml:space="preserve">
+    <value>App lock</value>
+  </data>
+  <data name="SettingsLockManageBody" xml:space="preserve">
+    <value>Change the password or remove the lock.</value>
+  </data>
+  <data name="SettingsLockRemove" xml:space="preserve">
+    <value>Remove lock</value>
+  </data>
+  <data name="SettingsLockChange" xml:space="preserve">
+    <value>Change password</value>
+  </data>
+  <data name="SettingsLockSetTitle" xml:space="preserve">
+    <value>Set app password</value>
+  </data>
+  <data name="SettingsLockPassword" xml:space="preserve">
+    <value>New password</value>
+  </data>
+  <data name="SettingsLockConfirm" xml:space="preserve">
+    <value>Repeat password</value>
+  </data>
+  <data name="SettingsLockSave" xml:space="preserve">
+    <value>Save password</value>
+  </data>
+  <data name="SettingsLockTooShort" xml:space="preserve">
+    <value>Use at least 4 characters.</value>
+  </data>
+  <data name="SettingsLockMismatch" xml:space="preserve">
+    <value>The two passwords do not match.</value>
+  </data>
+  <data name="AppLockTitle" xml:space="preserve">
+    <value>NopeNote is locked</value>
+  </data>
+  <data name="AppLockPasswordPlaceholder" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="AppLockUnlock" xml:space="preserve">
+    <value>Unlock</value>
+  </data>
+  <data name="AppLockExit" xml:space="preserve">
+    <value>Exit</value>
+  </data>
+  <data name="AppLockWrongPassword" xml:space="preserve">
+    <value>Wrong password. Try again.</value>
+  </data>
+  <data name="NoteWindowTitle" xml:space="preserve">
+    <value>NopeNote — note</value>
+  </data>
+  <data name="NoteWindowSave" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="NoteWindowMissing" xml:space="preserve">
+    <value>The note could not be opened.</value>
+  </data>
+  <data name="NoteWindowSaved" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="NoteWindowConflict" xml:space="preserve">
+    <value>This note changed in another window. Reopen it to continue.</value>
+  </data>
+  <data name="NoteWindowUnsavedTitle" xml:space="preserve">
+    <value>Unsaved changes</value>
+  </data>
+  <data name="NoteWindowUnsavedBody" xml:space="preserve">
+    <value>Save the changes before closing this window?</value>
+  </data>
+  <data name="NoteWindowDiscard" xml:space="preserve">
+    <value>Discard</value>
   </data>
 </root>

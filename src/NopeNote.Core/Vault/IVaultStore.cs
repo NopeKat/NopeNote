@@ -21,6 +21,7 @@ public interface IVaultStore
         bool pinned = false,
         DateTimeOffset? createdAt = null,
         DateTimeOffset? updatedAt = null,
+        string? folder = null,
         CancellationToken cancellationToken = default);
 
     Task<NoteDocument> UpdateNoteAsync(
@@ -30,6 +31,7 @@ public interface IVaultStore
         IReadOnlyList<string>? tags = null,
         bool? pinned = null,
         DateTimeOffset? expectedUpdated = null,
+        string? folder = null,
         CancellationToken cancellationToken = default);
 
     Task TrashNoteAsync(Guid id, CancellationToken cancellationToken = default);

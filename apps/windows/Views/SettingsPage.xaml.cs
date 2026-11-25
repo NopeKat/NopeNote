@@ -3,6 +3,7 @@ using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
 using NopeNote.Windows.Services;
@@ -23,6 +24,8 @@ public sealed partial class SettingsPage : Page
         AppThemeCard.Header = Strings.Get("SettingsAppThemeHeader");
         AppThemeCard.Description = Strings.Get("SettingsAppThemeDescription");
         VaultCard.Header = Strings.Get("SettingsVaultHeader");
+        LockCard.Header = Strings.Get("SettingsLockHeader");
+        UpdateLockState();
         ExportCard.Header = Strings.Get("SettingsExportHeader");
         ExportCard.Description = Strings.Get("SettingsExportDescription");
         ExportButton.Content = Strings.Get("SettingsExportButton");
@@ -156,6 +159,110 @@ public sealed partial class SettingsPage : Page
         VaultCard.Description = folder.Path;
 
         Frame.Navigate(typeof(NotesPage));
+    }
+
+    private void UpdateLockState()
+    {
+        bool locked = SettingsHelper.Current.HasAppLock;
+        LockCard.Description = locked
+            ? Strings.Get("SettingsLockEnabled")
+            : Strings.Get("SettingsLockDisabled");
+        LockButton.Content = locked
+            ? Strings.Get("SettingsLockManage")
+            : Strings.Get("SettingsLockSet");
+    }
+
+    private async void LockButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!SettingsHelper.Current.HasAppLock)
+        {
+            await ShowSetPasswordDialogAsync();
+            return;
+        }
+
+        ContentDialog dialog = new()
+        {
+            XamlRoot = XamlRoot,
+            Title = Strings.Get("SettingsLockManageTitle"),
+            Content = Strings.Get("SettingsLockManageBody"),
+            PrimaryButtonText = Strings.Get("SettingsLockRemove"),
+            SecondaryButtonText = Strings.Get("SettingsLockChange"),
+            CloseButtonText = Strings.Get("CommonCancel"),
+            DefaultButton = ContentDialogButton.Close,
+        };
+
+        ContentDialogResult result = await dialog.ShowAsync();
+        if (result == ContentDialogResult.Primary)
+        {
+            SettingsHelper.Current.AppLockSalt = string.Empty;
+            SettingsHelper.Current.AppLockHash = string.Empty;
+            SettingsHelper.Current.Save();
+            UpdateLockState();
+        }
+        else if (result == ContentDialogResult.Secondary)
+        {
+            await ShowSetPasswordDialogAsync();
+        }
+    }
+
+    private async Task ShowSetPasswordDialogAsync()
+    {
+        PasswordBox password = new() { PlaceholderText = Strings.Get("SettingsLockPassword") };
+        PasswordBox confirmation = new() { PlaceholderText = Strings.Get("SettingsLockConfirm") };
+        TextBlock error = new()
+        {
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Crimson),
+            TextWrapping = TextWrapping.Wrap,
+            Visibility = Visibility.Collapsed,
+        };
+
+        StackPanel panel = new() { Spacing = 8 };
+        panel.Children.Add(password);
+        panel.Children.Add(confirmation);
+        panel.Children.Add(error);
+
+        ContentDialog dialog = new()
+        {
+            XamlRoot = XamlRoot,
+            Title = Strings.Get("SettingsLockSetTitle"),
+            Content = panel,
+            PrimaryButtonText = Strings.Get("SettingsLockSave"),
+            CloseButtonText = Strings.Get("CommonCancel"),
+            DefaultButton = ContentDialogButton.Primary,
+        };
+
+        while (true)
+        {
+            ContentDialogResult result = await dialog.ShowAsync();
+            if (result != ContentDialogResult.Primary)
+            {
+                return;
+            }
+
+            string value = password.Password;
+            if (value.Length < 4)
+            {
+                error.Text = Strings.Get("SettingsLockTooShort");
+                error.Visibility = Visibility.Visible;
+                await Task.Delay(50);
+                continue;
+            }
+
+            if (!string.Equals(value, confirmation.Password, StringComparison.Ordinal))
+            {
+                error.Text = Strings.Get("SettingsLockMismatch");
+                error.Visibility = Visibility.Visible;
+                await Task.Delay(50);
+                continue;
+            }
+
+            (string salt, string hash) = PasswordHasher.Create(value);
+            SettingsHelper.Current.AppLockSalt = salt;
+            SettingsHelper.Current.AppLockHash = hash;
+            SettingsHelper.Current.Save();
+            UpdateLockState();
+            return;
+        }
     }
 
     private async void ExportButton_Click(object sender, RoutedEventArgs e)

@@ -44,10 +44,11 @@ public sealed class GitVaultStore : IVaultStore
         bool pinned = false,
         DateTimeOffset? createdAt = null,
         DateTimeOffset? updatedAt = null,
+        string? folder = null,
         CancellationToken cancellationToken = default)
     {
         NoteDocument document = await _inner.CreateNoteAsync(
-            title, body, tags, pinned, createdAt, updatedAt, cancellationToken).ConfigureAwait(false);
+            title, body, tags, pinned, createdAt, updatedAt, folder, cancellationToken).ConfigureAwait(false);
 
         _commits.Enqueue($"note: create {document.Summary.Id:D}");
         return document;
@@ -60,10 +61,11 @@ public sealed class GitVaultStore : IVaultStore
         IReadOnlyList<string>? tags = null,
         bool? pinned = null,
         DateTimeOffset? expectedUpdated = null,
+        string? folder = null,
         CancellationToken cancellationToken = default)
     {
         NoteDocument document = await _inner.UpdateNoteAsync(
-            id, body, title, tags, pinned, expectedUpdated, cancellationToken).ConfigureAwait(false);
+            id, body, title, tags, pinned, expectedUpdated, folder, cancellationToken).ConfigureAwait(false);
 
         _commits.ScheduleUpdate($"note: update {document.Summary.Id:D}");
         return document;

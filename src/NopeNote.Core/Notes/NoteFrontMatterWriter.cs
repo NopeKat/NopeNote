@@ -17,6 +17,7 @@ public static class NoteFrontMatterWriter
         "updated",
         "title",
         "tags",
+        "folder",
         "pinned",
         "deletedAt",
     };
@@ -30,7 +31,8 @@ public static class NoteFrontMatterWriter
         bool pinned,
         string body,
         IReadOnlyList<string>? preservedLines = null,
-        DateTimeOffset? deletedAt = null)
+        DateTimeOffset? deletedAt = null,
+        string? folder = null)
     {
         var builder = new StringBuilder();
         builder.Append("---\n");
@@ -48,6 +50,11 @@ public static class NoteFrontMatterWriter
             builder.Append("tags: [")
                 .Append(string.Join(", ", tags.Select(FormatScalar)))
                 .Append("]\n");
+        }
+
+        if (!string.IsNullOrWhiteSpace(folder))
+        {
+            builder.Append("folder: ").Append(FormatScalar(folder.Trim())).Append('\n');
         }
 
         builder.Append("pinned: ").Append(pinned ? "true" : "false").Append('\n');

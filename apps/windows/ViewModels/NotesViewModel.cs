@@ -42,10 +42,43 @@ public sealed class NotesViewModel : INotifyPropertyChanged
 
     public string? TagFilter { get; private set; }
 
+    public string? FolderFilter { get; private set; }
+
+    public IReadOnlyList<Note> AllNotes => _allNotes;
+
     public void SetTagFilter(string? tag)
     {
         TagFilter = string.IsNullOrWhiteSpace(tag) ? null : tag;
         ApplyFilter(CurrentQuery);
+    }
+
+    public void SetFolderFilter(string? folder)
+    {
+        FolderFilter = string.IsNullOrWhiteSpace(folder) ? null : folder;
+        ApplyFilter(CurrentQuery);
+    }
+
+    public IReadOnlyList<string> GetAvailableFolders()
+    {
+        var folders = new List<string>();
+        foreach (Note note in _allNotes)
+        {
+            string path = note.Folder;
+            while (path.Length > 0)
+            {
+                if (!folders.Exists(existing =>
+                        string.Equals(existing, path, StringComparison.OrdinalIgnoreCase)))
+                {
+                    folders.Add(path);
+                }
+
+                int separator = path.LastIndexOf('/');
+                path = separator > 0 ? path[..separator] : string.Empty;
+            }
+        }
+
+        folders.Sort(StringComparer.OrdinalIgnoreCase);
+        return folders;
     }
 
     public IReadOnlyList<string> GetAvailableTags()
@@ -121,6 +154,11 @@ public sealed class NotesViewModel : INotifyPropertyChanged
             return false;
         }
 
+        if (FolderFilter is not null && !IsInFolder(note, FolderFilter))
+        {
+            return false;
+        }
+
         if (string.IsNullOrWhiteSpace(query))
         {
             return true;
@@ -141,6 +179,125 @@ public sealed class NotesViewModel : INotifyPropertyChanged
         }
 
         return false;
+    }
+
+    /// <summary>高级搜索：标签、文件夹、时间范围、仅标题和 tag:/folder:/title: 语法。</summary>
+    public void ApplySearch(
+        string query,
+        string? tag,
+        string? folder,
+        int days,
+        bool titleOnly)
+    {
+        CurrentQuery = query;
+
+        var pinned = new List<Note>(_allNotes.Count);
+        var others = new List<Note>(_allNotes.Count);
+        foreach (Note note in _allNotes)
+        {
+            if (!MatchesSearch(note, query, tag, folder, days, titleOnly))
+            {
+                continue;
+            }
+
+            (note.IsPinned ? pinned : others).Add(note);
+        }
+
+        pinned.AddRange(others);
+        Notes = pinned;
+    }
+
+    private static bool MatchesSearch(
+        Note note,
+        string query,
+        string? tag,
+        string? folder,
+        int days,
+        bool titleOnly)
+    {
+        if (!string.IsNullOrWhiteSpace(tag) && !HasTag(note, tag))
+        {
+            return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(folder) && !IsInFolder(note, folder))
+        {
+            return false;
+        }
+
+        if (days > 0 && note.Date < DateTime.Now.AddDays(-days))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return true;
+        }
+
+        foreach (string token in query.Split(
+                     ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (token.StartsWith("tag:", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!HasTag(note, token[4..]))
+                {
+                    return false;
+                }
+
+                continue;
+            }
+
+            if (token.StartsWith("folder:", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!IsInFolder(note, token[7..]))
+                {
+                    return false;
+                }
+
+                continue;
+            }
+
+            bool titleToken = token.StartsWith("title:", StringComparison.OrdinalIgnoreCase);
+            string term = titleToken ? token[6..] : token;
+            if (term.Length == 0)
+            {
+                continue;
+            }
+
+            bool hit = note.DisplayTitle.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0;
+            if (!hit && !titleOnly)
+            {
+                hit = note.Text.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0;
+                foreach (string noteTag in note.Tags)
+                {
+                    if (noteTag.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        hit = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!hit)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool IsInFolder(Note note, string folder)
+    {
+        string normalized = folder.Trim().Trim('/');
+        if (normalized.Length == 0)
+        {
+            return true;
+        }
+
+        return string.Equals(note.Folder, normalized, StringComparison.OrdinalIgnoreCase) ||
+               note.Folder.StartsWith(normalized + "/", StringComparison.OrdinalIgnoreCase);
     }
 
     private static bool HasTag(Note note, string tag)

@@ -24,6 +24,13 @@ public sealed class SettingsHelper
 
     public string SelectedAppLanguage { get; set; } = string.Empty;
 
+    public string AppLockSalt { get; set; } = string.Empty;
+
+    public string AppLockHash { get; set; } = string.Empty;
+
+    public bool HasAppLock => !string.IsNullOrWhiteSpace(AppLockSalt) &&
+                              !string.IsNullOrWhiteSpace(AppLockHash);
+
     private SettingsHelper()
     {
         string folder = Path.Combine(
@@ -42,6 +49,8 @@ public sealed class SettingsHelper
             VaultPath = VaultPath,
             LegacyImportDone = LegacyImportDone,
             SelectedAppLanguage = SelectedAppLanguage,
+            AppLockSalt = AppLockSalt,
+            AppLockHash = AppLockHash,
         };
         string json = JsonSerializer.Serialize(dto, SettingsJsonContext.Default.SettingsDto);
         File.WriteAllText(_settingsPath, json);
@@ -65,6 +74,8 @@ public sealed class SettingsHelper
                 SelectedAppTheme = dto.SelectedAppTheme;
                 LegacyImportDone = dto.LegacyImportDone;
                 SelectedAppLanguage = dto.SelectedAppLanguage ?? string.Empty;
+                AppLockSalt = dto.AppLockSalt ?? string.Empty;
+                AppLockHash = dto.AppLockHash ?? string.Empty;
                 if (!string.IsNullOrWhiteSpace(dto.VaultPath))
                 {
                     VaultPath = dto.VaultPath;
@@ -87,6 +98,10 @@ internal sealed class SettingsDto
     public bool LegacyImportDone { get; set; }
 
     public string? SelectedAppLanguage { get; set; }
+
+    public string? AppLockSalt { get; set; }
+
+    public string? AppLockHash { get; set; }
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

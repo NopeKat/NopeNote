@@ -86,8 +86,9 @@ public static class FrontMatterParser
         IReadOnlyList<string> tags = ReadTags(values);
         bool pinned = values.TryGetValue("pinned", out string? pinnedText) &&
                       string.Equals(pinnedText, "true", StringComparison.OrdinalIgnoreCase);
+        string folder = values.TryGetValue("folder", out string? folderText) ? folderText.Trim() : string.Empty;
 
-        var summary = new NoteSummary(id, title, created, updated, tags, pinned, relativePath);
+        var summary = new NoteSummary(id, title, created, updated, tags, pinned, folder, relativePath);
         return new NoteDocument(summary, body, raw, normalized);
     }
 

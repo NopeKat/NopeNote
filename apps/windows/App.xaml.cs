@@ -1,5 +1,6 @@
 using Microsoft.UI.Xaml;
 using NopeNote.Windows.Helpers;
+using System.Threading.Tasks;
 
 namespace NopeNote.Windows;
 
@@ -12,18 +13,25 @@ public partial class App : Application
         LanguageHelper.ApplyStartupOverride();
     }
 
-    protected override void OnLaunched(LaunchActivatedEventArgs args)
+    protected override async void OnLaunched(LaunchActivatedEventArgs args)
     {
         IdleSynchronizer.Init();
-        EnsureWindow();
+        await EnsureWindowAsync();
     }
 
-    private void EnsureWindow()
+    private async Task EnsureWindowAsync()
     {
         _window = new MainWindow();
         WindowHelper.TrackWindow(_window);
         ThemeHelper.Initialize();
-        _window.InitializeNavigation();
         _window.Activate();
+
+        if (!await _window.EnsureUnlockedAsync())
+        {
+            _window.Close();
+            return;
+        }
+
+        _window.InitializeNavigation();
     }
 }

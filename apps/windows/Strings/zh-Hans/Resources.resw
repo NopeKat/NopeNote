@@ -334,6 +334,9 @@
   <data name="NotesAllTags" xml:space="preserve">
     <value>全部标签</value>
   </data>
+  <data name="NotesTagFilterHeader" xml:space="preserve">
+    <value>标签</value>
+  </data>
   <data name="NotesTagsPlaceholder" xml:space="preserve">
     <value>标签，用逗号分隔</value>
   </data>
@@ -472,5 +475,224 @@
   </data>
   <data name="CloseUnsavedCancel" xml:space="preserve">
     <value>继续编辑</value>
+  </data>
+  <data name="NotesAllFolders" xml:space="preserve">
+    <value>全部文件夹</value>
+  </data>
+  <data name="NotesFolderFilterHeader" xml:space="preserve">
+    <value>文件夹</value>
+  </data>
+  <data name="NotesFolderPlaceholder" xml:space="preserve">
+    <value>文件夹路径</value>
+  </data>
+  <data name="NotesPreviewButton" xml:space="preserve">
+    <value>预览</value>
+  </data>
+  <data name="NotesShareButton" xml:space="preserve">
+    <value>分享</value>
+  </data>
+  <data name="NotesOpenWindowButton" xml:space="preserve">
+    <value>新窗口</value>
+  </data>
+  <data name="NotesBatchButton" xml:space="preserve">
+    <value>多选</value>
+  </data>
+  <data name="NotesBatchDone" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="NotesBatchCount" xml:space="preserve">
+    <value>已选 {0} 条</value>
+  </data>
+  <data name="NotesBatchTagTitle" xml:space="preserve">
+    <value>给选中的笔记加标签</value>
+  </data>
+  <data name="NotesBatchApply" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="NotesBatchAddTag" xml:space="preserve">
+    <value>加标签</value>
+  </data>
+  <data name="NotesBatchMove" xml:space="preserve">
+    <value>移动</value>
+  </data>
+  <data name="NotesBatchDelete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="NotesBatchFolderTitle" xml:space="preserve">
+    <value>移动选中的笔记</value>
+  </data>
+  <data name="NotesBatchDeleteTitle" xml:space="preserve">
+    <value>删除选中的笔记</value>
+  </data>
+  <data name="NotesBatchDeleteBody" xml:space="preserve">
+    <value>把这 {0} 条笔记移进回收站？</value>
+  </data>
+  <data name="NotesNoTemplates" xml:space="preserve">
+    <value>还没有模板，可以在下面保存一个。</value>
+  </data>
+  <data name="NotesSaveAsTemplate" xml:space="preserve">
+    <value>把当前笔记存成模板…</value>
+  </data>
+  <data name="NotesTemplateFailedTitle" xml:space="preserve">
+    <value>模板打不开</value>
+  </data>
+  <data name="NotesTemplateNamePlaceholder" xml:space="preserve">
+    <value>模板名称</value>
+  </data>
+  <data name="NotesSaveTemplateTitle" xml:space="preserve">
+    <value>存为模板</value>
+  </data>
+  <data name="NotesBoldPlaceholder" xml:space="preserve">
+    <value>粗体文字</value>
+  </data>
+  <data name="NotesItalicPlaceholder" xml:space="preserve">
+    <value>斜体文字</value>
+  </data>
+  <data name="NotesCodePlaceholder" xml:space="preserve">
+    <value>代码</value>
+  </data>
+  <data name="NotesAttachmentFailedTitle" xml:space="preserve">
+    <value>附件添加失败</value>
+  </data>
+  <data name="NotesAttachmentDropCaption" xml:space="preserve">
+    <value>松手即可添加附件</value>
+  </data>
+  <data name="NotesExportMarkdownType" xml:space="preserve">
+    <value>Markdown</value>
+  </data>
+  <data name="NotesExportHtmlType" xml:space="preserve">
+    <value>HTML</value>
+  </data>
+  <data name="NotesExportDone" xml:space="preserve">
+    <value>已导出</value>
+  </data>
+  <data name="NotesExportMarkdownMenu" xml:space="preserve">
+    <value>导出 Markdown</value>
+  </data>
+  <data name="NotesExportHtmlMenu" xml:space="preserve">
+    <value>导出 HTML</value>
+  </data>
+  <data name="NotesCopyMenu" xml:space="preserve">
+    <value>复制文字</value>
+  </data>
+  <data name="NotesCopyDone" xml:space="preserve">
+    <value>已复制</value>
+  </data>
+  <data name="NotesBacklinksHeader" xml:space="preserve">
+    <value>反向链接（{0}）</value>
+  </data>
+  <data name="NotesLinkNoteTitle" xml:space="preserve">
+    <value>链接一条笔记</value>
+  </data>
+  <data name="NotesSelectNote" xml:space="preserve">
+    <value>选择笔记</value>
+  </data>
+  <data name="NotesDailyButton" xml:space="preserve">
+    <value>日记</value>
+  </data>
+  <data name="NotesTemplateButton" xml:space="preserve">
+    <value>模板</value>
+  </data>
+  <data name="NotesPreviewEmpty" xml:space="preserve">
+    <value>没有可预览的内容。</value>
+  </data>
+  <data name="SearchTitleOnly" xml:space="preserve">
+    <value>仅标题</value>
+  </data>
+  <data name="SearchDateAny" xml:space="preserve">
+    <value>不限时间</value>
+  </data>
+  <data name="SearchDateWeek" xml:space="preserve">
+    <value>最近 7 天</value>
+  </data>
+  <data name="SearchDateMonth" xml:space="preserve">
+    <value>最近 30 天</value>
+  </data>
+  <data name="SearchDateYear" xml:space="preserve">
+    <value>最近一年</value>
+  </data>
+  <data name="SettingsLockHeader" xml:space="preserve">
+    <value>应用锁</value>
+  </data>
+  <data name="SettingsLockEnabled" xml:space="preserve">
+    <value>启动应用时需要输入密码。</value>
+  </data>
+  <data name="SettingsLockDisabled" xml:space="preserve">
+    <value>启动应用时要求输入密码。</value>
+  </data>
+  <data name="SettingsLockManage" xml:space="preserve">
+    <value>管理应用锁</value>
+  </data>
+  <data name="SettingsLockSet" xml:space="preserve">
+    <value>设置密码</value>
+  </data>
+  <data name="SettingsLockManageTitle" xml:space="preserve">
+    <value>应用锁</value>
+  </data>
+  <data name="SettingsLockManageBody" xml:space="preserve">
+    <value>可以修改密码，或者直接移除应用锁。</value>
+  </data>
+  <data name="SettingsLockRemove" xml:space="preserve">
+    <value>移除应用锁</value>
+  </data>
+  <data name="SettingsLockChange" xml:space="preserve">
+    <value>修改密码</value>
+  </data>
+  <data name="SettingsLockSetTitle" xml:space="preserve">
+    <value>设置应用密码</value>
+  </data>
+  <data name="SettingsLockPassword" xml:space="preserve">
+    <value>新密码</value>
+  </data>
+  <data name="SettingsLockConfirm" xml:space="preserve">
+    <value>再输一次密码</value>
+  </data>
+  <data name="SettingsLockSave" xml:space="preserve">
+    <value>保存密码</value>
+  </data>
+  <data name="SettingsLockTooShort" xml:space="preserve">
+    <value>至少输入 4 个字符。</value>
+  </data>
+  <data name="SettingsLockMismatch" xml:space="preserve">
+    <value>两次输入的密码不一致。</value>
+  </data>
+  <data name="AppLockTitle" xml:space="preserve">
+    <value>NopeNote 已锁定</value>
+  </data>
+  <data name="AppLockPasswordPlaceholder" xml:space="preserve">
+    <value>密码</value>
+  </data>
+  <data name="AppLockUnlock" xml:space="preserve">
+    <value>解锁</value>
+  </data>
+  <data name="AppLockExit" xml:space="preserve">
+    <value>退出</value>
+  </data>
+  <data name="AppLockWrongPassword" xml:space="preserve">
+    <value>密码不对，再试一次。</value>
+  </data>
+  <data name="NoteWindowTitle" xml:space="preserve">
+    <value>NopeNote — 笔记</value>
+  </data>
+  <data name="NoteWindowSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="NoteWindowMissing" xml:space="preserve">
+    <value>这条笔记打不开。</value>
+  </data>
+  <data name="NoteWindowSaved" xml:space="preserve">
+    <value>已保存</value>
+  </data>
+  <data name="NoteWindowConflict" xml:space="preserve">
+    <value>这条笔记在别的窗口里已经改过了，请重新打开。</value>
+  </data>
+  <data name="NoteWindowUnsavedTitle" xml:space="preserve">
+    <value>有未保存的改动</value>
+  </data>
+  <data name="NoteWindowUnsavedBody" xml:space="preserve">
+    <value>关闭窗口前要保存这次改动吗？</value>
+  </data>
+  <data name="NoteWindowDiscard" xml:space="preserve">
+    <value>丢弃</value>
   </data>
 </root>

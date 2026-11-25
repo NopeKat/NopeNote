@@ -18,6 +18,9 @@ public sealed class Note : INotifyPropertyChanged
     private string _text = string.Empty;
     private string _savedText = string.Empty;
     private DateTimeOffset _updated;
+    private bool _isSelected;
+    private Visibility _selectionVisibility = Visibility.Collapsed;
+    private string _folder = string.Empty;
 
     public Note()
     {
@@ -25,7 +28,14 @@ public sealed class Note : INotifyPropertyChanged
         Tags = Array.Empty<string>();
     }
 
-    private Note(Guid id, string text, string title, IReadOnlyList<string> tags, bool pinned, DateTimeOffset updated)
+    private Note(
+        Guid id,
+        string text,
+        string title,
+        IReadOnlyList<string> tags,
+        bool pinned,
+        string folder,
+        DateTimeOffset updated)
     {
         Id = id;
         _text = text;
@@ -34,6 +44,7 @@ public sealed class Note : INotifyPropertyChanged
         DisplayTitle = title;
         Tags = tags;
         IsPinned = pinned;
+        Folder = folder;
         IsDraft = false;
     }
 
@@ -48,6 +59,53 @@ public sealed class Note : INotifyPropertyChanged
     public IReadOnlyList<string> Tags { get; private set; }
 
     public bool IsPinned { get; private set; }
+
+    public string Folder
+    {
+        get => _folder;
+        set
+        {
+            if (!string.Equals(_folder, value, StringComparison.Ordinal))
+            {
+                _folder = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(FolderText));
+                OnPropertyChanged(nameof(FolderVisibility));
+            }
+        }
+    }
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set
+        {
+            if (_isSelected != value)
+            {
+                _isSelected = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public Visibility SelectionVisibility
+    {
+        get => _selectionVisibility;
+        set
+        {
+            if (_selectionVisibility != value)
+            {
+                _selectionVisibility = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public string FolderText => _folder;
+
+    public Visibility FolderVisibility => _folder.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+
+    public string SelectionCheckName => Strings.Get("NotesSelectNote");
 
     public string TagText => string.Join(" · ", Tags);
 
@@ -88,7 +146,14 @@ public sealed class Note : INotifyPropertyChanged
                 continue;
             }
 
-            notes.Add(new Note(summary.Id, document.Body, summary.Title, summary.Tags, summary.Pinned, summary.Updated));
+            notes.Add(new Note(
+                summary.Id,
+                document.Body,
+                summary.Title,
+                summary.Tags,
+                summary.Pinned,
+                summary.Folder,
+                summary.Updated));
         }
 
         return notes;
@@ -102,8 +167,8 @@ public sealed class Note : INotifyPropertyChanged
         }
 
         NoteDocument document = IsDraft
-            ? await store.CreateNoteAsync(string.Empty, Text)
-            : await store.UpdateNoteAsync(Id, Text);
+            ? await store.CreateNoteAsync(string.Empty, Text, folder: Folder)
+            : await store.UpdateNoteAsync(Id, Text, expectedUpdated: _updated);
 
         if (IsDraft)
         {
@@ -116,6 +181,7 @@ public sealed class Note : INotifyPropertyChanged
         DisplayTitle = document.Summary.Title;
         Tags = document.Summary.Tags;
         IsPinned = document.Summary.Pinned;
+        Folder = document.Summary.Folder;
         OnPropertyChanged(nameof(Date));
         OnPropertyChanged(nameof(DisplayTitle));
         OnPropertyChanged(nameof(TagText));
@@ -142,6 +208,7 @@ public sealed class Note : INotifyPropertyChanged
         DisplayTitle = document.Summary.Title;
         Tags = document.Summary.Tags;
         IsPinned = document.Summary.Pinned;
+        Folder = document.Summary.Folder;
         OnPropertyChanged(nameof(Text));
         OnPropertyChanged(nameof(Date));
         OnPropertyChanged(nameof(DisplayTitle));

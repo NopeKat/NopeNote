@@ -111,6 +111,17 @@
                         </ComboBox>
                     </toolkit:SettingsCard>
 
+                    <toolkit:SettingsCard x:Name="LockCard">
+                        <toolkit:SettingsCard.HeaderIcon>
+                            <FontIcon FontSize="20" Glyph="&#xE72E;" />
+                        </toolkit:SettingsCard.HeaderIcon>
+                        <Button
+                            x:Name="LockButton"
+                            AutomationProperties.Name="Set or remove app password"
+                            Click="LockButton_Click"
+                            Content="Set password" />
+                    </toolkit:SettingsCard>
+
                     <TextBlock
                         x:Uid="SettingsSectionDataHistory"
                         AutomationProperties.HeadingLevel="Level3"

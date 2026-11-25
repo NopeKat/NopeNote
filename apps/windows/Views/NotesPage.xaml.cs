@@ -43,6 +43,7 @@ public sealed partial class NotesPage : Page
         HistoryButton.Label = Strings.Get("NotesHistoryButtonLabel");
         TagsEditor.PlaceholderText = Strings.Get("NotesTagsPlaceholder");
         PinCheckBox.Content = Strings.Get("NotesPinLabel");
+        InitializeFeatures();
         _autoSaveTimer.Interval = TimeSpan.FromSeconds(1.2);
         _autoSaveTimer.Tick += AutoSaveTimer_Tick;
         Loaded += NotesPage_Loaded;
@@ -92,6 +93,7 @@ public sealed partial class NotesPage : Page
         }
 
         _autoSaveTimer.Start();
+        RefreshPreviewIfVisible();
     }
 
     private async void AutoSaveTimer_Tick(object? sender, object e)
@@ -126,6 +128,7 @@ public sealed partial class NotesPage : Page
 
         _isUpdatingMetadata = true;
         TagsEditor.Text = string.Join(", ", note.Tags);
+        RefreshFolderEditor(note.Folder);
         PinCheckBox.IsChecked = note.IsPinned;
         NoteMetaBar.Visibility = Visibility.Visible;
         _isUpdatingMetadata = false;
@@ -157,7 +160,9 @@ public sealed partial class NotesPage : Page
 
         List<string> tags = ParseTags(TagsEditor.Text);
         bool pinned = PinCheckBox.IsChecked == true;
-        if (TagsEqual(note.Tags, tags) && pinned == note.IsPinned)
+        string folder = NormalizeFolder(FolderEditor.Text);
+        if (TagsEqual(note.Tags, tags) && pinned == note.IsPinned &&
+            string.Equals(folder, note.Folder, StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
@@ -167,7 +172,11 @@ public sealed partial class NotesPage : Page
 
         try
         {
-            NoteDocument updated = await store.UpdateNoteAsync(note.Id, tags: tags, pinned: pinned);
+            NoteDocument updated = await store.UpdateNoteAsync(
+                note.Id,
+                tags: tags,
+                pinned: pinned,
+                folder: folder);
             note.ApplyRestoredDocument(updated);
             Bindings.Update();
             UpdateMetadataBar(note);
@@ -309,6 +318,9 @@ public sealed partial class NotesPage : Page
         ViewModel.ApplyFilter(string.Empty);
         UpdateListState();
         RefreshTagFilter();
+        RefreshFolderFilter();
+        RefreshFolderChoices();
+        RefreshBacklinks();
         TrySelectPendingNote();
     }
 
@@ -428,7 +440,10 @@ public sealed partial class NotesPage : Page
             return;
         }
 
-        Note note = new Note();
+        Note note = new Note
+        {
+            Folder = ViewModel.FolderFilter ?? string.Empty,
+        };
         if (ViewModel.TagFilter is not null)
         {
             TagFilterComboBox.SelectedIndex = 0;
@@ -818,6 +833,7 @@ public sealed partial class NotesPage : Page
         DeleteNoteButton.IsEnabled = VaultService.Current.IsWritable;
         HistoryButton.Visibility = Visibility.Visible;
         UpdateMetadataBar(note);
+        OnNoteSelected(note);
         SaveStatusTextBlock.Text = string.Empty;
         Bindings.Update();
         ApplyLayout(ActualWidth < NarrowWidthThreshold);
@@ -835,6 +851,7 @@ public sealed partial class NotesPage : Page
         DeleteNoteButton.IsEnabled = false;
         HistoryButton.Visibility = Visibility.Collapsed;
         UpdateMetadataBar(null);
+        OnNoteSelected(null);
         SaveStatusTextBlock.Text = string.Empty;
         Bindings.Update();
         ApplyLayout(ActualWidth < NarrowWidthThreshold);

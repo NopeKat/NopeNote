@@ -114,9 +114,10 @@ public sealed class LocalVaultStore : IVaultStore
         bool pinned = false,
         DateTimeOffset? createdAt = null,
         DateTimeOffset? updatedAt = null,
+        string? folder = null,
         CancellationToken cancellationToken = default)
         => RunAsync(
-            () => CreateNoteCore(title, body, tags, pinned, createdAt, updatedAt, cancellationToken),
+            () => CreateNoteCore(title, body, tags, pinned, createdAt, updatedAt, folder, cancellationToken),
             cancellationToken);
 
     private NoteDocument CreateNoteCore(
@@ -126,6 +127,7 @@ public sealed class LocalVaultStore : IVaultStore
         bool pinned,
         DateTimeOffset? createdAt,
         DateTimeOffset? updatedAt,
+        string? folder,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -146,7 +148,8 @@ public sealed class LocalVaultStore : IVaultStore
             title,
             tags ?? Array.Empty<string>(),
             pinned,
-            body);
+            body,
+            folder: folder);
 
         WriteText(NotePath(id), text);
         return ReadDocument(id, NoteRelativePath(id), text);
@@ -159,9 +162,10 @@ public sealed class LocalVaultStore : IVaultStore
         IReadOnlyList<string>? tags = null,
         bool? pinned = null,
         DateTimeOffset? expectedUpdated = null,
+        string? folder = null,
         CancellationToken cancellationToken = default)
         => RunAsync(
-            () => UpdateNoteCore(id, body, title, tags, pinned, expectedUpdated, cancellationToken),
+            () => UpdateNoteCore(id, body, title, tags, pinned, expectedUpdated, folder, cancellationToken),
             cancellationToken);
 
     private NoteDocument UpdateNoteCore(
@@ -171,6 +175,7 @@ public sealed class LocalVaultStore : IVaultStore
         IReadOnlyList<string>? tags,
         bool? pinned,
         DateTimeOffset? expectedUpdated,
+        string? folder,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -194,7 +199,8 @@ public sealed class LocalVaultStore : IVaultStore
             tags ?? current.Summary.Tags,
             pinned ?? current.Summary.Pinned,
             noteBody,
-            current.FrontMatterLines);
+            current.FrontMatterLines,
+            folder: folder ?? current.Summary.Folder);
 
         if (expectedUpdated.HasValue && expectedUpdated.Value != current.Summary.Updated)
         {
@@ -234,7 +240,8 @@ public sealed class LocalVaultStore : IVaultStore
             current.Summary.Pinned,
             current.Body,
             current.FrontMatterLines,
-            deletedAt);
+            deletedAt,
+            current.Summary.Folder);
 
         string trashPath = TrashPath(id);
         WriteText(trashPath, text);
@@ -266,7 +273,8 @@ public sealed class LocalVaultStore : IVaultStore
             trashed.Summary.Tags,
             trashed.Summary.Pinned,
             trashed.Body,
-            trashed.FrontMatterLines);
+            trashed.FrontMatterLines,
+            folder: trashed.Summary.Folder);
 
         WriteText(NotePath(id), text);
         File.Delete(trashPath);

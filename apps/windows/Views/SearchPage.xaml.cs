@@ -23,6 +23,7 @@ public sealed partial class SearchPage : Page
     private int _filterVersion;
     private int _loadedVersion = -1;
     private string? _appliedQuery;
+    private bool _isUpdatingFilters;
     private readonly SolidColorBrush _highlightBrush = new(Colors.Gold) { Opacity = 0.35 };
 
     public SearchPage()
@@ -30,6 +31,9 @@ public sealed partial class SearchPage : Page
         ViewModel = new NotesViewModel();
         InitializeComponent();
         _isReady = true;
+        SearchTagFilter.PlaceholderText = Strings.Get("NotesAllTags");
+        SearchFolderFilter.PlaceholderText = Strings.Get("NotesAllFolders");
+        SearchTitleOnly.Content = Strings.Get("SearchTitleOnly");
         Loaded += SearchPage_Loaded;
     }
 
@@ -65,6 +69,7 @@ public sealed partial class SearchPage : Page
 
             await ViewModel.LoadAsync();
             _loadedVersion = VaultService.Current.DataVersion;
+            RefreshFilterChoices();
             ApplyFilter();
             return;
         }
@@ -100,6 +105,7 @@ public sealed partial class SearchPage : Page
         finally
         {
             _isLoading = false;
+            RefreshFilterChoices();
             ApplyFilter();
         }
     }
@@ -118,8 +124,97 @@ public sealed partial class SearchPage : Page
     {
         // 先记录关键词，列表重建时模板里的高亮处理才能取到当前值。
         _appliedQuery = SearchInput.Text;
-        ViewModel.ApplyFilter(SearchInput.Text);
+
+        string? tag = (SearchTagFilter.SelectedItem as ComboBoxItem)?.Tag as string;
+        string? folder = (SearchFolderFilter.SelectedItem as ComboBoxItem)?.Tag as string;
+        int days = (SearchDateFilter.SelectedItem as ComboBoxItem)?.Tag is int value ? value : 0;
+        bool titleOnly = SearchTitleOnly.IsChecked == true;
+
+        ViewModel.ApplySearch(SearchInput.Text, tag, folder, days, titleOnly);
         UpdateViewState();
+    }
+
+    private void RefreshFilterChoices()
+    {
+        _isUpdatingFilters = true;
+
+        string? selectedTag = (SearchTagFilter.SelectedItem as ComboBoxItem)?.Tag as string;
+        SearchTagFilter.Items.Clear();
+        SearchTagFilter.Items.Add(new ComboBoxItem { Content = Strings.Get("NotesAllTags"), Tag = null });
+        foreach (string tag in ViewModel.GetAvailableTags())
+        {
+            SearchTagFilter.Items.Add(new ComboBoxItem { Content = tag, Tag = tag });
+        }
+
+        SearchTagFilter.SelectedIndex = 0;
+        if (selectedTag is not null)
+        {
+            foreach (object entry in SearchTagFilter.Items)
+            {
+                if (entry is ComboBoxItem item &&
+                    string.Equals(item.Tag as string, selectedTag, StringComparison.OrdinalIgnoreCase))
+                {
+                    SearchTagFilter.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        string? selectedFolder = (SearchFolderFilter.SelectedItem as ComboBoxItem)?.Tag as string;
+        SearchFolderFilter.Items.Clear();
+        SearchFolderFilter.Items.Add(new ComboBoxItem { Content = Strings.Get("NotesAllFolders"), Tag = null });
+        foreach (string folder in ViewModel.GetAvailableFolders())
+        {
+            SearchFolderFilter.Items.Add(new ComboBoxItem { Content = folder, Tag = folder });
+        }
+
+        SearchFolderFilter.SelectedIndex = 0;
+        if (selectedFolder is not null)
+        {
+            foreach (object entry in SearchFolderFilter.Items)
+            {
+                if (entry is ComboBoxItem item &&
+                    string.Equals(item.Tag as string, selectedFolder, StringComparison.OrdinalIgnoreCase))
+                {
+                    SearchFolderFilter.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
+        int selectedDays = (SearchDateFilter.SelectedItem as ComboBoxItem)?.Tag is int days ? days : 0;
+        SearchDateFilter.Items.Clear();
+        SearchDateFilter.Items.Add(new ComboBoxItem { Content = Strings.Get("SearchDateAny"), Tag = 0 });
+        SearchDateFilter.Items.Add(new ComboBoxItem { Content = Strings.Get("SearchDateWeek"), Tag = 7 });
+        SearchDateFilter.Items.Add(new ComboBoxItem { Content = Strings.Get("SearchDateMonth"), Tag = 30 });
+        SearchDateFilter.Items.Add(new ComboBoxItem { Content = Strings.Get("SearchDateYear"), Tag = 365 });
+        SearchDateFilter.SelectedIndex = 0;
+        foreach (object entry in SearchDateFilter.Items)
+        {
+            if (entry is ComboBoxItem item && item.Tag is int value && value == selectedDays)
+            {
+                SearchDateFilter.SelectedItem = item;
+                break;
+            }
+        }
+
+        _isUpdatingFilters = false;
+    }
+
+    private void SearchFilter_Changed(object sender, SelectionChangedEventArgs e)
+    {
+        if (!_isUpdatingFilters && _isReady && !_isLoading)
+        {
+            ScheduleApplyFilter();
+        }
+    }
+
+    private void SearchTitleOnly_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_isUpdatingFilters && _isReady && !_isLoading)
+        {
+            ScheduleApplyFilter();
+        }
     }
 
     private void ApplyFilterIfChanged()

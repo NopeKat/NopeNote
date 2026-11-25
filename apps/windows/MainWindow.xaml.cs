@@ -54,6 +54,60 @@ public sealed partial class MainWindow : Window
     {
         ContentFrame.Navigate(typeof(NotesPage));
         NotesNavItem.IsSelected = true;
+        GlobalHotkey.RegisterQuickCapture(WindowHelper.GetWindowHandle(this), ShowQuickCapture);
+    }
+
+    internal async Task<bool> EnsureUnlockedAsync()
+    {
+        if (!SettingsHelper.Current.HasAppLock)
+        {
+            return true;
+        }
+
+        string? error = null;
+        while (true)
+        {
+            XamlRoot? root = RootGrid.XamlRoot;
+            if (root is null)
+            {
+                await Task.Delay(100);
+                continue;
+            }
+
+            PasswordBox input = new() { PlaceholderText = Strings.Get("AppLockPasswordPlaceholder") };
+            StackPanel panel = new() { Spacing = 8 };
+            panel.Children.Add(input);
+            if (error is not null)
+            {
+                panel.Children.Add(new TextBlock { Text = error, TextWrapping = TextWrapping.Wrap });
+            }
+
+            ContentDialog dialog = new()
+            {
+                XamlRoot = root,
+                Title = Strings.Get("AppLockTitle"),
+                Content = panel,
+                PrimaryButtonText = Strings.Get("AppLockUnlock"),
+                CloseButtonText = Strings.Get("AppLockExit"),
+                DefaultButton = ContentDialogButton.Primary,
+            };
+
+            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            {
+                return false;
+            }
+
+            if (PasswordHasher.Verify(
+                    input.Password,
+                    SettingsHelper.Current.AppLockSalt,
+                    SettingsHelper.Current.AppLockHash))
+            {
+                return true;
+            }
+
+            error = Strings.Get("AppLockWrongPassword");
+            await Task.Delay(50);
+        }
     }
 
     private void RootGrid_Loaded(object sender, RoutedEventArgs e)
@@ -63,7 +117,6 @@ public sealed partial class MainWindow : Window
         // registered above, so this subclass sees the non-client messages
         // before the title bar's own handler.
         CaptionChromeHelper.SuppressCaptionChrome(WindowHelper.GetWindowHandle(this));
-        GlobalHotkey.RegisterQuickCapture(WindowHelper.GetWindowHandle(this), ShowQuickCapture);
 
         BackdropHelper.Apply(this);
         WindowHelper.SetWindowMinSize(this, 640, 500);
