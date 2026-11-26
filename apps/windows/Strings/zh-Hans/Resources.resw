@@ -110,6 +110,9 @@
   <data name="SearchPageVaultError" xml:space="preserve">
     <value>仓库打开失败，暂时无法搜索。</value>
   </data>
+  <data name="SearchIndexNotice" xml:space="preserve">
+    <value>当前使用本地索引，结果可能过期，后台正在刷新。</value>
+  </data>
   <data name="SearchResultsList.AutomationProperties.Name" xml:space="preserve">
     <value>搜索结果</value>
   </data>

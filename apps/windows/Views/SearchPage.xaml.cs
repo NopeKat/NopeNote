@@ -106,8 +106,20 @@ public sealed partial class SearchPage : Page
         {
             _isLoading = false;
             RefreshFilterChoices();
+            UpdateIndexNotice();
             ApplyFilter();
         }
+    }
+
+    private void UpdateIndexNotice()
+    {
+        bool indexed = NoteSearchIndex.Current.IsEnabled;
+        if (indexed)
+        {
+            IndexNoticeTextBlock.Text = Strings.Get("SearchIndexNotice");
+        }
+
+        IndexNoticeTextBlock.Visibility = indexed ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void ShowError(string detail)

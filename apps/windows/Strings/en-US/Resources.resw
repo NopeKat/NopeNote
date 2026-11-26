@@ -110,6 +110,9 @@
   <data name="SearchPageVaultError" xml:space="preserve">
     <value>The vault could not be opened, so search is unavailable.</value>
   </data>
+  <data name="SearchIndexNotice" xml:space="preserve">
+    <value>Using a local index; results may be stale while it refreshes in the background.</value>
+  </data>
   <data name="SearchResultsList.AutomationProperties.Name" xml:space="preserve">
     <value>Search results</value>
   </data>

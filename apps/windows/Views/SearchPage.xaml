@@ -149,22 +149,30 @@
             </StackPanel>
         </ScrollViewer>
 
-        <muxc:InfoBar
-            x:Name="ErrorInfoBar"
-            x:Uid="SearchErrorBar"
-            Grid.Row="3"
-            Margin="{StaticResource PageInfoBarMargin}"
-            IsClosable="False"
-            IsOpen="False"
-            Severity="Error">
-            <muxc:InfoBar.ActionButton>
-                <Button
-                    x:Name="RetryButton"
-                    x:Uid="SearchRetryButton"
-                    Click="RetryButton_Click"
-                    Content="Retry" />
-            </muxc:InfoBar.ActionButton>
-        </muxc:InfoBar>
+        <StackPanel Grid.Row="3">
+            <TextBlock
+                x:Name="IndexNoticeTextBlock"
+                Margin="{StaticResource PageInfoBarMargin}"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+
+            <muxc:InfoBar
+                x:Name="ErrorInfoBar"
+                x:Uid="SearchErrorBar"
+                IsClosable="False"
+                IsOpen="False"
+                Severity="Error">
+                <muxc:InfoBar.ActionButton>
+                    <Button
+                        x:Name="RetryButton"
+                        x:Uid="SearchRetryButton"
+                        Click="RetryButton_Click"
+                        Content="Retry" />
+                </muxc:InfoBar.ActionButton>
+            </muxc:InfoBar>
+        </StackPanel>
 
         <Grid
             x:Name="SearchResultsArea"

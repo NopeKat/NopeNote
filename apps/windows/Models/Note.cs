@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using NopeNote.Core.Notes;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
+using NopeNote.Windows.Services;
 
 namespace NopeNote.Windows.Models;
 
@@ -136,19 +137,36 @@ public sealed class Note : INotifyPropertyChanged
     public static async Task<IReadOnlyList<Note>> LoadAllAsync(IVaultStore store)
     {
         NoteScanResult scan = await store.ScanNotesAsync();
+        NoteSearchIndex index = NoteSearchIndex.Current;
+        index.Configure(store.RootPath, scan.Notes.Count);
+
         var notes = new List<Note>(scan.Notes.Count);
+        var seen = new HashSet<Guid>();
 
         foreach (NoteSummary summary in scan.Notes)
         {
-            NoteDocument? document = await store.ReadNoteAsync(summary.Id);
-            if (document is null)
+            string? cached = index.TryGetBody(summary.Id, summary.Updated);
+            string body;
+            if (cached is null)
             {
-                continue;
+                NoteDocument? document = await store.ReadNoteAsync(summary.Id);
+                if (document is null)
+                {
+                    continue;
+                }
+
+                body = document.Body;
+                index.Remember(summary.Id, summary.Updated, body);
+            }
+            else
+            {
+                body = cached;
             }
 
+            seen.Add(summary.Id);
             notes.Add(new Note(
                 summary.Id,
-                document.Body,
+                body,
                 summary.Title,
                 summary.Tags,
                 summary.Pinned,
@@ -156,6 +174,8 @@ public sealed class Note : INotifyPropertyChanged
                 summary.Updated));
         }
 
+        index.Prune(seen);
+        _ = index.SaveAsync();
         return notes;
     }
 
