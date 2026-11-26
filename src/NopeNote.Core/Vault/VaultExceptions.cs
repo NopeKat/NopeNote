@@ -25,3 +25,11 @@ public sealed class VaultConflictException : Exception
 
     public string ConflictPath { get; }
 }
+
+public sealed class VaultTimeoutException : Exception
+{
+    public VaultTimeoutException(TimeSpan timeout)
+        : base($"vault operation timed out after {timeout.TotalSeconds:0} seconds.")
+    {
+    }
+}

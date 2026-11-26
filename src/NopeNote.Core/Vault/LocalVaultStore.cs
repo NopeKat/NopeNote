@@ -8,6 +8,8 @@ public sealed class LocalVaultStore : IVaultStore
 {
     private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
     private static readonly TimeSpan SnapshotThrottle = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan ReadTimeout = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan WriteTimeout = TimeSpan.FromSeconds(30);
 
     private readonly string _notesDirectory;
     private readonly string _trashDirectory;
@@ -63,7 +65,7 @@ public sealed class LocalVaultStore : IVaultStore
     public VaultCapabilities Capabilities { get; }
 
     public Task<NoteScanResult> ScanNotesAsync(CancellationToken cancellationToken = default)
-        => RunAsync(() => ScanNotesCore(cancellationToken), cancellationToken);
+        => RunAsync(() => ScanNotesCore(cancellationToken), ReadTimeout, cancellationToken);
 
     private NoteScanResult ScanNotesCore(CancellationToken cancellationToken)
     {
@@ -113,7 +115,7 @@ public sealed class LocalVaultStore : IVaultStore
     }
 
     public Task<NoteDocument?> ReadNoteAsync(Guid id, CancellationToken cancellationToken = default)
-        => RunAsync(() => ReadNoteCore(id, cancellationToken), cancellationToken);
+        => RunAsync(() => ReadNoteCore(id, cancellationToken), ReadTimeout, cancellationToken);
 
     private NoteDocument? ReadNoteCore(Guid id, CancellationToken cancellationToken)
     {
@@ -139,6 +141,7 @@ public sealed class LocalVaultStore : IVaultStore
         CancellationToken cancellationToken = default)
         => RunAsync(
             () => CreateNoteCore(title, body, tags, pinned, createdAt, updatedAt, folder, cancellationToken),
+            WriteTimeout,
             cancellationToken);
 
     private NoteDocument CreateNoteCore(
@@ -187,6 +190,7 @@ public sealed class LocalVaultStore : IVaultStore
         CancellationToken cancellationToken = default)
         => RunAsync(
             () => UpdateNoteCore(id, body, title, tags, pinned, expectedUpdated, folder, cancellationToken),
+            WriteTimeout,
             cancellationToken);
 
     private NoteDocument UpdateNoteCore(
@@ -236,7 +240,7 @@ public sealed class LocalVaultStore : IVaultStore
     }
 
     public Task TrashNoteAsync(Guid id, CancellationToken cancellationToken = default)
-        => RunAsync(() => TrashNoteCore(id, cancellationToken), cancellationToken);
+        => RunAsync(() => TrashNoteCore(id, cancellationToken), WriteTimeout, cancellationToken);
 
     private void TrashNoteCore(Guid id, CancellationToken cancellationToken)
     {
@@ -270,7 +274,7 @@ public sealed class LocalVaultStore : IVaultStore
     }
 
     public Task RestoreNoteAsync(Guid id, CancellationToken cancellationToken = default)
-        => RunAsync(() => RestoreNoteCore(id, cancellationToken), cancellationToken);
+        => RunAsync(() => RestoreNoteCore(id, cancellationToken), WriteTimeout, cancellationToken);
 
     private void RestoreNoteCore(Guid id, CancellationToken cancellationToken)
     {
@@ -302,7 +306,7 @@ public sealed class LocalVaultStore : IVaultStore
     }
 
     public Task PurgeNoteAsync(Guid id, CancellationToken cancellationToken = default)
-        => RunAsync(() => PurgeNoteCore(id, cancellationToken), cancellationToken);
+        => RunAsync(() => PurgeNoteCore(id, cancellationToken), WriteTimeout, cancellationToken);
 
     private void PurgeNoteCore(Guid id, CancellationToken cancellationToken)
     {
@@ -341,7 +345,7 @@ public sealed class LocalVaultStore : IVaultStore
     public Task<IReadOnlyList<VaultSnapshotInfo>> ListHistoryAsync(
         Guid id,
         CancellationToken cancellationToken = default)
-        => RunAsync(() => ListHistoryCore(id, cancellationToken), cancellationToken);
+        => RunAsync(() => ListHistoryCore(id, cancellationToken), ReadTimeout, cancellationToken);
 
     private IReadOnlyList<VaultSnapshotInfo> ListHistoryCore(Guid id, CancellationToken cancellationToken)
     {
@@ -373,7 +377,7 @@ public sealed class LocalVaultStore : IVaultStore
         Guid id,
         string snapshotName,
         CancellationToken cancellationToken = default)
-        => RunAsync(() => ReadHistoryCore(id, snapshotName, cancellationToken), cancellationToken);
+        => RunAsync(() => ReadHistoryCore(id, snapshotName, cancellationToken), ReadTimeout, cancellationToken);
 
     public Task RegisterAttachmentAsync(string sha256, CancellationToken cancellationToken = default)
         => Task.CompletedTask;
@@ -396,7 +400,7 @@ public sealed class LocalVaultStore : IVaultStore
     }
 
     public Task<IReadOnlyList<TrashNoteSummary>> ListTrashAsync(CancellationToken cancellationToken = default)
-        => RunAsync(() => ListTrashCore(cancellationToken), cancellationToken);
+        => RunAsync(() => ListTrashCore(cancellationToken), ReadTimeout, cancellationToken);
 
     private IReadOnlyList<TrashNoteSummary> ListTrashCore(CancellationToken cancellationToken)
     {
@@ -453,7 +457,7 @@ public sealed class LocalVaultStore : IVaultStore
     }
 
     public Task<NoteDocument?> ReadTrashAsync(Guid id, CancellationToken cancellationToken = default)
-        => RunAsync(() => ReadTrashCore(id, cancellationToken), cancellationToken);
+        => RunAsync(() => ReadTrashCore(id, cancellationToken), ReadTimeout, cancellationToken);
 
     private NoteDocument? ReadTrashCore(Guid id, CancellationToken cancellationToken)
     {
@@ -542,30 +546,105 @@ public sealed class LocalVaultStore : IVaultStore
         return relativePath;
     }
 
-    private async Task<T> RunAsync<T>(Func<T> action, CancellationToken cancellationToken)
+    private async Task<T> RunAsync<T>(Func<T> action, TimeSpan timeout, CancellationToken cancellationToken)
     {
-        await _ioGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        if (!await _ioGate.WaitAsync(timeout, cancellationToken).ConfigureAwait(false))
+        {
+            throw new VaultTimeoutException(timeout);
+        }
+
+        Task<T> task = Task.Run(() => InvokeWithRetry(action), cancellationToken);
         try
         {
-            return await Task.Run(action, cancellationToken).ConfigureAwait(false);
+            return await task.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            // The gate is released when the abandoned task finishes, never before.
+            throw new VaultTimeoutException(timeout);
         }
         finally
         {
-            _ioGate.Release();
+            _ = task.ContinueWith(
+                static (_, state) => ((SemaphoreSlim)state!).Release(),
+                _ioGate,
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
         }
     }
 
-    private async Task RunAsync(Action action, CancellationToken cancellationToken)
+    private async Task RunAsync(Action action, TimeSpan timeout, CancellationToken cancellationToken)
     {
-        await _ioGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        if (!await _ioGate.WaitAsync(timeout, cancellationToken).ConfigureAwait(false))
+        {
+            throw new VaultTimeoutException(timeout);
+        }
+
+        Task task = Task.Run(() => InvokeWithRetry(action), cancellationToken);
         try
         {
-            await Task.Run(action, cancellationToken).ConfigureAwait(false);
+            await task.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            throw new VaultTimeoutException(timeout);
         }
         finally
         {
-            _ioGate.Release();
+            _ = task.ContinueWith(
+                static (_, state) => ((SemaphoreSlim)state!).Release(),
+                _ioGate,
+                CancellationToken.None,
+                TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
         }
+    }
+
+    /// <summary>Retries a vanished file up to three times with 1, 2 and 4 second waits.</summary>
+    private static T InvokeWithRetry<T>(Func<T> action)
+    {
+        int attempt = 0;
+        while (true)
+        {
+            try
+            {
+                return action();
+            }
+            catch (Exception exception) when (attempt < 3 && IsTransient(exception))
+            {
+                attempt++;
+                Thread.Sleep(TimeSpan.FromSeconds(1 << (attempt - 1)));
+            }
+        }
+    }
+
+    private static void InvokeWithRetry(Action action)
+    {
+        int attempt = 0;
+        while (true)
+        {
+            try
+            {
+                action();
+                return;
+            }
+            catch (Exception exception) when (attempt < 3 && IsTransient(exception))
+            {
+                attempt++;
+                Thread.Sleep(TimeSpan.FromSeconds(1 << (attempt - 1)));
+            }
+        }
+    }
+
+    private static bool IsTransient(Exception exception)
+    {
+        if (exception is FileNotFoundException or DirectoryNotFoundException)
+        {
+            return true;
+        }
+
+        return exception is IOException io && (io.HResult & 0xFFFF) is 32 or 33;
     }
 
     private void EnsureWritable()
