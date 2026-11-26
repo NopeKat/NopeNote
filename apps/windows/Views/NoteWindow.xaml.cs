@@ -23,6 +23,7 @@ public sealed partial class NoteWindow : Window
     private bool _sizing;
     private bool _closing;
     private bool _promptingClose;
+    private string? _conflictPath;
 
     public NoteWindow(Guid noteId)
     {
@@ -32,6 +33,7 @@ public sealed partial class NoteWindow : Window
         Title = Strings.Get("NoteWindowTitle");
         SaveButton.Content = Strings.Get("NoteWindowSave");
         CloseButton.Content = Strings.Get("CommonClose");
+        OpenCopyButton.Content = Strings.Get("ConflictShowCopy");
         _autoSaveTimer.Interval = TimeSpan.FromSeconds(1.2);
         _autoSaveTimer.Tick += AutoSaveTimer_Tick;
         AppWindow.SetIcon("Assets/Tiles/NopeNoteIcon.ico");
@@ -142,11 +144,14 @@ public sealed partial class NoteWindow : Window
             VaultService.Current.NotifyDataChanged();
             return true;
         }
+        catch (VaultConflictException conflict)
+        {
+            ShowConflict(conflict.ConflictPath, store.RootPath);
+            return false;
+        }
         catch (Exception exception)
         {
-            ShowError(exception is VaultConflictException
-                ? Strings.Get("NoteWindowConflict")
-                : exception.Message);
+            ShowError(exception.Message);
             return false;
         }
         finally
@@ -157,8 +162,32 @@ public sealed partial class NoteWindow : Window
 
     private void ShowError(string message)
     {
+        _conflictPath = null;
+        OpenCopyButton.Visibility = Visibility.Collapsed;
         ErrorTextBlock.Text = message;
         ErrorTextBlock.Visibility = Visibility.Visible;
+    }
+
+    private void ShowConflict(string conflictPath, string vaultRoot)
+    {
+        string fullPath = ConflictNotice.ResolvePath(conflictPath, vaultRoot);
+        _conflictPath = fullPath;
+        ErrorTextBlock.Text = Strings.Format("NoteWindowConflict", fullPath);
+        ErrorTextBlock.Visibility = Visibility.Visible;
+        OpenCopyButton.Visibility = Visibility.Visible;
+    }
+
+    private void OpenCopyButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_conflictPath is null)
+        {
+            return;
+        }
+
+        if (!ConflictNotice.TryShowInExplorer(_conflictPath))
+        {
+            ErrorTextBlock.Text = Strings.Get("ConflictOpenFailed");
+        }
     }
 
     private async void CloseButton_Click(object sender, RoutedEventArgs e)

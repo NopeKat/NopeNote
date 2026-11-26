@@ -33,6 +33,7 @@ public sealed partial class NotesPage : Page
     private Note? _pendingSaveNote;
     private Note? _retryNote;
     private RetryOperation _retryOperation = RetryOperation.None;
+    private string? _conflictPath;
     private readonly DispatcherTimer _autoSaveTimer = new();
 
     public NotesPage()
@@ -545,6 +546,15 @@ public sealed partial class NotesPage : Page
                         SaveStatusTextBlock.Text = Strings.Get("NotesStatusSaved");
                     }
                 }
+                catch (VaultConflictException conflict)
+                {
+                    if (ReferenceEquals(SelectedNote, current))
+                    {
+                        SaveStatusTextBlock.Text = Strings.Get("NotesStatusNotSaved");
+                    }
+
+                    ShowConflict(conflict);
+                }
                 catch (Exception exception)
                 {
                     if (ReferenceEquals(SelectedNote, current))
@@ -742,6 +752,16 @@ public sealed partial class NotesPage : Page
 
     private async void ErrorRetryButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_conflictPath is not null)
+        {
+            if (!ConflictNotice.TryShowInExplorer(_conflictPath))
+            {
+                ErrorInfoBar.Message = Strings.Get("ConflictOpenFailed");
+            }
+
+            return;
+        }
+
         RetryOperation operation = _retryOperation;
         Note? note = _retryNote;
         ResetErrorState();
@@ -786,17 +806,34 @@ public sealed partial class NotesPage : Page
         string message,
         RetryOperation operation,
         Note? note,
-        InfoBarSeverity severity = InfoBarSeverity.Error)
+        InfoBarSeverity severity = InfoBarSeverity.Error,
+        string? conflictPath = null)
     {
         ErrorInfoBar.Title = title;
         ErrorInfoBar.Message = message;
         ErrorInfoBar.Severity = severity;
         _retryOperation = operation;
         _retryNote = note;
-        ErrorRetryButton.Visibility = operation == RetryOperation.None
-            ? Visibility.Collapsed
-            : Visibility.Visible;
+        _conflictPath = conflictPath;
+        ErrorRetryButton.Content = conflictPath is null
+            ? Strings.Get("NotesRetryButton.Content")
+            : Strings.Get("ConflictShowCopy");
+        ErrorRetryButton.Visibility = conflictPath is not null || operation != RetryOperation.None
+            ? Visibility.Visible
+            : Visibility.Collapsed;
         ErrorInfoBar.IsOpen = true;
+    }
+
+    private void ShowConflict(VaultConflictException conflict)
+    {
+        string path = ConflictNotice.ResolvePath(conflict.ConflictPath, ViewModel.Store.RootPath);
+        ShowError(
+            Strings.Get("NotesConflictTitle"),
+            Strings.Format("NotesConflictMessage", path),
+            RetryOperation.None,
+            null,
+            InfoBarSeverity.Warning,
+            path);
     }
 
     private void ClearError()
@@ -813,6 +850,7 @@ public sealed partial class NotesPage : Page
     {
         _retryOperation = RetryOperation.None;
         _retryNote = null;
+        _conflictPath = null;
     }
 
     private static string Describe(Exception exception)

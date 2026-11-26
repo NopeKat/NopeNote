@@ -684,7 +684,7 @@
     <value>已保存</value>
   </data>
   <data name="NoteWindowConflict" xml:space="preserve">
-    <value>这条笔记在别的窗口里已经改过了，请重新打开。</value>
+    <value>这条笔记在别处已更新。你的版本已保留为副本：{0}</value>
   </data>
   <data name="NoteWindowUnsavedTitle" xml:space="preserve">
     <value>有未保存的改动</value>
@@ -694,5 +694,17 @@
   </data>
   <data name="NoteWindowDiscard" xml:space="preserve">
     <value>丢弃</value>
+  </data>
+  <data name="NotesConflictTitle" xml:space="preserve">
+    <value>笔记已在别处更新</value>
+  </data>
+  <data name="NotesConflictMessage" xml:space="preserve">
+    <value>你的版本已保存为副本：{0}。请重新打开笔记查看最新内容。</value>
+  </data>
+  <data name="ConflictShowCopy" xml:space="preserve">
+    <value>显示副本</value>
+  </data>
+  <data name="ConflictOpenFailed" xml:space="preserve">
+    <value>无法打开副本所在文件夹。</value>
   </data>
 </root>

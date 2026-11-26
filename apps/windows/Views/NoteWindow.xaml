@@ -30,12 +30,22 @@
             TextWrapping="Wrap"
             VerticalAlignment="Stretch" />
 
-        <TextBlock
-            x:Name="ErrorTextBlock"
+        <StackPanel
             Grid.Row="2"
-            Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-            TextWrapping="Wrap"
-            Visibility="Collapsed" />
+            Spacing="6">
+            <TextBlock
+                x:Name="ErrorTextBlock"
+                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+
+            <Button
+                x:Name="OpenCopyButton"
+                AutomationProperties.Name="Show the conflict copy in File Explorer"
+                Click="OpenCopyButton_Click"
+                HorizontalAlignment="Left"
+                Visibility="Collapsed" />
+        </StackPanel>
 
         <Grid Grid.Row="3">
             <Grid.ColumnDefinitions>

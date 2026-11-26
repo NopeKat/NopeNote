@@ -684,7 +684,7 @@
     <value>Saved</value>
   </data>
   <data name="NoteWindowConflict" xml:space="preserve">
-    <value>This note changed in another window. Reopen it to continue.</value>
+    <value>This note changed elsewhere. Your version was kept as a copy at {0}.</value>
   </data>
   <data name="NoteWindowUnsavedTitle" xml:space="preserve">
     <value>Unsaved changes</value>
@@ -694,5 +694,17 @@
   </data>
   <data name="NoteWindowDiscard" xml:space="preserve">
     <value>Discard</value>
+  </data>
+  <data name="NotesConflictTitle" xml:space="preserve">
+    <value>Note changed elsewhere</value>
+  </data>
+  <data name="NotesConflictMessage" xml:space="preserve">
+    <value>Your version was saved as a copy at {0}. Reopen the note to see the latest text.</value>
+  </data>
+  <data name="ConflictShowCopy" xml:space="preserve">
+    <value>Show the copy</value>
+  </data>
+  <data name="ConflictOpenFailed" xml:space="preserve">
+    <value>Could not open the copy folder.</value>
   </data>
 </root>
