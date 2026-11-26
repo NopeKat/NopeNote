@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using NopeNote.Core.Notes;
 
@@ -268,9 +269,19 @@ public sealed class LocalVaultStore : IVaultStore
             deletedAt,
             current.Summary.Folder);
 
+        // One rename and then an in-place rewrite: if the process dies between the two
+        // steps the note carries no deletedAt yet, but it never exists in both places.
         string trashPath = TrashPath(id);
-        WriteText(trashPath, text);
-        File.Delete(NotePath(id));
+        MoveVaultFile(NotePath(id), trashPath);
+        try
+        {
+            WriteText(trashPath, text, currentText);
+        }
+        catch
+        {
+            MoveVaultFile(trashPath, NotePath(id));
+            throw;
+        }
     }
 
     public Task RestoreNoteAsync(Guid id, CancellationToken cancellationToken = default)
@@ -287,7 +298,8 @@ public sealed class LocalVaultStore : IVaultStore
             throw new VaultNoteNotFoundException(id);
         }
 
-        NoteDocument trashed = ReadDocument(id, TrashRelativePath(id), File.ReadAllText(trashPath));
+        string trashText = File.ReadAllText(trashPath);
+        NoteDocument trashed = ReadDocument(id, TrashRelativePath(id), trashText);
         DateTimeOffset updated = NextUpdated(trashed.Summary.Updated);
 
         string text = NoteFrontMatterWriter.Build(
@@ -301,8 +313,19 @@ public sealed class LocalVaultStore : IVaultStore
             trashed.FrontMatterLines,
             folder: trashed.Summary.Folder);
 
-        WriteText(NotePath(id), text);
-        File.Delete(trashPath);
+        // Same shape as trashing: rename first, rewrite second. A crash leaves a live
+        // note that still carries a stale deletedAt, never a duplicate.
+        string notePath = NotePath(id);
+        MoveVaultFile(trashPath, notePath);
+        try
+        {
+            WriteText(notePath, text, trashText);
+        }
+        catch
+        {
+            MoveVaultFile(notePath, trashPath);
+            throw;
+        }
     }
 
     public Task PurgeNoteAsync(Guid id, CancellationToken cancellationToken = default)
@@ -664,7 +687,7 @@ public sealed class LocalVaultStore : IVaultStore
             string temporary = path + ".tmp-" + Guid.NewGuid().ToString("N")[..8];
             try
             {
-                File.WriteAllText(temporary, text, Utf8NoBom);
+                WriteAllTextFlushed(temporary, text);
                 File.Move(temporary, path, overwrite: true);
             }
             finally
@@ -678,7 +701,7 @@ public sealed class LocalVaultStore : IVaultStore
             return;
         }
 
-        File.WriteAllText(path, text, Utf8NoBom);
+        WriteAllTextFlushed(path, text);
         string readBack = File.ReadAllText(path);
         if (string.Equals(readBack, text, StringComparison.Ordinal))
         {
@@ -687,10 +710,80 @@ public sealed class LocalVaultStore : IVaultStore
 
         if (fallbackText is not null)
         {
-            File.WriteAllText(path, fallbackText, Utf8NoBom);
+            WriteAllTextFlushed(path, fallbackText);
         }
 
         throw new IOException($"write verification failed for {Relative(path)}.");
+    }
+
+    /// <summary>Writes UTF-8 without BOM and flushes the file to disk before returning.</summary>
+    private static void WriteAllTextFlushed(string path, string text)
+    {
+        using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+        using (var writer = new StreamWriter(stream, Utf8NoBom))
+        {
+            writer.Write(text);
+            writer.Flush();
+            stream.Flush(flushToDisk: true);
+        }
+    }
+
+    /// <summary>
+    /// Moves a vault file between the notes and trash directories with one rename when
+    /// both live on the same volume. Cross-volume moves copy, verify by hash, then delete
+    /// the source, so a failing move never leaves the same note in both places.
+    /// </summary>
+    private static void MoveVaultFile(string source, string destination)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+
+        try
+        {
+            File.Move(source, destination, overwrite: true);
+            return;
+        }
+        catch (IOException moveFailure)
+        {
+            string temporary = destination + ".tmp-" + Guid.NewGuid().ToString("N")[..8];
+            try
+            {
+                File.Copy(source, temporary, overwrite: true);
+                if (!HasSameContent(source, temporary))
+                {
+                    throw new IOException(
+                        $"copy verification failed for {Path.GetFileName(destination)}.",
+                        moveFailure);
+                }
+
+                File.Move(temporary, destination, overwrite: true);
+            }
+            finally
+            {
+                if (File.Exists(temporary))
+                {
+                    File.Delete(temporary);
+                }
+            }
+
+            try
+            {
+                File.Delete(source);
+            }
+            catch (IOException)
+            {
+                File.Delete(destination);
+                throw;
+            }
+        }
+    }
+
+    private static bool HasSameContent(string left, string right)
+    {
+        using FileStream leftStream = File.OpenRead(left);
+        using FileStream rightStream = File.OpenRead(right);
+        byte[] leftHash = SHA256.HashData(leftStream);
+        byte[] rightHash = SHA256.HashData(rightStream);
+        return leftHash.AsSpan().SequenceEqual(rightHash);
     }
 
     private string? ReadNoteFile(Guid id)
