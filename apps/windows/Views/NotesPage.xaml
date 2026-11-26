@@ -133,11 +133,11 @@
                     KeyboardAcceleratorPlacementMode="Auto"
                     Label="New note">
                     <muxc:AppBarButton.Icon>
-                        <!-- Fluent UI System Icons: add_16_regular; ink 12.00 x 12.00 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
+                        <!-- Fluent UI System Icons: add_16_regular; ink 12.00 x 12.00 -> 14.00 px long edge, centered on 16; 1 px bands after the 1 px correction. Source: fluentui-system-icons main (official SVG). -->
                         <muxc:PathIcon
                             Width="16"
                             Height="16"
-                            Data="F1 M8 1C8.327 1 8.583 1.257 8.583 1.583V7.417H14.417A0.583 0.583 0 0 1 14.417 8.583H8.583V14.417A0.583 0.583 0 0 1 7.417 14.417V8.583H1.583A0.583 0.583 0 0 1 1.583 7.417H7.417V1.583C7.417 1.257 7.673 1 8 1"
+                            Data="F1 M8.18 1.12 L8.34 1.22 L8.45 1.37 L8.5 1.55 L8.5 7.5 L14.45 7.5 L14.63 7.55 L14.78 7.66 L14.88 7.82 L14.92 8 L14.88 8.18 L14.78 8.34 L14.63 8.45 L14.45 8.5 L8.5 8.5 L8.5 14.45 L8.45 14.63 L8.34 14.78 L8.18 14.88 L8 14.92 L7.82 14.88 L7.66 14.78 L7.55 14.63 L7.5 14.45 L7.5 8.5 L1.55 8.5 L1.37 8.45 L1.22 8.34 L1.12 8.18 L1.08 8 L1.12 7.82 L1.22 7.66 L1.37 7.55 L1.55 7.5 L7.5 7.5 L7.5 1.55 L7.55 1.37 L7.66 1.22 L7.82 1.12 L8 1.08 Z"
                             AutomationProperties.AccessibilityView="Raw" />
                     </muxc:AppBarButton.Icon>
                     <muxc:AppBarButton.KeyboardAccelerators>
@@ -197,11 +197,11 @@
                     KeyboardAcceleratorPlacementMode="Auto"
                     Label="Delete">
                     <muxc:AppBarButton.Icon>
-                        <!-- Fluent UI System Icons: delete_16_regular; ink 13.00 x 14.01 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
+                        <!-- Fluent UI System Icons: delete_16_regular; ink 13.00 x 14.00 -> 14.00 px long edge, centered on 16; 1 px bands after the 1 px correction. Source: fluentui-system-icons main (official SVG). -->
                         <muxc:PathIcon
                             Width="16"
                             Height="16"
-                            Data="F1 M7.001 2.998H8.999A0.999 0.999 0 0 0 7.001 2.998M6.002 2.998A1.998 1.998 0 1 1 9.998 2.998H13.995A0.5 0.5 0 0 1 13.995 3.997H13.435L12.236 12.83A2.498 2.498 0 0 1 9.739 14.988H6.241A2.498 2.498 0 0 1 3.764 12.83L2.575 3.997H2.005A0.5 0.5 0 0 1 2.005 2.998ZM7.001 6.495A0.5 0.5 0 0 0 6.002 6.495V11.491A0.5 0.5 0 0 0 7.001 11.491ZM9.499 5.996C9.779 5.996 9.998 6.216 9.998 6.495V11.491A0.5 0.5 0 0 1 8.999 11.491V6.495C8.999 6.216 9.219 5.996 9.499 5.996M4.763 12.69C4.863 13.44 5.502 13.989 6.251 13.989H9.749A1.499 1.499 0 0 0 11.247 12.69L12.416 3.997H3.574Z"
+                            Data="F1 M6 3 L6.04 2.6 L6.16 2.22 L6.34 1.88 L6.59 1.59 L6.88 1.34 L7.22 1.16 L7.6 1.04 L8 1 L8.4 1.04 L8.78 1.16 L9.12 1.34 L9.41 1.59 L9.66 1.88 L9.84 2.22 L9.96 2.6 L10 3 L14.02 3 L14.22 3.05 L14.39 3.18 L14.48 3.35 L14.5 3.53 L14.45 3.72 L14.33 3.88 L14.21 3.95 L14.07 4 L13.44 4 L12.21 12.99 L12.1 13.36 L11.91 13.76 L11.66 14.12 L11.34 14.43 L11.04 14.64 L10.71 14.81 L10.36 14.93 L9.99 14.99 L6.09 15 L5.86 14.97 L5.57 14.91 L5.36 14.84 L5.09 14.71 L4.89 14.6 L4.66 14.43 L4.44 14.23 L4.3 14.07 L4.09 13.76 L3.95 13.5 L3.85 13.21 L3.78 12.91 L2.56 4 L1.98 4 L1.82 3.97 L1.71 3.91 L1.61 3.82 L1.55 3.71 L1.51 3.6 L1.51 3.38 L1.6 3.19 L1.68 3.11 L1.78 3.05 L1.98 3 Z M9 3 L8.99 2.83 L8.93 2.64 L8.85 2.47 L8.73 2.32 L8.59 2.19 L8.42 2.09 L8.23 2.03 L8.03 2 L7.83 2.01 L7.64 2.07 L7.47 2.15 L7.32 2.27 L7.19 2.41 L7.09 2.58 L7.03 2.77 L7 3 Z M4.77 12.75 L4.85 13.06 L5.02 13.37 L5.23 13.6 L5.51 13.81 L5.84 13.94 L6.15 14 L9.85 14 L10.03 13.97 L10.25 13.92 L10.45 13.83 L10.64 13.71 L10.87 13.51 L11.03 13.3 L11.15 13.06 L11.23 12.79 L12.43 4 L3.57 4 Z M7 11.55 L6.94 11.74 L6.82 11.89 L6.65 11.98 L6.45 12 L6.28 11.95 L6.14 11.84 L6.04 11.69 L6 11.53 L6 6.45 L6.05 6.28 L6.17 6.12 L6.34 6.03 L6.52 6 L6.69 6.04 L6.84 6.14 L6.95 6.29 L7 6.47 Z M9.66 6.03 L9.84 6.14 L9.96 6.31 L10 6.5 L10 11.55 L9.95 11.72 L9.83 11.88 L9.68 11.97 L9.5 12 L9.31 11.96 L9.15 11.85 L9.04 11.69 L9 11.5 L9 6.45 L9.05 6.28 L9.16 6.14 L9.31 6.04 L9.47 6 Z"
                             AutomationProperties.AccessibilityView="Raw" />
                     </muxc:AppBarButton.Icon>
                     <muxc:AppBarButton.KeyboardAccelerators>
@@ -330,11 +330,11 @@
                         Label="Back"
                         Visibility="Collapsed">
                         <muxc:AppBarButton.Icon>
-                            <!-- Fluent UI System Icons: arrow_left_16_regular; ink 11.99 x 10.15 -> 14.00 px long edge, centered on 16. Source 1 px bands scale with the correction. -->
+                            <!-- Fluent UI System Icons: arrow_left_16_regular; ink 12.00 x 10.00 -> 14.00 px long edge, centered on 16; 1 px bands after the 1 px correction. Source: fluentui-system-icons main (official SVG). -->
                             <muxc:PathIcon
                                 Width="16"
                                 Height="16"
-                                Data="F1 M14.416 8.584A0.584 0.584 0 0 0 14.416 7.416H3.094L7.798 3.179A0.584 0.584 0 1 0 7.027 2.315L1.191 7.568A0.584 0.584 0 0 0 1.191 8.432L7.027 13.685A0.584 0.584 0 1 0 7.798 12.821L3.094 8.584Z"
+                                Data="F1 M2.89 8.5 L7.8 12.93 L7.88 13.05 L7.91 13.19 L7.91 13.34 L7.86 13.47 L7.79 13.58 L7.67 13.68 L7.54 13.74 L7.39 13.75 L7.22 13.71 L7.08 13.62 L1.25 8.37 L1.12 8.2 L1.08 7.98 L1.13 7.79 L1.25 7.63 L7.1 2.37 L7.25 2.28 L7.44 2.25 L7.58 2.28 L7.7 2.34 L7.8 2.43 L7.88 2.56 L7.91 2.68 L7.91 2.82 L7.87 2.96 L7.8 3.07 L2.89 7.5 L14.47 7.5 L14.65 7.56 L14.8 7.68 L14.89 7.85 L14.92 8.03 L14.87 8.21 L14.76 8.36 L14.6 8.47 L14.42 8.5 Z"
                                 AutomationProperties.AccessibilityView="Raw" />
                         </muxc:AppBarButton.Icon>
                     </muxc:AppBarButton>
