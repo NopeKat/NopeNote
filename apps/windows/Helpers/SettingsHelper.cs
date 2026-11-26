@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -28,6 +29,9 @@ public sealed class SettingsHelper
 
     public string AppLockHash { get; set; } = string.Empty;
 
+    /// <summary>Stable 8-character lowercase id used in conflict copy names.</summary>
+    public string DeviceId { get; private set; } = string.Empty;
+
     public bool HasAppLock => !string.IsNullOrWhiteSpace(AppLockSalt) &&
                               !string.IsNullOrWhiteSpace(AppLockHash);
 
@@ -39,6 +43,7 @@ public sealed class SettingsHelper
         Directory.CreateDirectory(folder);
         _settingsPath = Path.Combine(folder, "settings.json");
         Load();
+        EnsureDeviceId();
     }
 
     public void Save()
@@ -51,9 +56,60 @@ public sealed class SettingsHelper
             SelectedAppLanguage = SelectedAppLanguage,
             AppLockSalt = AppLockSalt,
             AppLockHash = AppLockHash,
+            DeviceId = DeviceId,
         };
         string json = JsonSerializer.Serialize(dto, SettingsJsonContext.Default.SettingsDto);
         File.WriteAllText(_settingsPath, json);
+    }
+
+    private void EnsureDeviceId()
+    {
+        if (IsValidDeviceId(DeviceId))
+        {
+            return;
+        }
+
+        DeviceId = GenerateDeviceId();
+        try
+        {
+            Save();
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Keep the generated id for this session when the file is locked.
+        }
+    }
+
+    private static bool IsValidDeviceId(string? value)
+    {
+        if (value is null || value.Length != 8)
+        {
+            return false;
+        }
+
+        foreach (char character in value)
+        {
+            bool digit = character >= '0' && character <= '9';
+            bool lowerCase = character >= 'a' && character <= 'z';
+            if (!digit && !lowerCase)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static string GenerateDeviceId()
+    {
+        const string Alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
+        char[] buffer = new char[8];
+        for (int index = 0; index < buffer.Length; index++)
+        {
+            buffer[index] = Alphabet[RandomNumberGenerator.GetInt32(Alphabet.Length)];
+        }
+
+        return new string(buffer);
     }
 
     private void Load()
@@ -76,6 +132,7 @@ public sealed class SettingsHelper
                 SelectedAppLanguage = dto.SelectedAppLanguage ?? string.Empty;
                 AppLockSalt = dto.AppLockSalt ?? string.Empty;
                 AppLockHash = dto.AppLockHash ?? string.Empty;
+                DeviceId = dto.DeviceId ?? string.Empty;
                 if (!string.IsNullOrWhiteSpace(dto.VaultPath))
                 {
                     VaultPath = dto.VaultPath;
@@ -102,6 +159,8 @@ internal sealed class SettingsDto
     public string? AppLockSalt { get; set; }
 
     public string? AppLockHash { get; set; }
+
+    public string? DeviceId { get; set; }
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

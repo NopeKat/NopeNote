@@ -73,14 +73,16 @@ public sealed class VaultService
     {
         string path = VaultPath;
 
-        VaultOpenResult result = await VaultStoreFactory.OpenAsync(path).ConfigureAwait(false);
+        VaultOpenResult result = await VaultStoreFactory.OpenAsync(
+            path,
+            SettingsHelper.Current.DeviceId).ConfigureAwait(false);
 
         bool emptyOrMissing = await Task.Run(
             () => !Directory.Exists(path) || !Directory.EnumerateFileSystemEntries(path).Any())
             .ConfigureAwait(false);
         if (result.Status == VaultOpenStatus.NotAVault && emptyOrMissing)
         {
-            result = await VaultStoreFactory.CreateAsync(path);
+            result = await VaultStoreFactory.CreateAsync(path, SettingsHelper.Current.DeviceId);
         }
 
         if (result.Status == VaultOpenStatus.Opened && result.Store is not null)

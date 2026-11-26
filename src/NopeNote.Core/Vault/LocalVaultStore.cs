@@ -23,12 +23,12 @@ public sealed class LocalVaultStore : IVaultStore
         string rootPath,
         VaultMetadata metadata,
         VaultCapabilities capabilities,
-        string deviceId = "localdev")
+        string? deviceId = "localdev")
     {
         RootPath = rootPath;
         Metadata = metadata;
         Capabilities = capabilities;
-        _deviceId = deviceId;
+        _deviceId = NormalizeDeviceId(deviceId);
         _notesDirectory = Path.Combine(rootPath, ".vault", "notes");
         _trashDirectory = Path.Combine(rootPath, ".trash");
         _historyDirectory = Path.Combine(rootPath, ".history");
@@ -36,6 +36,27 @@ public sealed class LocalVaultStore : IVaultStore
     }
 
     public string RootPath { get; }
+
+    /// <summary>Keeps only 8-character lowercase ids; anything else falls back.</summary>
+    private static string NormalizeDeviceId(string? deviceId)
+    {
+        if (deviceId is null || deviceId.Length != 8)
+        {
+            return "localdev";
+        }
+
+        foreach (char character in deviceId)
+        {
+            bool digit = character >= '0' && character <= '9';
+            bool lowerCase = character >= 'a' && character <= 'z';
+            if (!digit && !lowerCase)
+            {
+                return "localdev";
+            }
+        }
+
+        return deviceId;
+    }
 
     public VaultMetadata Metadata { get; }
 

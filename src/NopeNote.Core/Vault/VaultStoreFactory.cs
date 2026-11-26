@@ -10,11 +10,13 @@ public static class VaultStoreFactory
     /// </summary>
     public static Task<VaultOpenResult> CreateAsync(
         string rootPath,
+        string? deviceId = null,
         CancellationToken cancellationToken = default)
-        => Task.Run(() => CreateCore(rootPath, cancellationToken), cancellationToken);
+        => Task.Run(() => CreateCore(rootPath, deviceId, cancellationToken), cancellationToken);
 
     private static VaultOpenResult CreateCore(
         string rootPath,
+        string? deviceId,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -58,16 +60,22 @@ public static class VaultStoreFactory
 
         VaultSettings.Write(root, VaultSettings.Default);
 
-        return OpenCore(root, cancellationToken);
+        return OpenCore(root, deviceId, cancellationToken);
     }
 
     private static void WriteText(string path, string text)
         => File.WriteAllText(path, text, Utf8NoBom);
 
-    public static Task<VaultOpenResult> OpenAsync(string rootPath, CancellationToken cancellationToken = default)
-        => Task.Run(() => OpenCore(rootPath, cancellationToken), cancellationToken);
+    public static Task<VaultOpenResult> OpenAsync(
+        string rootPath,
+        string? deviceId = null,
+        CancellationToken cancellationToken = default)
+        => Task.Run(() => OpenCore(rootPath, deviceId, cancellationToken), cancellationToken);
 
-    private static VaultOpenResult OpenCore(string rootPath, CancellationToken cancellationToken)
+    private static VaultOpenResult OpenCore(
+        string rootPath,
+        string? deviceId,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -105,7 +113,8 @@ public static class VaultStoreFactory
             var readOnlyStore = new LocalVaultStore(
                 rootPath,
                 metadata,
-                new VaultCapabilities(false, false, false, false));
+                new VaultCapabilities(false, false, false, false),
+                deviceId);
             return new VaultOpenResult(
                 VaultOpenStatus.ReadOnly,
                 readOnlyStore,
@@ -117,7 +126,8 @@ public static class VaultStoreFactory
             var readOnlyStore = new LocalVaultStore(
                 rootPath,
                 metadata,
-                new VaultCapabilities(false, false, false, false));
+                new VaultCapabilities(false, false, false, false),
+                deviceId);
             return new VaultOpenResult(
                 VaultOpenStatus.ReadOnly,
                 readOnlyStore,
@@ -134,14 +144,15 @@ public static class VaultStoreFactory
             var readOnlyStore = new LocalVaultStore(
                 rootPath,
                 metadata,
-                new VaultCapabilities(false, false, false, false));
+                new VaultCapabilities(false, false, false, false),
+                deviceId);
             return new VaultOpenResult(
                 VaultOpenStatus.ReadOnly,
                 readOnlyStore,
                 $"目录不可写或能力探测失败：{exception.Message}");
         }
 
-        var store = new LocalVaultStore(rootPath, metadata, capabilities);
+        var store = new LocalVaultStore(rootPath, metadata, capabilities, deviceId);
         return new VaultOpenResult(VaultOpenStatus.Opened, store, "仓库已打开。");
     }
 }
