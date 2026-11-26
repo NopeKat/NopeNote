@@ -106,6 +106,12 @@ public sealed class GitVaultStore : IVaultStore
     public Task<NoteDocument?> ReadTrashAsync(Guid id, CancellationToken cancellationToken = default)
         => _inner.ReadTrashAsync(id, cancellationToken);
 
+    public Task RegisterAttachmentAsync(string sha256, CancellationToken cancellationToken = default)
+    {
+        _commits.Enqueue($"atts: add {sha256}");
+        return Task.CompletedTask;
+    }
+
     /// <summary>Waits until every queued commit has been attempted.</summary>
     public Task FlushAsync(CancellationToken cancellationToken = default)
         => _commits.FlushAsync(cancellationToken);

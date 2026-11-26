@@ -729,7 +729,8 @@ public sealed partial class NotesPage
 
     private async void NoteEditor_Paste(object sender, TextControlPasteEventArgs e)
     {
-        if (SelectedNote is null || !VaultService.Current.IsWritable)
+        IVaultStore? store = VaultService.Current.Store;
+        if (SelectedNote is null || store is null || !store.Capabilities.Writable)
         {
             return;
         }
@@ -743,7 +744,7 @@ public sealed partial class NotesPage
         e.Handled = true;
         try
         {
-            string? path = await AttachmentStore.SaveClipboardImageAsync(VaultService.Current.VaultPath);
+            string? path = await AttachmentStore.SaveClipboardImageAsync(store);
             if (path is not null)
             {
                 InsertAtCaret($"\n![pasted image]({path})\n");
@@ -773,8 +774,10 @@ public sealed partial class NotesPage
 
     private async void NoteEditor_Drop(object sender, DragEventArgs e)
     {
+        IVaultStore? store = VaultService.Current.Store;
         if (SelectedNote is null ||
-            !VaultService.Current.IsWritable ||
+            store is null ||
+            !store.Capabilities.Writable ||
             !e.DataView.Contains(StandardDataFormats.StorageItems))
         {
             return;
@@ -785,7 +788,7 @@ public sealed partial class NotesPage
         {
             try
             {
-                string path = await AttachmentStore.SaveFileAsync(VaultService.Current.VaultPath, item);
+                string path = await AttachmentStore.SaveFileAsync(store, item);
                 string name = Path.GetFileNameWithoutExtension(item.Name);
                 bool isImage = IsImageExtension(Path.GetExtension(item.Name));
                 InsertAtCaret(isImage ? $"![{name}]({path})\n" : $"[{item.Name}]({path})\n");

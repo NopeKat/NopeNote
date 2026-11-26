@@ -50,4 +50,7 @@ public interface IVaultStore
         Guid id,
         string snapshotName,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Records an attachment write; a git-backed store commits it as atts: add.</summary>
+    Task RegisterAttachmentAsync(string sha256, CancellationToken cancellationToken = default);
 }

@@ -1,6 +1,9 @@
 using System;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
+using NopeNote.Core.Vault;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Graphics.Imaging;
 using Windows.Storage;
@@ -8,30 +11,22 @@ using Windows.Storage.Streams;
 
 namespace NopeNote.Windows.Helpers;
 
-/// <summary>Copies dropped or pasted files into the vault attachment folder.</summary>
+/// <summary>Stores pasted or dropped files under the vault's content-addressed folder.</summary>
 internal static class AttachmentStore
 {
-    private const string AttachmentFolder = ".vault/attachments";
+    private const string AttachmentFolder = ".vault/atts";
+    private const string ReferencePrefix = "../atts";
 
     internal static string FolderPath(string vaultPath)
-        => Path.Combine(vaultPath, ".vault", "attachments");
+        => Path.Combine(vaultPath, ".vault", "atts");
 
-    internal static async Task<string> SaveFileAsync(string vaultPath, StorageFile file)
+    internal static async Task<string> SaveFileAsync(IVaultStore store, StorageFile file)
     {
-        Directory.CreateDirectory(FolderPath(vaultPath));
-
-        string extension = Path.GetExtension(file.Name);
-        string name = CreateName(extension);
-        string destination = Path.Combine(FolderPath(vaultPath), name);
-
         using Stream source = await file.OpenStreamForReadAsync();
-        using FileStream target = File.Create(destination);
-        await source.CopyToAsync(target);
-
-        return $"{AttachmentFolder}/{name}";
+        return await SaveAsync(store, source, Path.GetExtension(file.Name)).ConfigureAwait(false);
     }
 
-    internal static async Task<string?> SaveClipboardImageAsync(string vaultPath)
+    internal static async Task<string?> SaveClipboardImageAsync(IVaultStore store)
     {
         DataPackageView content = Clipboard.GetContent();
         if (!content.Contains(StandardDataFormats.Bitmap))
@@ -56,23 +51,82 @@ internal static class AttachmentStore
             pixels.DetachPixelData());
         await encoder.FlushAsync();
 
-        Directory.CreateDirectory(FolderPath(vaultPath));
-        string name = CreateName(".png");
-        string destination = Path.Combine(FolderPath(vaultPath), name);
-
         output.Seek(0);
         using Stream source = output.AsStreamForRead();
-        using FileStream target = File.Create(destination);
-        await source.CopyToAsync(target);
-
-        return $"{AttachmentFolder}/{name}";
+        return await SaveAsync(store, source, ".png").ConfigureAwait(false);
     }
 
-    private static string CreateName(string extension)
+    /// <summary>
+    /// Hashes the bytes into a temporary file, then moves them to
+    /// <c>.vault/atts/&lt;sha256&gt;.&lt;ext&gt;</summary> and records the write.
+    /// </summary>
+    private static async Task<string> SaveAsync(IVaultStore store, Stream source, string extension)
     {
-        string stamp = DateTime.Now.ToString("yyyyMMdd-HHmmss");
-        string suffix = Guid.NewGuid().ToString("N")[..6];
-        string safeExtension = extension.Length == 0 ? string.Empty : extension.ToLowerInvariant();
-        return $"{stamp}-{suffix}{safeExtension}";
+        string root = store.RootPath;
+        string tempDirectory = Path.Combine(root, ".tmp");
+        Directory.CreateDirectory(tempDirectory);
+        string tempPath = Path.Combine(tempDirectory, $"{Guid.NewGuid():N}.tmp");
+
+        string hash = await WriteTempAsync(source, tempPath).ConfigureAwait(false);
+        string name = ComposeName(hash, extension);
+        string destination = Path.Combine(FolderPath(root), name);
+        Directory.CreateDirectory(FolderPath(root));
+
+        if (File.Exists(destination))
+        {
+            File.Delete(tempPath);
+        }
+        else
+        {
+            File.Move(tempPath, destination);
+        }
+
+        await store.RegisterAttachmentAsync(hash).ConfigureAwait(false);
+        return $"{ReferencePrefix}/{name}";
+    }
+
+    private static async Task<string> WriteTempAsync(Stream source, string tempPath)
+    {
+        using IncrementalHash hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        await using FileStream target = new(
+            tempPath,
+            FileMode.CreateNew,
+            FileAccess.Write,
+            FileShare.None,
+            bufferSize: 81920,
+            useAsync: true);
+
+        byte[] buffer = new byte[81920];
+        int read;
+        while ((read = await source.ReadAsync(buffer).ConfigureAwait(false)) > 0)
+        {
+            hash.AppendData(buffer, 0, read);
+            await target.WriteAsync(buffer.AsMemory(0, read)).ConfigureAwait(false);
+        }
+
+        return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
+    }
+
+    private static string ComposeName(string hash, string extension)
+    {
+        string source = extension.TrimStart('.').ToLowerInvariant();
+        var builder = new StringBuilder(source.Length);
+        foreach (char character in source)
+        {
+            bool digit = character >= '0' && character <= '9';
+            bool lowerCase = character >= 'a' && character <= 'z';
+            if (digit || lowerCase)
+            {
+                builder.Append(character);
+            }
+
+            if (builder.Length == 12)
+            {
+                break;
+            }
+        }
+
+        string suffix = builder.Length == 0 ? "bin" : builder.ToString();
+        return $"{hash}.{suffix}";
     }
 }

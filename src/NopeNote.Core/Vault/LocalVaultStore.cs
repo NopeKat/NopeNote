@@ -375,6 +375,9 @@ public sealed class LocalVaultStore : IVaultStore
         CancellationToken cancellationToken = default)
         => RunAsync(() => ReadHistoryCore(id, snapshotName, cancellationToken), cancellationToken);
 
+    public Task RegisterAttachmentAsync(string sha256, CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
+
     private NoteDocument? ReadHistoryCore(
         Guid id,
         string snapshotName,

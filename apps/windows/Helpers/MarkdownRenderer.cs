@@ -334,11 +334,19 @@ internal static class MarkdownRenderer
 
     private static string? ResolveVaultPath(string vaultPath, string relativePath)
     {
+        // The spec writes attachment links relative to the note file,
+        // for example ../atts/<sha256>.png; map them onto .vault/atts.
+        string relative = relativePath.Trim().Replace('\\', '/');
+        if (relative.StartsWith("../atts/", StringComparison.OrdinalIgnoreCase))
+        {
+            relative = ".vault/atts/" + relative["../atts/".Length..];
+        }
+
         string root = Path.GetFullPath(vaultPath)
             .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) +
             Path.DirectorySeparatorChar;
         string localPath = Path.GetFullPath(
-            Path.Combine(vaultPath, relativePath.Trim().Replace('/', Path.DirectorySeparatorChar)));
+            Path.Combine(vaultPath, relative.Replace('/', Path.DirectorySeparatorChar)));
         return localPath.StartsWith(root, StringComparison.OrdinalIgnoreCase)
             ? localPath
             : null;
