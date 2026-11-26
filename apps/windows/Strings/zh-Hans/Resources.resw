@@ -707,4 +707,10 @@
   <data name="ConflictOpenFailed" xml:space="preserve">
     <value>无法打开副本所在文件夹。</value>
   </data>
+  <data name="GitCommitFailedTitle" xml:space="preserve">
+    <value>版本历史未能保存</value>
+  </data>
+  <data name="GitCommitFailedMessage" xml:space="preserve">
+    <value>改动已保存，但 Git 提交失败：{0}</value>
+  </data>
 </root>

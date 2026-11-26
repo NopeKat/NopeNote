@@ -707,4 +707,10 @@
   <data name="ConflictOpenFailed" xml:space="preserve">
     <value>Could not open the copy folder.</value>
   </data>
+  <data name="GitCommitFailedTitle" xml:space="preserve">
+    <value>Version history could not be saved</value>
+  </data>
+  <data name="GitCommitFailedMessage" xml:space="preserve">
+    <value>The change was saved, but the git commit failed: {0}</value>
+  </data>
 </root>

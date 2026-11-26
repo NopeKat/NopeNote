@@ -333,7 +333,10 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
+        await VaultService.Current.FlushCommitsAsync(TimeSpan.FromSeconds(10));
         VaultSettings.Write(SettingsHelper.Current.VaultPath, new VaultSettings(enabled));
         VaultService.Current.Reset();
+        await VaultService.Current.GetVaultAsync();
+        VaultService.Current.NotifyDataChanged();
     }
 }

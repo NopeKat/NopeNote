@@ -73,14 +73,28 @@ public sealed partial class NotesPage : Page
 
     private async void NotesPage_Loaded(object sender, RoutedEventArgs e)
     {
+        VaultService.Current.CommitFailed -= OnGitCommitFailed;
+        VaultService.Current.CommitFailed += OnGitCommitFailed;
         ApplyLayout(ActualWidth < NarrowWidthThreshold);
         await EnsureNotesLoadedAsync();
     }
 
     private async void NotesPage_Unloaded(object sender, RoutedEventArgs e)
     {
+        VaultService.Current.CommitFailed -= OnGitCommitFailed;
         _autoSaveTimer.Stop();
         await PersistEditorTextAsync();
+    }
+
+    private void OnGitCommitFailed(string message)
+    {
+        DispatcherQueue.TryEnqueue(
+            () => ShowError(
+                Strings.Get("GitCommitFailedTitle"),
+                Strings.Format("GitCommitFailedMessage", message),
+                RetryOperation.None,
+                null,
+                InfoBarSeverity.Warning));
     }
 
     private void NoteEditor_TextChanged(object sender, TextChangedEventArgs e)

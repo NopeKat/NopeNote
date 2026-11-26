@@ -43,6 +43,21 @@ public static class VaultGit
     }
 
     /// <summary>
+    /// Checks that HEAD exists and that the object database passes `git fsck`.
+    /// A missing git binary or a broken repository returns false.
+    /// </summary>
+    public static async Task<bool> VerifyAsync(string rootPath, CancellationToken cancellationToken = default)
+    {
+        string? head = await RunAsync(rootPath, "rev-parse --verify HEAD", cancellationToken).ConfigureAwait(false);
+        if (head is null)
+        {
+            return false;
+        }
+
+        return await RunAsync(rootPath, "fsck --no-progress", cancellationToken).ConfigureAwait(false) is not null;
+    }
+
+    /// <summary>
     /// Runs git in the given directory. Returns null when git is missing, the
     /// command times out, or it exits non-zero.
     /// </summary>

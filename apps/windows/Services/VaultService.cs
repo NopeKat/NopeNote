@@ -29,6 +29,9 @@ public sealed class VaultService
     /// <summary>每次笔记数据发生增删改后递增，缓存页面据此判断是否需要重新加载。</summary>
     public int DataVersion { get; private set; }
 
+    /// <summary>Raised on the background pump when a queue git commit fails.</summary>
+    public event Action<string>? CommitFailed;
+
     public void NotifyDataChanged()
     {
         DataVersion++;
@@ -87,38 +90,73 @@ public sealed class VaultService
 
         if (result.Status == VaultOpenStatus.Opened && result.Store is not null)
         {
-            await EnsureGitAsync(path).ConfigureAwait(false);
-            await EnsureLegacyImportAsync(result.Store, path).ConfigureAwait(false);
+            VaultSettings settings = await ReadVaultSettingsAsync(path).ConfigureAwait(false);
 
-            VaultSettings settings = await Task.Run(
-                () =>
-                {
-                    string settingsFile = Path.Combine(path, ".settings", "settings.json");
-                    if (!File.Exists(settingsFile))
-                    {
-                        VaultSettings.Write(path, VaultSettings.Read(path));
-                    }
-
-                    return VaultSettings.Read(path);
-                })
-                .ConfigureAwait(false);
-
-            if (settings.GitEnabled && Directory.Exists(Path.Combine(path, ".git")))
+            if (settings.GitEnabled)
             {
-                result = result with
+                await EnsureGitAsync(path).ConfigureAwait(false);
+                if (Directory.Exists(Path.Combine(path, ".git")))
                 {
-                    Store = new GitVaultStore(
-                        result.Store,
-                        new ProcessGitCommitter(path),
-                        onCommitFailed: exception => Debug.WriteLine(
-                            $"nopenote: git commit failed: {exception.Message}")),
-                };
+                    result = await WrapWithGitAsync(result, path).ConfigureAwait(false);
+                }
             }
+
+            await EnsureLegacyImportAsync(result.Store!, path, settings.GitEnabled).ConfigureAwait(false);
         }
 
         OpenResult = result;
         return result;
     }
+
+    private async Task<VaultOpenResult> WrapWithGitAsync(VaultOpenResult result, string path)
+    {
+        IVaultStore? store = result.Store;
+        if (store is null)
+        {
+            return result;
+        }
+
+        bool verified = await VaultGit.VerifyAsync(path).ConfigureAwait(false);
+        if (!verified)
+        {
+            var readOnlyStore = new LocalVaultStore(
+                path,
+                store.Metadata,
+                new VaultCapabilities(false, false, false, false),
+                SettingsHelper.Current.DeviceId);
+            return new VaultOpenResult(
+                VaultOpenStatus.ReadOnly,
+                readOnlyStore,
+                "Git 仓库校验失败，已只读打开；请修复 .git 后重新打开。");
+        }
+
+        return result with
+        {
+            Store = new GitVaultStore(
+                store,
+                new ProcessGitCommitter(path),
+                onCommitFailed: OnCommitFailed),
+        };
+    }
+
+    private void OnCommitFailed(Exception exception)
+    {
+        Debug.WriteLine($"nopenote: git commit failed: {exception.Message}");
+        CommitFailed?.Invoke(exception.Message);
+    }
+
+    private static Task<VaultSettings> ReadVaultSettingsAsync(string path)
+        => Task.Run(
+            () =>
+            {
+                string settingsFile = Path.Combine(path, ".settings", "settings.json");
+                if (!File.Exists(settingsFile))
+                {
+                    VaultSettings.Write(path, VaultSettings.Read(path));
+                }
+
+                return VaultSettings.Read(path);
+            });
 
     private async Task EnsureGitAsync(string path)
     {
@@ -131,7 +169,7 @@ public sealed class VaultService
         await VaultGit.InitializeAsync(path);
     }
 
-    private static async Task EnsureLegacyImportAsync(IVaultStore store, string vaultPath)
+    private static async Task EnsureLegacyImportAsync(IVaultStore store, string vaultPath, bool gitEnabled)
     {
         if (SettingsHelper.Current.LegacyImportDone)
         {
@@ -161,7 +199,7 @@ public sealed class VaultService
             return;
         }
 
-        if (imported > 0)
+        if (imported > 0 && gitEnabled)
         {
             await VaultGit.CommitAsync(vaultPath, $"meta: import {imported} notes");
         }
