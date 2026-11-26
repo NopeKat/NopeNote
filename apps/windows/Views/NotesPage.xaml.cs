@@ -9,6 +9,7 @@ using NopeNote.Windows.Services;
 using NopeNote.Windows.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NopeNote.Windows.Views;
@@ -44,6 +45,7 @@ public sealed partial class NotesPage : Page
         HistoryButton.Label = Strings.Get("NotesHistoryButtonLabel");
         TagsEditor.PlaceholderText = Strings.Get("NotesTagsPlaceholder");
         PinCheckBox.Content = Strings.Get("NotesPinLabel");
+        VaultNoticeDismiss.Content = Strings.Get("VaultDiagnosticsDismiss");
         InitializeFeatures();
         _autoSaveTimer.Interval = TimeSpan.FromSeconds(1.2);
         _autoSaveTimer.Tick += AutoSaveTimer_Tick;
@@ -295,6 +297,7 @@ public sealed partial class NotesPage : Page
             _loadedVersion = VaultService.Current.DataVersion;
             ApplyVaultState(opened);
             RefreshTagFilter();
+            await ReportVaultDiagnosticsAsync();
         }
         catch (Exception exception)
         {
@@ -310,6 +313,36 @@ public sealed partial class NotesPage : Page
             _isLoadingNotes = false;
             UpdateListState();
         }
+    }
+
+    private async Task ReportVaultDiagnosticsAsync()
+    {
+        if (VaultService.Current.DiagnosticsReported)
+        {
+            return;
+        }
+
+        VaultService.Current.DiagnosticsReported = true;
+        VaultValidationReport? report = await VaultService.Current.DiagnoseAsync();
+        if (report is null || report.Issues.Count == 0)
+        {
+            return;
+        }
+
+        string sample = string.Join(
+            "; ",
+            report.Issues.Take(3).Select(issue => $"{issue.Code}: {issue.RelativePath}"));
+        VaultNoticeTitle.Text = Strings.Get("VaultDiagnosticsTitle");
+        VaultNoticeMessage.Text = Strings.Format(
+            "VaultDiagnosticsMessage",
+            report.Issues.Count,
+            sample);
+        VaultNoticeBar.Visibility = Visibility.Visible;
+    }
+
+    private void VaultNoticeDismiss_Click(object sender, RoutedEventArgs e)
+    {
+        VaultNoticeBar.Visibility = Visibility.Collapsed;
     }
 
     private void ApplyVaultState(VaultOpenResult opened)

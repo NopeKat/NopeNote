@@ -713,4 +713,13 @@
   <data name="GitCommitFailedMessage" xml:space="preserve">
     <value>The change was saved, but the git commit failed: {0}</value>
   </data>
+  <data name="VaultDiagnosticsTitle" xml:space="preserve">
+    <value>Vault needs attention</value>
+  </data>
+  <data name="VaultDiagnosticsMessage" xml:space="preserve">
+    <value>{0} issue(s) found in the vault. First: {1}</value>
+  </data>
+  <data name="VaultDiagnosticsDismiss" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
 </root>

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
@@ -19,6 +20,8 @@ public sealed class VaultService
 
     private Task<VaultOpenResult>? _opening;
     private bool _gitChecked;
+    private VaultValidationReport? _diagnostics;
+    private bool _diagnosticsChecked;
 
     public VaultOpenResult? OpenResult { get; private set; }
 
@@ -28,6 +31,9 @@ public sealed class VaultService
 
     /// <summary>每次笔记数据发生增删改后递增，缓存页面据此判断是否需要重新加载。</summary>
     public int DataVersion { get; private set; }
+
+    /// <summary>True once the notes page has shown the structural report for this open.</summary>
+    public bool DiagnosticsReported { get; set; }
 
     /// <summary>Raised on the background pump when a queue git commit fails.</summary>
     public event Action<string>? CommitFailed;
@@ -62,6 +68,34 @@ public sealed class VaultService
         }
     }
 
+    /// <summary>Runs the structural validator once per open and caches the report.</summary>
+    public async Task<VaultValidationReport?> DiagnoseAsync(CancellationToken cancellationToken = default)
+    {
+        if (_diagnosticsChecked)
+        {
+            return _diagnostics;
+        }
+
+        _diagnosticsChecked = true;
+        IVaultStore? store = Store;
+        if (store is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            _diagnostics = await VaultValidator.ValidateAsync(store, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception exception)
+        {
+            Debug.WriteLine($"nopenote: vault validation failed: {exception}");
+            _diagnostics = null;
+        }
+
+        return _diagnostics;
+    }
+
     public Task<VaultOpenResult> GetVaultAsync()
         => _opening ??= OpenAsync();
 
@@ -70,6 +104,9 @@ public sealed class VaultService
         _opening = null;
         OpenResult = null;
         _gitChecked = false;
+        _diagnostics = null;
+        _diagnosticsChecked = false;
+        DiagnosticsReported = false;
     }
 
     private async Task<VaultOpenResult> OpenAsync()

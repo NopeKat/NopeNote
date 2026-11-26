@@ -713,4 +713,13 @@
   <data name="GitCommitFailedMessage" xml:space="preserve">
     <value>改动已保存，但 Git 提交失败：{0}</value>
   </data>
+  <data name="VaultDiagnosticsTitle" xml:space="preserve">
+    <value>仓库需要处理</value>
+  </data>
+  <data name="VaultDiagnosticsMessage" xml:space="preserve">
+    <value>仓库里发现 {0} 个问题，例如：{1}</value>
+  </data>
+  <data name="VaultDiagnosticsDismiss" xml:space="preserve">
+    <value>知道了</value>
+  </data>
 </root>
