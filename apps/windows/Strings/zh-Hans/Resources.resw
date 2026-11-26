@@ -683,6 +683,9 @@
   <data name="NoteWindowSaved" xml:space="preserve">
     <value>已保存</value>
   </data>
+  <data name="NoteBodyTooLarge" xml:space="preserve">
+    <value>正文已超过 2 MiB，保存和同步可能变慢，建议拆成多篇。</value>
+  </data>
   <data name="NoteWindowConflict" xml:space="preserve">
     <value>这条笔记在别处已更新。你的版本已保留为副本：{0}</value>
   </data>

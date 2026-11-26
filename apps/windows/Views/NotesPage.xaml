@@ -463,6 +463,7 @@
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
 
@@ -510,9 +511,17 @@
                                 </StackPanel>
                             </ScrollViewer>
 
+                        <TextBlock
+                            x:Name="NoteSizeNoticeTextBlock"
+                            Grid.Row="1"
+                            Margin="0,0,0,8"
+                            Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                            TextWrapping="Wrap"
+                            Visibility="Collapsed" />
+
                         <TextBox
                             x:Name="NoteEditor"
-                            Grid.Row="1"
+                            Grid.Row="2"
                             x:Uid="NoteEditor"
                             AcceptsReturn="True"
                             AllowDrop="True"

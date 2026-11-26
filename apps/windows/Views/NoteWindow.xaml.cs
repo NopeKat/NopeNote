@@ -84,10 +84,19 @@ public sealed partial class NoteWindow : Window
         }
 
         StatusTextBlock.Text = string.Empty;
+        UpdateBodySizeStatus();
         _autoSaveTimer.Stop();
         if (!string.Equals(Editor.Text, _savedText, StringComparison.Ordinal))
         {
             _autoSaveTimer.Start();
+        }
+    }
+
+    private void UpdateBodySizeStatus()
+    {
+        if (BodySize.IsOverNoticeThreshold(Editor.Text))
+        {
+            StatusTextBlock.Text = Strings.Get("NoteBodyTooLarge");
         }
     }
 
@@ -141,6 +150,7 @@ public sealed partial class NoteWindow : Window
             _savedText = updated.Body;
             TitleTextBlock.Text = updated.Summary.Title;
             StatusTextBlock.Text = Strings.Get("NoteWindowSaved");
+            UpdateBodySizeStatus();
             VaultService.Current.NotifyDataChanged();
             return true;
         }

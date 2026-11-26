@@ -101,6 +101,7 @@ public sealed partial class NotesPage : Page
 
     private void NoteEditor_TextChanged(object sender, TextChangedEventArgs e)
     {
+        UpdateBodySizeNotice();
         _autoSaveTimer.Stop();
 
         if (SelectedNote is null ||
@@ -111,6 +112,17 @@ public sealed partial class NotesPage : Page
 
         _autoSaveTimer.Start();
         RefreshPreviewIfVisible();
+    }
+
+    private void UpdateBodySizeNotice()
+    {
+        bool oversized = BodySize.IsOverNoticeThreshold(NoteEditor.Text);
+        if (oversized)
+        {
+            NoteSizeNoticeTextBlock.Text = Strings.Get("NoteBodyTooLarge");
+        }
+
+        NoteSizeNoticeTextBlock.Visibility = oversized ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private async void AutoSaveTimer_Tick(object? sender, object e)

@@ -683,6 +683,9 @@
   <data name="NoteWindowSaved" xml:space="preserve">
     <value>Saved</value>
   </data>
+  <data name="NoteBodyTooLarge" xml:space="preserve">
+    <value>This note is larger than 2 MiB. Saving and syncing may slow down; consider splitting it.</value>
+  </data>
   <data name="NoteWindowConflict" xml:space="preserve">
     <value>This note changed elsewhere. Your version was kept as a copy at {0}.</value>
   </data>
