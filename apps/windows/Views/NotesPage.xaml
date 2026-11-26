@@ -205,7 +205,11 @@
                             AutomationProperties.AccessibilityView="Raw" />
                     </muxc:AppBarButton.Icon>
                     <muxc:AppBarButton.KeyboardAccelerators>
-                        <input:KeyboardAccelerator Key="Delete" />
+                        <!-- Scoped to the note list so Delete still means "delete a character"
+                             while the editor, search box or filters hold focus. -->
+                        <input:KeyboardAccelerator
+                            Key="Delete"
+                            ScopeOwner="{x:Bind NotesItemsView}" />
                     </muxc:AppBarButton.KeyboardAccelerators>
                 </muxc:AppBarButton>
             </muxc:CommandBar>
