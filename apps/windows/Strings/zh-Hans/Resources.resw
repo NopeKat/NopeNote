@@ -752,4 +752,13 @@
   <data name="VaultProblemGitInvalid" xml:space="preserve">
     <value>Git 仓库校验失败，以只读方式打开；请修复 .git 后重新打开。</value>
   </data>
+  <data name="OpenLogsCard.Header" xml:space="preserve">
+    <value>日志</value>
+  </data>
+  <data name="OpenLogsButton.Content" xml:space="preserve">
+    <value>打开文件夹</value>
+  </data>
+  <data name="OpenLogsButton.AutomationProperties.Name" xml:space="preserve">
+    <value>打开日志文件夹</value>
+  </data>
 </root>

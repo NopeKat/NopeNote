@@ -206,6 +206,13 @@
                                     Content="NopeKat/NopeNote"
                                     NavigateUri="https://github.com/NopeKat/NopeNote" />
                             </toolkit:SettingsCard>
+                            <toolkit:SettingsCard x:Uid="OpenLogsCard" Header="Logs">
+                                <Button
+                                    x:Uid="OpenLogsButton"
+                                    AutomationProperties.Name="Open the log folder"
+                                    Click="OpenLogsButton_Click"
+                                    Content="Open folder" />
+                            </toolkit:SettingsCard>
                         </toolkit:SettingsExpander.Items>
                     </toolkit:SettingsExpander>
                 </StackPanel>

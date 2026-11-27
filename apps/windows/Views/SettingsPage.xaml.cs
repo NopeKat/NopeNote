@@ -2,6 +2,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using NopeNote.Core.Vault;
@@ -170,6 +171,21 @@ public sealed partial class SettingsPage : Page
         VaultCard.Description = folder.Path;
 
         Frame.Navigate(typeof(NotesPage), new NotesNavigation(null, _services));
+    }
+
+    private void OpenLogsButton_Click(object sender, RoutedEventArgs e)
+    {
+        string? folder = FileLog.EnsureFolder();
+        if (folder is null)
+        {
+            return;
+        }
+
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = folder,
+            UseShellExecute = true,
+        });
     }
 
     private void UpdateLockState()

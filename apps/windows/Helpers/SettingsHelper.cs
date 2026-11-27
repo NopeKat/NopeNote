@@ -121,6 +121,7 @@ public sealed class SettingsHelper
         catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             // Keep the in-memory settings when the file is locked or the disk is full.
+            FileLog.Error("settings write failed", exception);
             try
             {
                 File.Delete(tempPath);

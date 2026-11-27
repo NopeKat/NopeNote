@@ -636,6 +636,8 @@ public sealed partial class NotesPage : Page
                 }
                 catch (Exception exception)
                 {
+                    FileLog.Error($"save note failed: {exception.Message}", exception);
+
                     if (ReferenceEquals(SelectedNote, current))
                     {
                         SaveStatusTextBlock.Text = Strings.Get("NotesStatusNotSaved");

@@ -752,4 +752,13 @@
   <data name="VaultProblemGitInvalid" xml:space="preserve">
     <value>The git repository failed verification, so the vault is opened read-only. Fix .git and reopen.</value>
   </data>
+  <data name="OpenLogsCard.Header" xml:space="preserve">
+    <value>Logs</value>
+  </data>
+  <data name="OpenLogsButton.Content" xml:space="preserve">
+    <value>Open folder</value>
+  </data>
+  <data name="OpenLogsButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Open the log folder</value>
+  </data>
 </root>

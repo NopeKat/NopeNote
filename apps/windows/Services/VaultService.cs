@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -68,7 +67,7 @@ public sealed class VaultService
         }
         catch (Exception exception) when (exception is TimeoutException or IOException)
         {
-            Debug.WriteLine($"nopenote: git flush failed: {exception.Message}");
+            FileLog.Warn($"git flush failed: {exception.Message}");
             return false;
         }
     }
@@ -94,7 +93,7 @@ public sealed class VaultService
         }
         catch (Exception exception)
         {
-            Debug.WriteLine($"nopenote: vault validation failed: {exception}");
+            FileLog.Warn($"vault validation failed: {exception.Message}");
             _diagnostics = null;
         }
 
@@ -146,6 +145,15 @@ public sealed class VaultService
             await EnsureLegacyImportAsync(result.Store!, path, settings.GitEnabled).ConfigureAwait(false);
         }
 
+        if (result.Status == VaultOpenStatus.Opened && result.Problem == VaultProblem.None)
+        {
+            FileLog.Info($"vault opened at {path}");
+        }
+        else
+        {
+            FileLog.Warn($"vault open: {result.Status}/{result.Problem} at {path}");
+        }
+
         OpenResult = result;
         return result;
     }
@@ -183,7 +191,7 @@ public sealed class VaultService
 
     private void OnCommitFailed(Exception exception)
     {
-        Debug.WriteLine($"nopenote: git commit failed: {exception.Message}");
+        FileLog.Error($"git commit failed: {exception.Message}", exception);
         CommitFailed?.Invoke(exception.Message);
     }
 
