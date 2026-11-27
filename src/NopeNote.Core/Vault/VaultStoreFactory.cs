@@ -133,6 +133,20 @@ public static class VaultStoreFactory
                 metadata.FormatVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
+        if (!VaultValidator.IsCanonicalId(metadata.RepoIdText))
+        {
+            var readOnlyStore = new LocalVaultStore(
+                rootPath,
+                metadata,
+                new VaultCapabilities(false, false, false, false),
+                deviceId);
+            return new VaultOpenResult(
+                VaultOpenStatus.ReadOnly,
+                readOnlyStore,
+                VaultProblem.FormatInvalid,
+                "repoId must be a lowercase UUID v4.");
+        }
+
         if (metadata.Encrypted)
         {
             var readOnlyStore = new LocalVaultStore(

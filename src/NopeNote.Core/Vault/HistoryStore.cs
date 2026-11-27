@@ -4,10 +4,10 @@ using NopeNote.Core.Notes;
 namespace NopeNote.Core.Vault;
 
 /// <summary>Snapshot history under <c>.history/&lt;id&gt;/</c>: one file per saved revision,
-/// throttled to at most one snapshot per minute.</summary>
+/// throttled to at most one snapshot per five minutes.</summary>
 internal sealed class HistoryStore
 {
-    private static readonly TimeSpan SnapshotThrottle = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan SnapshotThrottle = TimeSpan.FromMinutes(5);
 
     private readonly VaultStorage _storage;
 
@@ -19,17 +19,22 @@ internal sealed class HistoryStore
     internal Task<IReadOnlyList<VaultSnapshotInfo>> ListAsync(
         Guid id,
         CancellationToken cancellationToken)
-        => _storage.RunAsync(() => List(id, cancellationToken), VaultStorage.ReadTimeout, cancellationToken);
+        => _storage.RunAsync(ct => List(id, ct), VaultStorage.ReadTimeout, cancellationToken);
 
     internal Task<NoteDocument?> ReadAsync(
         Guid id,
         string snapshotName,
         CancellationToken cancellationToken)
-        => _storage.RunAsync(() => Read(id, snapshotName, cancellationToken), VaultStorage.ReadTimeout, cancellationToken);
+        => _storage.RunAsync(ct => Read(id, snapshotName, ct), VaultStorage.ReadTimeout, cancellationToken);
 
     /// <summary>Called inside the IO gate while a note is being rewritten.</summary>
-    internal void WriteSnapshotIfNeeded(Guid id, string currentText, DateTimeOffset updated)
+    internal void WriteSnapshotIfNeeded(
+        Guid id,
+        string currentText,
+        DateTimeOffset updated,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         string directory = _storage.HistoryPath(id);
         Directory.CreateDirectory(directory);
 
@@ -57,7 +62,7 @@ internal sealed class HistoryStore
             target = SnapshotPath(directory, stamp);
         }
 
-        _storage.WriteText(target, currentText);
+        _storage.WriteText(target, currentText, cancellationToken: cancellationToken);
     }
 
     /// <summary>Called inside the IO gate when a note is purged. Returns false when no
@@ -104,7 +109,23 @@ internal sealed class HistoryStore
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        string path = Path.Combine(_storage.HistoryPath(id), snapshotName);
+        if (!TryParseSnapshotName(snapshotName, out _) ||
+            !string.Equals(snapshotName, Path.GetFileName(snapshotName), StringComparison.Ordinal))
+        {
+            throw new VaultFormatException($"invalid history snapshot name: {snapshotName}");
+        }
+
+        string directory = _storage.HistoryPath(id);
+        string fullDirectory = Path.GetFullPath(directory) + Path.DirectorySeparatorChar;
+        string path = Path.GetFullPath(Path.Combine(directory, snapshotName));
+        StringComparison comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        if (!path.StartsWith(fullDirectory, comparison))
+        {
+            throw new VaultFormatException($"history snapshot escapes its directory: {snapshotName}");
+        }
+
         if (!File.Exists(path))
         {
             return null;

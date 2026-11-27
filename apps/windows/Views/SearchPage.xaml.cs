@@ -77,10 +77,20 @@ public sealed partial class SearchPage : Page
                 return;
             }
 
-            await ViewModel.LoadAsync(_services.SearchIndex);
-            _loadedVersion = _services.Vault.DataVersion;
-            RefreshFilterChoices();
-            ApplyFilter();
+            try
+            {
+                await ViewModel.LoadAsync(_services.SearchIndex);
+                _loadedVersion = _services.Vault.DataVersion;
+                RefreshFilterChoices();
+                ApplyFilter();
+            }
+            catch (Exception exception)
+            {
+                ShowError(string.IsNullOrWhiteSpace(exception.Message)
+                    ? exception.GetType().Name
+                    : exception.Message);
+            }
+
             return;
         }
 

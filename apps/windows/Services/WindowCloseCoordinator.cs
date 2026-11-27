@@ -92,6 +92,6 @@ internal sealed class WindowCloseCoordinator
             DefaultButton = ContentDialogButton.Close,
         };
 
-        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+        return await DialogHost.ShowAsync(dialog) == ContentDialogResult.Primary;
     }
 }

@@ -243,7 +243,9 @@ public sealed partial class NotesPage
 
     private async void BatchTagButton_Click(object sender, RoutedEventArgs e)
     {
-        IReadOnlyList<Note> notes = SelectedNotes();
+        await DialogHost.RunGuardedAsync(async () =>
+        {
+            IReadOnlyList<Note> notes = SelectedNotes();
         if (notes.Count == 0)
         {
             return;
@@ -265,7 +267,7 @@ public sealed partial class NotesPage
             DefaultButton = ContentDialogButton.Primary,
         };
 
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        if (await DialogHost.ShowAsync(dialog) != ContentDialogResult.Primary)
         {
             return;
         }
@@ -276,13 +278,21 @@ public sealed partial class NotesPage
             return;
         }
 
-        await RunBatchUpdateAsync(notes, (note, store) =>
-            store.UpdateNoteAsync(note.Id, tags: MergeTags(note, added), folder: note.Folder));
+        await RunBatchUpdateAsync(notes, (note, store, current) =>
+            store.UpdateNoteAsync(
+                note.Id,
+                tags: MergeTags(note, added),
+                folder: note.Folder,
+                expectedUpdated: current.Summary.Updated,
+                expectedHash: current.ContentHash));
+        }, ShowOperationError);
     }
 
     private async void BatchFolderButton_Click(object sender, RoutedEventArgs e)
     {
-        IReadOnlyList<Note> notes = SelectedNotes();
+        await DialogHost.RunGuardedAsync(async () =>
+        {
+            IReadOnlyList<Note> notes = SelectedNotes();
         if (notes.Count == 0)
         {
             return;
@@ -307,19 +317,26 @@ public sealed partial class NotesPage
             DefaultButton = ContentDialogButton.Primary,
         };
 
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        if (await DialogHost.ShowAsync(dialog) != ContentDialogResult.Primary)
         {
             return;
         }
 
         string folder = NormalizeFolder(input.Text);
-        await RunBatchUpdateAsync(notes, (note, store) =>
-            store.UpdateNoteAsync(note.Id, tags: note.Tags, pinned: note.IsPinned, folder: folder));
+        await RunBatchUpdateAsync(notes, (note, store, current) =>
+            store.UpdateNoteAsync(
+                note.Id,
+                tags: note.Tags,
+                pinned: note.IsPinned,
+                folder: folder,
+                expectedUpdated: current.Summary.Updated,
+                expectedHash: current.ContentHash));
+        }, ShowOperationError);
     }
 
     private async Task RunBatchUpdateAsync(
         IReadOnlyList<Note> notes,
-        Func<Note, IVaultStore, Task<NoteDocument>> update)
+        Func<Note, IVaultStore, NoteDocument, Task<NoteDocument>> update)
     {
         IVaultStore? store = _services.Vault.Store;
         if (store is null)
@@ -331,9 +348,26 @@ public sealed partial class NotesPage
         {
             try
             {
-                NoteDocument document = await update(notes[index], store);
+                NoteDocument? current = await store.ReadNoteAsync(notes[index].Id);
+                if (current is null)
+                {
+                    ShowError(
+                        Strings.Get("NotesNoteDeletedTitle"),
+                        Strings.Get("NotesNoteDeletedMessage"),
+                        RetryOperation.None,
+                        null);
+                    notes[index].IsSelected = false;
+                    continue;
+                }
+
+                NoteDocument document = await update(notes[index], store, current);
                 notes[index].ApplyRestoredDocument(document);
                 notes[index].IsSelected = false;
+            }
+            catch (VaultConflictException conflict)
+            {
+                ShowConflict(conflict);
+                break;
             }
             catch (Exception exception)
             {
@@ -353,7 +387,9 @@ public sealed partial class NotesPage
 
     private async void BatchDeleteButton_Click(object sender, RoutedEventArgs e)
     {
-        IReadOnlyList<Note> notes = SelectedNotes();
+        await DialogHost.RunGuardedAsync(async () =>
+        {
+            IReadOnlyList<Note> notes = SelectedNotes();
         if (notes.Count == 0)
         {
             return;
@@ -369,7 +405,7 @@ public sealed partial class NotesPage
             DefaultButton = ContentDialogButton.Close,
         };
 
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        if (await DialogHost.ShowAsync(dialog) != ContentDialogResult.Primary)
         {
             return;
         }
@@ -414,6 +450,16 @@ public sealed partial class NotesPage
         MarkDataChanged();
         RefreshNotes();
         UpdateBatchCount();
+        }, ShowOperationError);
+    }
+
+    private void ShowOperationError(string message)
+    {
+        ShowError(
+            Strings.Get("NotesSaveFailedTitle"),
+            message,
+            RetryOperation.None,
+            null);
     }
 
     private static IReadOnlyList<string> MergeTags(Note note, IReadOnlyList<string> added)
@@ -562,7 +608,7 @@ public sealed partial class NotesPage
             DefaultButton = ContentDialogButton.Primary,
         };
 
-        if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+        if (await DialogHost.ShowAsync(dialog) != ContentDialogResult.Primary)
         {
             return;
         }
@@ -687,7 +733,9 @@ public sealed partial class NotesPage
 
     private async void LinkButton_Click(object sender, RoutedEventArgs e)
     {
-        IReadOnlyList<Note> candidates = ViewModel.AllNotes
+        await DialogHost.RunGuardedAsync(async () =>
+        {
+            IReadOnlyList<Note> candidates = ViewModel.AllNotes
             .Where(note => !note.IsDraft && !ReferenceEquals(note, SelectedNote))
             .ToList();
 
@@ -711,11 +759,12 @@ public sealed partial class NotesPage
             DefaultButton = ContentDialogButton.Primary,
         };
 
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary &&
+        if (await DialogHost.ShowAsync(dialog) == ContentDialogResult.Primary &&
             list.SelectedItem is Note target)
         {
             InsertAtCaret($"[[{target.DisplayTitle}]]");
         }
+        }, ShowOperationError);
     }
 
     private void WrapSelection(string prefix, string suffix, string placeholder)
@@ -798,15 +847,18 @@ public sealed partial class NotesPage
             return;
         }
 
-        e.Handled = true;
+        DataPackageView content;
         try
         {
-            DataPackageView content = Clipboard.GetContent();
+            content = Clipboard.GetContent();
             if (!content.Contains(StandardDataFormats.Bitmap))
             {
+                // Let TextBox handle ordinary text pasting.
                 return;
             }
 
+            // Only claim the event once we know it is an image.
+            e.Handled = true;
             string? path = await AttachmentStore.SaveClipboardImageAsync(store);
             if (path is not null)
             {

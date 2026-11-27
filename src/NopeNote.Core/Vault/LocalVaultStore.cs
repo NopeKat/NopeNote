@@ -80,8 +80,9 @@ public sealed class LocalVaultStore : IVaultStore
         bool? pinned = null,
         DateTimeOffset? expectedUpdated = null,
         string? folder = null,
-        CancellationToken cancellationToken = default)
-        => _notes.UpdateAsync(id, body, title, tags, pinned, expectedUpdated, folder, cancellationToken);
+        CancellationToken cancellationToken = default,
+        string? expectedHash = null)
+        => _notes.UpdateAsync(id, body, title, tags, pinned, expectedUpdated, folder, cancellationToken, expectedHash);
 
     public Task TrashNoteAsync(Guid id, CancellationToken cancellationToken = default)
         => _trash.TrashAsync(id, cancellationToken);

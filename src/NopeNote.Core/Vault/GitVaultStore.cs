@@ -62,10 +62,12 @@ public sealed class GitVaultStore : IVaultStore
         bool? pinned = null,
         DateTimeOffset? expectedUpdated = null,
         string? folder = null,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        string? expectedHash = null)
     {
         NoteDocument document = await _inner.UpdateNoteAsync(
-            id, body, title, tags, pinned, expectedUpdated, folder, cancellationToken).ConfigureAwait(false);
+            id, body, title, tags, pinned, expectedUpdated, folder, cancellationToken, expectedHash)
+            .ConfigureAwait(false);
 
         _commits.ScheduleUpdate($"note: update {document.Summary.Id:D}");
         return document;

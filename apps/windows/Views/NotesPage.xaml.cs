@@ -34,6 +34,7 @@ public sealed partial class NotesPage : Page
     private bool _isUpdatingMetadata;
     private Guid? _pendingNoteId;
     private Note? _pendingSaveNote;
+    private TaskCompletionSource<bool>? _saveQueueCompletion;
     private Note? _retryNote;
     private RetryOperation _retryOperation = RetryOperation.None;
     private string? _conflictPath;
@@ -151,12 +152,12 @@ public sealed partial class NotesPage : Page
         await PersistEditorTextAsync();
     }
 
-    private async Task PersistEditorTextAsync()
+    private async Task<bool> PersistEditorTextAsync()
     {
         Note? note = SelectedNote;
         if (note is null)
         {
-            return;
+            return true;
         }
 
         if (!string.Equals(NoteEditor.Text, note.Text, StringComparison.Ordinal))
@@ -165,6 +166,7 @@ public sealed partial class NotesPage : Page
         }
 
         await SaveNoteAsync(note);
+        return !note.HasUnsavedChanges;
     }
 
     private void UpdateMetadataBar(Note? note)
@@ -202,14 +204,18 @@ public sealed partial class NotesPage : Page
     {
         Note? note = SelectedNote;
         IVaultStore? store = _services.Vault.Store;
-        if (note is null || note.IsDraft || store is null || _isUpdatingMetadata)
+        if (note is null || note.IsDraft || store is null || _isUpdatingMetadata ||
+            !store.Capabilities.Writable)
         {
             return;
         }
 
-        List<string> tags = ParseTags(TagsEditor.Text);
-        bool pinned = PinCheckBox.IsChecked == true;
-        string folder = NormalizeFolder(FolderEditor.Text);
+        string tagsText = TagsEditor.Text;
+        string folderText = FolderEditor.Text;
+        bool pinInput = PinCheckBox.IsChecked == true;
+        List<string> tags = ParseTags(tagsText);
+        bool pinned = pinInput;
+        string folder = NormalizeFolder(folderText);
         if (TagsEqual(note.Tags, tags) && pinned == note.IsPinned &&
             string.Equals(folder, note.Folder, StringComparison.OrdinalIgnoreCase))
         {
@@ -217,8 +223,7 @@ public sealed partial class NotesPage : Page
         }
 
         // 先落盘正文，避免这次元数据更新把编辑器里没保存的内容覆盖掉。
-        await PersistEditorTextAsync();
-        if (note.HasUnsavedChanges)
+        if (!await PersistEditorTextAsync())
         {
             // 正文没有成功落盘时，任何元数据写入都会把编辑器内容换回磁盘旧版。
             return;
@@ -231,6 +236,7 @@ public sealed partial class NotesPage : Page
                 tags: tags,
                 pinned: pinned,
                 expectedUpdated: note.Updated,
+                expectedHash: note.ContentHash,
                 folder: folder);
             note.ApplyRestoredDocument(updated);
             Bindings.Update();
@@ -241,7 +247,47 @@ public sealed partial class NotesPage : Page
         }
         catch (VaultConflictException conflict)
         {
-            UpdateMetadataBar(note);
+            NoteDocument? current;
+            try
+            {
+                current = await store.ReadNoteAsync(note.Id);
+            }
+            catch (Exception exception)
+            {
+                FileLog.Warn($"metadata conflict reload failed: {exception.Message}");
+                ShowError(
+                    Strings.Get("NotesLoadFailedTitle"),
+                    $"{Describe(exception)} {Strings.Get("NotesLoadFailedHint")}",
+                    RetryOperation.None,
+                    null);
+                return;
+            }
+
+            if (current is null)
+            {
+                ClearSelection(persist: false);
+                ShowError(
+                    Strings.Get("NotesNoteDeletedTitle"),
+                    Strings.Get("NotesNoteDeletedMessage"),
+                    RetryOperation.None,
+                    null);
+                return;
+            }
+
+            note.ApplyRestoredDocument(current);
+            Bindings.Update();
+            _isUpdatingMetadata = true;
+            try
+            {
+                TagsEditor.Text = tagsText;
+                RefreshFolderEditor(folderText);
+                PinCheckBox.IsChecked = pinInput;
+            }
+            finally
+            {
+                _isUpdatingMetadata = false;
+            }
+
             ShowConflict(conflict);
         }
         catch (Exception exception)
@@ -309,11 +355,24 @@ public sealed partial class NotesPage : Page
                 return;
             }
 
-            await ViewModel.LoadAsync(_services.SearchIndex);
-            _loadedVersion = _services.Vault.DataVersion;
-            UpdateListState();
-            RefreshTagFilter();
-            TrySelectPendingNote();
+            try
+            {
+                await ViewModel.LoadAsync(_services.SearchIndex);
+                _loadedVersion = _services.Vault.DataVersion;
+                UpdateListState();
+                RefreshTagFilter();
+                TrySelectPendingNote();
+            }
+            catch (Exception exception)
+            {
+                _loadFailed = true;
+                ShowError(
+                    Strings.Get("NotesLoadFailedTitle"),
+                    $"{Describe(exception)} {Strings.Get("NotesLoadFailedHint")}",
+                    RetryOperation.LoadNotes,
+                    null);
+            }
+
             return;
         }
 
@@ -391,7 +450,7 @@ public sealed partial class NotesPage : Page
     private void ApplyVaultState(VaultOpenResult opened)
     {
         bool writable = opened.Store?.Capabilities.Writable == true;
-        NewNoteButton.IsEnabled = writable;
+        ApplyWritableState(writable);
 
         if (opened.Status != VaultOpenStatus.Opened)
         {
@@ -402,6 +461,16 @@ public sealed partial class NotesPage : Page
                 null,
                 InfoBarSeverity.Warning);
         }
+    }
+
+    private void ApplyWritableState(bool writable)
+    {
+        NewNoteButton.IsEnabled = writable;
+        DeleteNoteButton.IsEnabled = writable && SelectedNote is not null;
+        NoteEditor.IsReadOnly = !writable;
+        TagsEditor.IsEnabled = writable;
+        FolderEditor.IsEnabled = writable;
+        PinCheckBox.IsEnabled = writable;
     }
 
     private void RefreshNotes()
@@ -564,7 +633,7 @@ public sealed partial class NotesPage : Page
             DefaultButton = ContentDialogButton.Close
         };
 
-        ContentDialogResult result = await dialog.ShowAsync();
+        ContentDialogResult result = await DialogHost.ShowAsync(dialog);
         if (result != ContentDialogResult.Primary || SelectedNote is null)
         {
             return;
@@ -603,10 +672,25 @@ public sealed partial class NotesPage : Page
         if (_isSaving)
         {
             _pendingSaveNote = note;
+            if (_saveQueueCompletion is not null)
+            {
+                await _saveQueueCompletion.Task;
+            }
+
             return;
         }
 
-        await RunSaveQueueAsync(note);
+        _saveQueueCompletion = new TaskCompletionSource<bool>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        try
+        {
+            await RunSaveQueueAsync(note);
+        }
+        finally
+        {
+            _saveQueueCompletion.TrySetResult(true);
+            _saveQueueCompletion = null;
+        }
     }
 
     private async Task RunSaveQueueAsync(Note note)
@@ -727,7 +811,10 @@ public sealed partial class NotesPage : Page
         }
 
         // 先把编辑器里待保存的内容落盘，历史列表才包含最新一版。
-        await PersistEditorTextAsync();
+        if (!await PersistEditorTextAsync())
+        {
+            return;
+        }
 
         IReadOnlyList<VaultSnapshotInfo> snapshots;
         try
@@ -753,7 +840,7 @@ public sealed partial class NotesPage : Page
                 Content = Strings.Get("NotesHistoryEmpty"),
                 CloseButtonText = Strings.Get("CommonCancel"),
             };
-            await emptyDialog.ShowAsync();
+            await DialogHost.ShowAsync(emptyDialog);
             return;
         }
 
@@ -786,6 +873,7 @@ public sealed partial class NotesPage : Page
 
         NoteDocument? selectedVersion = null;
         string? selectedName = null;
+        bool canRestore = _services.Vault.IsWritable;
 
         ContentDialog dialog = new()
         {
@@ -823,7 +911,7 @@ public sealed partial class NotesPage : Page
 
                 selectedVersion = document;
                 preview.Text = document.Body;
-                dialog.IsPrimaryButtonEnabled = true;
+                dialog.IsPrimaryButtonEnabled = canRestore;
             }
             catch (Exception exception)
             {
@@ -831,15 +919,31 @@ public sealed partial class NotesPage : Page
             }
         };
 
-        ContentDialogResult result = await dialog.ShowAsync();
-        if (result != ContentDialogResult.Primary || selectedVersion is null)
+        ContentDialogResult result = await DialogHost.ShowAsync(dialog);
+        if (result != ContentDialogResult.Primary || selectedVersion is null || !canRestore)
         {
             return;
         }
 
         try
         {
-            NoteDocument updated = await store.UpdateNoteAsync(note.Id, body: selectedVersion.Body);
+            NoteDocument? current = await store.ReadNoteAsync(note.Id);
+            if (current is null)
+            {
+                ClearSelection(persist: false);
+                ShowError(
+                    Strings.Get("NotesNoteDeletedTitle"),
+                    Strings.Get("NotesNoteDeletedMessage"),
+                    RetryOperation.None,
+                    null);
+                return;
+            }
+
+            NoteDocument updated = await store.UpdateNoteAsync(
+                note.Id,
+                body: selectedVersion.Body,
+                expectedUpdated: current.Summary.Updated,
+                expectedHash: current.ContentHash);
             note.ApplyRestoredDocument(updated);
             Bindings.Update();
             MarkDataChanged();
@@ -972,6 +1076,7 @@ public sealed partial class NotesPage : Page
 
         SelectedNote = note;
         NoteEditor.IsEnabled = true;
+        ApplyWritableState(_services.Vault.IsWritable);
         NoteDateTextBlock.Text = note.Date.ToString("g");
         DeleteNoteButton.IsEnabled = _services.Vault.IsWritable;
         HistoryButton.Visibility = Visibility.Visible;
@@ -982,11 +1087,13 @@ public sealed partial class NotesPage : Page
         ApplyLayout(ActualWidth < NarrowWidthThreshold);
     }
 
-    private void ClearSelection()
+    private void ClearSelection(bool persist = true)
     {
         _autoSaveTimer.Stop();
-        _ = PersistEditorTextAsync();
-
+        if (persist)
+        {
+            _ = PersistEditorTextAsync();
+        }
         SelectedNote = null;
         NoteEditor.IsEnabled = false;
         NoteEditor.Text = string.Empty;

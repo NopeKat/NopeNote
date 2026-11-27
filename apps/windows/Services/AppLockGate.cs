@@ -52,7 +52,7 @@ internal sealed class AppLockGate
                 DefaultButton = ContentDialogButton.Primary,
             };
 
-            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
+            if (await DialogHost.ShowAsync(dialog) != ContentDialogResult.Primary)
             {
                 return false;
             }

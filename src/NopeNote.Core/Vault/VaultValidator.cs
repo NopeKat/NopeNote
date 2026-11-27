@@ -671,7 +671,7 @@ public static partial class VaultValidator
 
     private static string Canonical(Guid id) => id.ToString("D");
 
-    private static bool IsCanonicalId(string value)
+    internal static bool IsCanonicalId(string value)
         => UuidRegex().IsMatch(value) && string.Equals(value, value.ToLowerInvariant(), StringComparison.Ordinal);
 
     private static bool IsSnapshotName(string name)

@@ -19,7 +19,7 @@ internal sealed class NoteFileStore
     }
 
     internal Task<NoteScanResult> ScanAsync(CancellationToken cancellationToken)
-        => _storage.RunAsync(() => Scan(cancellationToken), VaultStorage.ReadTimeout, cancellationToken);
+        => _storage.RunAsync(ct => Scan(ct), VaultStorage.ReadTimeout, cancellationToken);
 
     private NoteScanResult Scan(CancellationToken cancellationToken)
     {
@@ -75,7 +75,7 @@ internal sealed class NoteFileStore
     }
 
     internal Task<NoteDocument?> ReadAsync(Guid id, CancellationToken cancellationToken)
-        => _storage.RunAsync(() => Read(id, cancellationToken), VaultStorage.ReadTimeout, cancellationToken);
+        => _storage.RunAsync(ct => Read(id, ct), VaultStorage.ReadTimeout, cancellationToken);
 
     private NoteDocument? Read(Guid id, CancellationToken cancellationToken)
     {
@@ -100,7 +100,7 @@ internal sealed class NoteFileStore
         string? folder,
         CancellationToken cancellationToken)
         => _storage.RunAsync(
-            () => Create(title, body, tags, pinned, createdAt, updatedAt, folder, cancellationToken),
+            ct => Create(title, body, tags, pinned, createdAt, updatedAt, folder, ct),
             VaultStorage.WriteTimeout,
             cancellationToken);
 
@@ -135,7 +135,7 @@ internal sealed class NoteFileStore
             body,
             folder: folder);
 
-        _storage.WriteText(_storage.NotePath(id), text);
+        _storage.WriteText(_storage.NotePath(id), text, cancellationToken: cancellationToken);
         return VaultStorage.ReadDocument(id, VaultStorage.NoteRelativePath(id), text);
     }
 
@@ -147,9 +147,10 @@ internal sealed class NoteFileStore
         bool? pinned,
         DateTimeOffset? expectedUpdated,
         string? folder,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? expectedHash = null)
         => _storage.RunAsync(
-            () => Update(id, body, title, tags, pinned, expectedUpdated, folder, cancellationToken),
+            ct => Update(id, body, title, tags, pinned, expectedUpdated, folder, ct, expectedHash),
             VaultStorage.WriteTimeout,
             cancellationToken);
 
@@ -161,7 +162,8 @@ internal sealed class NoteFileStore
         bool? pinned,
         DateTimeOffset? expectedUpdated,
         string? folder,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? expectedHash)
     {
         cancellationToken.ThrowIfCancellationRequested();
         _storage.EnsureWritable();
@@ -187,19 +189,24 @@ internal sealed class NoteFileStore
             current.FrontMatterLines,
             folder: folder ?? current.Summary.Folder);
 
-        if (expectedUpdated.HasValue && expectedUpdated.Value != current.Summary.Updated)
+        bool updatedMismatch = expectedUpdated.HasValue &&
+            expectedUpdated.Value != current.Summary.Updated;
+        bool hashMismatch = !string.IsNullOrEmpty(expectedHash) &&
+            !string.Equals(expectedHash, current.ContentHash, StringComparison.OrdinalIgnoreCase);
+
+        if (updatedMismatch || hashMismatch)
         {
-            string conflictPath = WriteConflictCopy(id, text);
+            string conflictPath = WriteConflictCopy(id, text, cancellationToken);
             throw new VaultConflictException(conflictPath);
         }
 
-        _history.WriteSnapshotIfNeeded(id, currentText, updated);
-        _storage.WriteText(_storage.NotePath(id), text, currentText);
+        _history.WriteSnapshotIfNeeded(id, currentText, updated, cancellationToken);
+        _storage.WriteText(_storage.NotePath(id), text, currentText, cancellationToken);
 
         return VaultStorage.ReadDocument(id, VaultStorage.NoteRelativePath(id), text);
     }
 
-    private string WriteConflictCopy(Guid id, string text)
+    private string WriteConflictCopy(Guid id, string text, CancellationToken cancellationToken)
     {
         string name = $"{id:D}.{_deviceId}." +
             NoteFrontMatterWriter.FormatTimestamp(VaultStorage.UtcNowSeconds())
@@ -207,7 +214,10 @@ internal sealed class NoteFileStore
                 .Replace(":", string.Empty) +
             ".md";
         string relativePath = $".sync/conflicts/{name}";
-        _storage.WriteText(Path.Combine(_storage.ConflictsDirectory, name), text);
+        _storage.WriteText(
+            Path.Combine(_storage.ConflictsDirectory, name),
+            text,
+            cancellationToken: cancellationToken);
         return relativePath;
     }
 

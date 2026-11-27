@@ -19,6 +19,7 @@ public sealed class Note : INotifyPropertyChanged
     private string _text = string.Empty;
     private string _savedText = string.Empty;
     private DateTimeOffset _updated;
+    private string _contentHash = string.Empty;
     private bool _isSelected;
     private Visibility _selectionVisibility = Visibility.Collapsed;
     private string _folder = string.Empty;
@@ -36,12 +37,14 @@ public sealed class Note : INotifyPropertyChanged
         IReadOnlyList<string> tags,
         bool pinned,
         string folder,
-        DateTimeOffset updated)
+        DateTimeOffset updated,
+        string contentHash = "")
     {
         Id = id;
         _text = text;
         _savedText = text;
         _updated = updated;
+        _contentHash = contentHash;
         DisplayTitle = NoteTitle.Display(title);
         Tags = tags;
         IsPinned = pinned;
@@ -133,6 +136,8 @@ public sealed class Note : INotifyPropertyChanged
 
     public DateTimeOffset Updated => _updated;
 
+    public string ContentHash => _contentHash;
+
     public bool HasUnsavedChanges
         => IsDraft || !string.Equals(Text, _savedText, StringComparison.Ordinal);
 
@@ -147,8 +152,15 @@ public sealed class Note : INotifyPropertyChanged
         foreach (NoteSummary summary in scan.Notes)
         {
             string? cached = index.TryGetBody(summary.Id, summary.Updated);
+            string? cachedHash = index.TryGetContentHash(summary.Id, summary.Updated);
             string body;
-            if (cached is null)
+            string contentHash;
+            if (cached is not null && cachedHash is not null)
+            {
+                body = cached;
+                contentHash = cachedHash;
+            }
+            else
             {
                 NoteDocument? document = await store.ReadNoteAsync(summary.Id);
                 if (document is null)
@@ -157,11 +169,8 @@ public sealed class Note : INotifyPropertyChanged
                 }
 
                 body = document.Body;
-                index.Remember(summary.Id, summary.Updated, body);
-            }
-            else
-            {
-                body = cached;
+                contentHash = document.ContentHash;
+                index.Remember(summary.Id, summary.Updated, body, contentHash);
             }
 
             seen.Add(summary.Id);
@@ -172,7 +181,8 @@ public sealed class Note : INotifyPropertyChanged
                 summary.Tags,
                 summary.Pinned,
                 summary.Folder,
-                summary.Updated));
+                summary.Updated,
+                contentHash));
         }
 
         index.Prune(seen);
@@ -189,7 +199,11 @@ public sealed class Note : INotifyPropertyChanged
 
         NoteDocument document = IsDraft
             ? await store.CreateNoteAsync(string.Empty, Text, folder: Folder)
-            : await store.UpdateNoteAsync(Id, Text, expectedUpdated: _updated);
+            : await store.UpdateNoteAsync(
+                Id,
+                Text,
+                expectedUpdated: _updated,
+                expectedHash: _contentHash);
 
         if (IsDraft)
         {
@@ -199,6 +213,7 @@ public sealed class Note : INotifyPropertyChanged
 
         _savedText = document.Body;
         _updated = document.Summary.Updated;
+        _contentHash = document.ContentHash;
         DisplayTitle = NoteTitle.Display(document.Summary.Title);
         Tags = document.Summary.Tags;
         IsPinned = document.Summary.Pinned;
@@ -226,6 +241,7 @@ public sealed class Note : INotifyPropertyChanged
         _text = document.Body;
         _savedText = document.Body;
         _updated = document.Summary.Updated;
+        _contentHash = document.ContentHash;
         DisplayTitle = NoteTitle.Display(document.Summary.Title);
         Tags = document.Summary.Tags;
         IsPinned = document.Summary.Pinned;
@@ -251,6 +267,7 @@ public sealed class Note : INotifyPropertyChanged
 
         _savedText = document.Body;
         _updated = document.Summary.Updated;
+        _contentHash = document.ContentHash;
         OnPropertyChanged(nameof(Date));
     }
 

@@ -111,9 +111,17 @@ public sealed class NotesViewModel : INotifyPropertyChanged
         IsLoading = true;
         try
         {
-            _allNotes.Clear();
+            var loaded = new List<Note>();
             IReadOnlyList<Note> notes = await Note.LoadAllAsync(Store, index);
             foreach (Note note in notes)
+            {
+                loaded.Add(note);
+            }
+
+            // Replace the collection only after every note loaded; a failure
+            // keeps the previous list instead of leaving an empty page.
+            _allNotes.Clear();
+            foreach (Note note in loaded)
             {
                 _allNotes.Add(note);
             }

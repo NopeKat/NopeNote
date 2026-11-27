@@ -18,7 +18,7 @@ public sealed class NoteSearchIndex
 {
     public const int NoteThreshold = 2000;
 
-    private const int FormatVersion = 1;
+    private const int FormatVersion = 2;
 
     private readonly object _gate = new();
     private readonly Dictionary<Guid, IndexRow> _rows = new();
@@ -82,7 +82,26 @@ public sealed class NoteSearchIndex
         }
     }
 
-    public void Remember(Guid id, DateTimeOffset updated, string body)
+    /// <summary>Content hash cached beside the body so saves keep an optimistic token
+    /// without re-reading the whole note.</summary>
+    public string? TryGetContentHash(Guid id, DateTimeOffset updated)
+    {
+        lock (_gate)
+        {
+            if (!_enabled)
+            {
+                return null;
+            }
+
+            EnsureLoaded();
+            IndexRow? row = _rows.GetValueOrDefault(id);
+            return row is not null && row.Updated == updated && row.ContentHash.Length > 0
+                ? row.ContentHash
+                : null;
+        }
+    }
+
+    public void Remember(Guid id, DateTimeOffset updated, string body, string contentHash)
     {
         lock (_gate)
         {
@@ -92,7 +111,7 @@ public sealed class NoteSearchIndex
             }
 
             EnsureLoaded();
-            _rows[id] = new IndexRow(id, updated, body);
+            _rows[id] = new IndexRow(id, updated, body, contentHash);
             _dirty = true;
         }
     }
@@ -254,11 +273,12 @@ public sealed class NoteSearchIndex
         {
         }
 
-        public IndexRow(Guid id, DateTimeOffset updated, string body)
+        public IndexRow(Guid id, DateTimeOffset updated, string body, string contentHash)
         {
             Id = id;
             Updated = updated;
             Body = body;
+            ContentHash = contentHash;
         }
 
         public Guid Id { get; set; }
@@ -266,5 +286,7 @@ public sealed class NoteSearchIndex
         public DateTimeOffset Updated { get; set; }
 
         public string Body { get; set; } = string.Empty;
+
+        public string ContentHash { get; set; } = string.Empty;
     }
 }

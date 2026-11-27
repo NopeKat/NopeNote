@@ -166,6 +166,12 @@
   <data name="NotesUnreadableNote" xml:space="preserve">
     <value>Unavailable note</value>
   </data>
+  <data name="NotesNoteDeletedTitle" xml:space="preserve">
+    <value>Note missing</value>
+  </data>
+  <data name="NotesNoteDeletedMessage" xml:space="preserve">
+    <value>This note was removed or moved outside the app.</value>
+  </data>
   <data name="NotesLoadingRing.AutomationProperties.Name" xml:space="preserve">
     <value>Loading notes</value>
   </data>

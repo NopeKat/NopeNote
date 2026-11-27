@@ -139,7 +139,7 @@ public sealed partial class SettingsPage : Page
             DefaultButton = ContentDialogButton.Close,
         };
 
-        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        if (await DialogHost.ShowAsync(dialog) == ContentDialogResult.Primary)
         {
             LanguageHelper.RestartApplication();
         }
@@ -236,7 +236,7 @@ public sealed partial class SettingsPage : Page
             DefaultButton = ContentDialogButton.Close,
         };
 
-        ContentDialogResult result = await dialog.ShowAsync();
+        ContentDialogResult result = await DialogHost.ShowAsync(dialog);
         if (result == ContentDialogResult.Primary)
         {
             _services.Settings.AppLockSalt = string.Empty;
@@ -278,7 +278,7 @@ public sealed partial class SettingsPage : Page
 
         while (true)
         {
-            ContentDialogResult result = await dialog.ShowAsync();
+            ContentDialogResult result = await DialogHost.ShowAsync(dialog);
             if (result != ContentDialogResult.Primary)
             {
                 return;
@@ -342,7 +342,7 @@ public sealed partial class SettingsPage : Page
                 Content = Strings.Format("SettingsExportDoneMessage", file.Path),
                 CloseButtonText = Strings.Get("CommonClose"),
             };
-            await doneDialog.ShowAsync();
+            await DialogHost.ShowAsync(doneDialog);
         }
         catch (Exception exception)
         {
@@ -353,7 +353,7 @@ public sealed partial class SettingsPage : Page
                 Content = exception.Message,
                 CloseButtonText = Strings.Get("CommonClose"),
             };
-            await failedDialog.ShowAsync();
+            await DialogHost.ShowAsync(failedDialog);
         }
         finally
         {

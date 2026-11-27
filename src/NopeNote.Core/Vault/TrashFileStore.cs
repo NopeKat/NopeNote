@@ -16,7 +16,7 @@ internal sealed class TrashFileStore
     }
 
     internal Task TrashAsync(Guid id, CancellationToken cancellationToken)
-        => _storage.RunAsync(() => Trash(id, cancellationToken), VaultStorage.WriteTimeout, cancellationToken);
+        => _storage.RunAsync(ct => Trash(id, ct), VaultStorage.WriteTimeout, cancellationToken);
 
     private void Trash(Guid id, CancellationToken cancellationToken)
     {
@@ -51,7 +51,7 @@ internal sealed class TrashFileStore
         VaultStorage.MoveVaultFile(notePath, trashPath);
         try
         {
-            _storage.WriteText(trashPath, text, currentText);
+            _storage.WriteText(trashPath, text, currentText, cancellationToken);
         }
         catch
         {
@@ -61,7 +61,7 @@ internal sealed class TrashFileStore
     }
 
     internal Task RestoreAsync(Guid id, CancellationToken cancellationToken)
-        => _storage.RunAsync(() => Restore(id, cancellationToken), VaultStorage.WriteTimeout, cancellationToken);
+        => _storage.RunAsync(ct => Restore(id, ct), VaultStorage.WriteTimeout, cancellationToken);
 
     private void Restore(Guid id, CancellationToken cancellationToken)
     {
@@ -95,7 +95,7 @@ internal sealed class TrashFileStore
         VaultStorage.MoveVaultFile(trashPath, notePath);
         try
         {
-            _storage.WriteText(notePath, text, trashText);
+            _storage.WriteText(notePath, text, trashText, cancellationToken);
         }
         catch
         {
@@ -105,7 +105,7 @@ internal sealed class TrashFileStore
     }
 
     internal Task PurgeAsync(Guid id, CancellationToken cancellationToken)
-        => _storage.RunAsync(() => Purge(id, cancellationToken), VaultStorage.WriteTimeout, cancellationToken);
+        => _storage.RunAsync(ct => Purge(id, ct), VaultStorage.WriteTimeout, cancellationToken);
 
     private void Purge(Guid id, CancellationToken cancellationToken)
     {
@@ -140,7 +140,7 @@ internal sealed class TrashFileStore
     }
 
     internal Task<IReadOnlyList<TrashNoteSummary>> ListAsync(CancellationToken cancellationToken)
-        => _storage.RunAsync(() => List(cancellationToken), VaultStorage.ReadTimeout, cancellationToken);
+        => _storage.RunAsync(ct => List(ct), VaultStorage.ReadTimeout, cancellationToken);
 
     private IReadOnlyList<TrashNoteSummary> List(CancellationToken cancellationToken)
     {
@@ -221,7 +221,7 @@ internal sealed class TrashFileStore
     }
 
     internal Task<NoteDocument?> ReadAsync(Guid id, CancellationToken cancellationToken)
-        => _storage.RunAsync(() => Read(id, cancellationToken), VaultStorage.ReadTimeout, cancellationToken);
+        => _storage.RunAsync(ct => Read(id, ct), VaultStorage.ReadTimeout, cancellationToken);
 
     private NoteDocument? Read(Guid id, CancellationToken cancellationToken)
     {

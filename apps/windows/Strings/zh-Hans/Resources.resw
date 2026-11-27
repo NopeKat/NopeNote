@@ -166,6 +166,12 @@
   <data name="NotesUnreadableNote" xml:space="preserve">
     <value>暂不可读的笔记</value>
   </data>
+  <data name="NotesNoteDeletedTitle" xml:space="preserve">
+    <value>笔记不存在</value>
+  </data>
+  <data name="NotesNoteDeletedMessage" xml:space="preserve">
+    <value>这篇笔记已被外部删除或移走。</value>
+  </data>
   <data name="NotesLoadingRing.AutomationProperties.Name" xml:space="preserve">
     <value>正在加载笔记</value>
   </data>

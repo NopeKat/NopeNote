@@ -32,7 +32,8 @@ public interface IVaultStore
         bool? pinned = null,
         DateTimeOffset? expectedUpdated = null,
         string? folder = null,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        string? expectedHash = null);
 
     Task TrashNoteAsync(Guid id, CancellationToken cancellationToken = default);
 

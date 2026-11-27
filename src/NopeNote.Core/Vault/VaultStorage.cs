@@ -50,36 +50,39 @@ internal sealed class VaultStorage
 
     internal string Relative(string path) => Path.GetRelativePath(RootPath, path).Replace('\\', '/');
 
-    internal async Task<T> RunAsync<T>(Func<T> action, TimeSpan timeout, CancellationToken cancellationToken)
+    internal async Task<T> RunAsync<T>(
+        Func<CancellationToken, T> action,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
     {
         if (!await _ioGate.WaitAsync(timeout, cancellationToken).ConfigureAwait(false))
         {
             throw new VaultTimeoutException(timeout);
         }
 
-        Task<T> task = Task.Run(() => InvokeWithRetry(action), cancellationToken);
+        using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutSource.CancelAfter(timeout);
+        Task<T> task = Task.Run(
+            () => InvokeWithRetry(() => action(timeoutSource.Token)),
+            CancellationToken.None);
+
         try
         {
             return await task.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
         }
         catch (TimeoutException)
         {
-            // Give the abandoned task one more bounded wait so a write that was
-            // merely slow can finish before we report a result. Only when it is
-            // still running after that do we admit the outcome is unknown.
-            try
-            {
-                return await task.WaitAsync(timeout, CancellationToken.None).ConfigureAwait(false);
-            }
-            catch (TimeoutException)
-            {
-                throw new VaultTimeoutException(timeout, mayHaveCompleted: true);
-            }
+            timeoutSource.Cancel();
+            throw new VaultTimeoutException(timeout, mayHaveCompleted: true);
         }
         finally
         {
             _ = task.ContinueWith(
-                static (_, state) => ((SemaphoreSlim)state!).Release(),
+                static (finished, state) =>
+                {
+                    _ = finished.Exception;
+                    ((SemaphoreSlim)state!).Release();
+                },
                 _ioGate,
                 CancellationToken.None,
                 TaskContinuationOptions.ExecuteSynchronously,
@@ -87,33 +90,39 @@ internal sealed class VaultStorage
         }
     }
 
-    internal async Task RunAsync(Action action, TimeSpan timeout, CancellationToken cancellationToken)
+    internal async Task RunAsync(
+        Action<CancellationToken> action,
+        TimeSpan timeout,
+        CancellationToken cancellationToken)
     {
         if (!await _ioGate.WaitAsync(timeout, cancellationToken).ConfigureAwait(false))
         {
             throw new VaultTimeoutException(timeout);
         }
 
-        Task task = Task.Run(() => InvokeWithRetry(action), cancellationToken);
+        using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutSource.CancelAfter(timeout);
+        Task task = Task.Run(
+            () => InvokeWithRetry(() => action(timeoutSource.Token)),
+            CancellationToken.None);
+
         try
         {
             await task.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
         }
         catch (TimeoutException)
         {
-            try
-            {
-                await task.WaitAsync(timeout, CancellationToken.None).ConfigureAwait(false);
-            }
-            catch (TimeoutException)
-            {
-                throw new VaultTimeoutException(timeout, mayHaveCompleted: true);
-            }
+            timeoutSource.Cancel();
+            throw new VaultTimeoutException(timeout, mayHaveCompleted: true);
         }
         finally
         {
             _ = task.ContinueWith(
-                static (_, state) => ((SemaphoreSlim)state!).Release(),
+                static (finished, state) =>
+                {
+                    _ = finished.Exception;
+                    ((SemaphoreSlim)state!).Release();
+                },
                 _ioGate,
                 CancellationToken.None,
                 TaskContinuationOptions.ExecuteSynchronously,
@@ -167,8 +176,13 @@ internal sealed class VaultStorage
         }
     }
 
-    internal void WriteText(string path, string text, string? fallbackText = null)
+    internal void WriteText(
+        string path,
+        string text,
+        string? fallbackText = null,
+        CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
         if (Capabilities.AtomicRename)
@@ -176,7 +190,8 @@ internal sealed class VaultStorage
             string temporary = path + ".tmp-" + Guid.NewGuid().ToString("N")[..8];
             try
             {
-                WriteAllTextFlushed(temporary, text);
+                WriteAllTextFlushed(temporary, text, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
                 File.Move(temporary, path, overwrite: true);
             }
             finally
@@ -190,7 +205,8 @@ internal sealed class VaultStorage
             return;
         }
 
-        WriteAllTextFlushed(path, text);
+        WriteAllTextFlushed(path, text, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
         string readBack = File.ReadAllText(path);
         if (string.Equals(readBack, text, StringComparison.Ordinal))
         {
@@ -199,20 +215,23 @@ internal sealed class VaultStorage
 
         if (fallbackText is not null)
         {
-            WriteAllTextFlushed(path, fallbackText);
+            WriteAllTextFlushed(path, fallbackText, cancellationToken);
         }
 
         throw new IOException($"write verification failed for {Relative(path)}.");
     }
 
     /// <summary>Writes UTF-8 without BOM and flushes the file to disk before returning.</summary>
-    private static void WriteAllTextFlushed(string path, string text)
+    private static void WriteAllTextFlushed(string path, string text, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
         using (var writer = new StreamWriter(stream, Utf8NoBom))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             writer.Write(text);
             writer.Flush();
+            cancellationToken.ThrowIfCancellationRequested();
             stream.Flush(flushToDisk: true);
         }
     }
@@ -276,7 +295,13 @@ internal sealed class VaultStorage
     }
 
     internal static NoteDocument ReadDocument(Guid id, string relativePath, string text)
-        => FrontMatterParser.Parse(id, relativePath, text);
+        => FrontMatterParser.Parse(id, relativePath, text) with
+        {
+            ContentHash = ContentHash(text),
+        };
+
+    internal static string ContentHash(string text)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant();
 
     internal static bool TryParseCanonicalId(string name, out Guid id)
     {

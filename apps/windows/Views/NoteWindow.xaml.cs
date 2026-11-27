@@ -22,6 +22,7 @@ public sealed partial class NoteWindow : Window
     private string _savedText = string.Empty;
     private bool _saving;
     private bool _sizing;
+    private bool _writable;
     private bool _closing;
     private bool _promptingClose;
     private string? _conflictPath;
@@ -76,6 +77,9 @@ public sealed partial class NoteWindow : Window
             _document = document;
             Editor.Text = document.Body;
             _savedText = document.Body;
+            _writable = opened.Store.Capabilities.Writable;
+            Editor.IsReadOnly = !_writable;
+            SaveButton.IsEnabled = _writable;
             TitleTextBlock.Text = NoteTitle.Display(document.Summary.Title);
             Editor.IsEnabled = true;
         }
@@ -134,7 +138,7 @@ public sealed partial class NoteWindow : Window
 
     private async Task<bool> SaveAsync()
     {
-        if (_document is null || _saving)
+        if (_document is null || _saving || !_writable)
         {
             return false;
         }
@@ -159,7 +163,8 @@ public sealed partial class NoteWindow : Window
             NoteDocument updated = await store.UpdateNoteAsync(
                 _noteId,
                 body: text,
-                expectedUpdated: _document.Summary.Updated);
+                expectedUpdated: _document.Summary.Updated,
+                expectedHash: _document.ContentHash);
             _document = updated;
             _savedText = updated.Body;
             TitleTextBlock.Text = NoteTitle.Display(updated.Summary.Title);
@@ -293,7 +298,7 @@ public sealed partial class NoteWindow : Window
             DefaultButton = ContentDialogButton.Primary,
         };
 
-        ContentDialogResult result = await dialog.ShowAsync();
+        ContentDialogResult result = await DialogHost.ShowAsync(dialog);
         if (result == ContentDialogResult.Primary)
         {
             return await SaveAsync();
