@@ -180,7 +180,7 @@ internal sealed class NoteFileStore
             id,
             current.Summary.Created,
             updated,
-            title ?? current.Summary.Title,
+            NoteFrontMatterWriter.TitleForWrite(current.FrontMatterLines, current.Summary.Title, title),
             tags ?? current.Summary.Tags,
             pinned ?? current.Summary.Pinned,
             noteBody,

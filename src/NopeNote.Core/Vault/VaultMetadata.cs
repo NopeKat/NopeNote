@@ -6,4 +6,8 @@ public sealed record VaultMetadata(
     int FormatVersion,
     Guid RepoId,
     DateTimeOffset CreatedAt,
-    bool Encrypted);
+    bool Encrypted)
+{
+    /// <summary>The repoId exactly as written in the marker, so case can be validated.</summary>
+    public string RepoIdText { get; init; } = string.Empty;
+}

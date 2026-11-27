@@ -218,6 +218,11 @@ public sealed partial class NotesPage : Page
 
         // 先落盘正文，避免这次元数据更新把编辑器里没保存的内容覆盖掉。
         await PersistEditorTextAsync();
+        if (note.HasUnsavedChanges)
+        {
+            // 正文没有成功落盘时，任何元数据写入都会把编辑器内容换回磁盘旧版。
+            return;
+        }
 
         try
         {
@@ -225,6 +230,7 @@ public sealed partial class NotesPage : Page
                 note.Id,
                 tags: tags,
                 pinned: pinned,
+                expectedUpdated: note.Updated,
                 folder: folder);
             note.ApplyRestoredDocument(updated);
             Bindings.Update();
@@ -232,6 +238,11 @@ public sealed partial class NotesPage : Page
             MarkDataChanged();
             RefreshNotes();
             SaveStatusTextBlock.Text = Strings.Get("NotesStatusSaved");
+        }
+        catch (VaultConflictException conflict)
+        {
+            UpdateMetadataBar(note);
+            ShowConflict(conflict);
         }
         catch (Exception exception)
         {
@@ -632,6 +643,17 @@ public sealed partial class NotesPage : Page
                         SaveStatusTextBlock.Text = Strings.Get("NotesStatusNotSaved");
                     }
 
+                    // 冲突副本已保存本地内容；把基准挪到磁盘最新版，避免同一窗口
+                    // 之后每次保存都拿着过期 token 再冲突一次。
+                    try
+                    {
+                        await current.RefreshBaseAsync(ViewModel.Store);
+                    }
+                    catch (Exception exception)
+                    {
+                        FileLog.Warn($"conflict rebase failed: {exception.Message}");
+                    }
+
                     ShowConflict(conflict);
                 }
                 catch (Exception exception)
@@ -646,7 +668,9 @@ public sealed partial class NotesPage : Page
                     ShowError(
                         Strings.Get("NotesSaveFailedTitle"),
                         $"{Describe(exception)} {Strings.Get("NotesLoadFailedHint")}",
-                        RetryOperation.SaveNote,
+                        exception is VaultTimeoutException { MayHaveCompleted: true }
+                            ? RetryOperation.None
+                            : RetryOperation.SaveNote,
                         current);
                 }
 

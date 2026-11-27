@@ -4,4 +4,5 @@ public sealed record TrashNoteSummary(
     Guid Id,
     string Title,
     DateTimeOffset Updated,
-    DateTimeOffset DeletedAt);
+    DateTimeOffset DeletedAt,
+    bool IsAvailable = true);

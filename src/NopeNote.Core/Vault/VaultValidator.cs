@@ -104,7 +104,12 @@ public static partial class VaultValidator
                 $"schema must be 'nopenote.vault', found '{metadata.Schema}'."));
         }
 
-        if (metadata.RepoId == Guid.Empty || !IsCanonicalId(metadata.RepoId.ToString("D")))
+        string repoIdText = string.IsNullOrEmpty(metadata.RepoIdText)
+            ? metadata.RepoId.ToString("D")
+            : metadata.RepoIdText;
+        if (metadata.RepoId == Guid.Empty ||
+            !IsCanonicalId(repoIdText) ||
+            !string.Equals(repoIdText, repoIdText.ToLowerInvariant(), StringComparison.Ordinal))
         {
             issues.Add(new VaultValidationIssue(
                 "MARKER_BAD_REPO_ID",

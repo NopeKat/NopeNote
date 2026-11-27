@@ -28,8 +28,13 @@ public sealed class VaultConflictException : Exception
 
 public sealed class VaultTimeoutException : Exception
 {
-    public VaultTimeoutException(TimeSpan timeout)
+    public VaultTimeoutException(TimeSpan timeout, bool mayHaveCompleted = false)
         : base($"vault operation timed out after {timeout.TotalSeconds:0} seconds.")
     {
+        MayHaveCompleted = mayHaveCompleted;
     }
+
+    /// <summary>True when the abandoned action may still finish after the caller
+    /// already received this exception (for example a write that outlived its wait).</summary>
+    public bool MayHaveCompleted { get; }
 }

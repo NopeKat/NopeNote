@@ -160,6 +160,12 @@
   <data name="NotesUntitled" xml:space="preserve">
     <value>无标题笔记</value>
   </data>
+  <data name="NotesBrokenNote" xml:space="preserve">
+    <value>损坏的笔记</value>
+  </data>
+  <data name="NotesUnreadableNote" xml:space="preserve">
+    <value>暂不可读的笔记</value>
+  </data>
   <data name="NotesLoadingRing.AutomationProperties.Name" xml:space="preserve">
     <value>正在加载笔记</value>
   </data>
@@ -569,6 +575,9 @@
   <data name="NotesExportDone" xml:space="preserve">
     <value>已导出</value>
   </data>
+  <data name="NotesExportFailedTitle" xml:space="preserve">
+    <value>导出失败</value>
+  </data>
   <data name="NotesExportMarkdownMenu" xml:space="preserve">
     <value>导出 Markdown</value>
   </data>
@@ -580,6 +589,9 @@
   </data>
   <data name="NotesCopyDone" xml:space="preserve">
     <value>已复制</value>
+  </data>
+  <data name="NotesCopyFailedTitle" xml:space="preserve">
+    <value>复制失败</value>
   </data>
   <data name="NotesBacklinksHeader" xml:space="preserve">
     <value>反向链接（{0}）</value>

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using NopeNote.Core.Vault;
 
 namespace NopeNote.Core.Notes;
@@ -122,6 +123,9 @@ public static class FrontMatterParser
             return title.Trim();
         }
 
+        // Spec 3.1: the first H1 anywhere in the body wins; only when there is no
+        // H1 does the first non-empty line become the fallback title.
+        string? fallback = null;
         foreach (string line in body.Split('\n'))
         {
             string trimmed = line.Trim();
@@ -135,11 +139,14 @@ public static class FrontMatterParser
                 return trimmed[2..].Trim();
             }
 
-            string plain = trimmed.TrimStart('-', '*', '>', '#', ' ');
-            return plain.Length <= 80 ? plain : plain[..80];
+            if (fallback is null)
+            {
+                string plain = trimmed.TrimStart('-', '*', '>', '#', ' ');
+                fallback = plain.Length <= 80 ? plain : plain[..80];
+            }
         }
 
-        return "(Untitled note)";
+        return fallback ?? "(Untitled note)";
     }
 
     private static IReadOnlyList<string> ReadTags(Dictionary<string, string> values)
@@ -155,21 +162,132 @@ public static class FrontMatterParser
             trimmed = trimmed[1..^1];
         }
 
-        return trimmed
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(tag => tag.Trim().Trim('"', '\''))
-            .Where(tag => tag.Length > 0)
-            .ToArray();
+        var tags = new List<string>();
+        foreach (string item in SplitFlowItems(trimmed))
+        {
+            string tag = Unquote(item.Trim()).Trim();
+            if (tag.Length > 0)
+            {
+                tags.Add(tag);
+            }
+        }
+
+        return tags;
+    }
+
+    /// <summary>Splits an inline YAML array on commas that are outside quotes.</summary>
+    private static IEnumerable<string> SplitFlowItems(string text)
+    {
+        var item = new StringBuilder();
+        bool inDoubleQuote = false;
+        bool inSingleQuote = false;
+        bool escaped = false;
+
+        foreach (char character in text)
+        {
+            if (inDoubleQuote)
+            {
+                item.Append(character);
+                if (escaped)
+                {
+                    escaped = false;
+                }
+                else if (character == '\\')
+                {
+                    escaped = true;
+                }
+                else if (character == '"')
+                {
+                    inDoubleQuote = false;
+                }
+
+                continue;
+            }
+
+            if (inSingleQuote)
+            {
+                item.Append(character);
+                if (character == '\'')
+                {
+                    inSingleQuote = false;
+                }
+
+                continue;
+            }
+
+            switch (character)
+            {
+                case '"':
+                    inDoubleQuote = true;
+                    item.Append(character);
+                    break;
+                case '\'':
+                    inSingleQuote = true;
+                    item.Append(character);
+                    break;
+                case ',':
+                    yield return item.ToString();
+                    item.Clear();
+                    break;
+                default:
+                    item.Append(character);
+                    break;
+            }
+        }
+
+        if (item.Length > 0)
+        {
+            yield return item.ToString();
+        }
     }
 
     private static string Unquote(string value)
     {
-        if (value.Length >= 2 &&
-            ((value[0] == '"' && value[^1] == '"') || (value[0] == '\'' && value[^1] == '\'')))
+        if (value.Length >= 2 && value[0] == '"' && value[^1] == '"')
         {
-            return value[1..^1];
+            return UnescapeDoubleQuoted(value[1..^1]);
+        }
+
+        if (value.Length >= 2 && value[0] == '\'' && value[^1] == '\'')
+        {
+            return value[1..^1].Replace("''", "'", StringComparison.Ordinal);
         }
 
         return value;
+    }
+
+    /// <summary>Reverses the escaping applied by <see cref="NoteFrontMatterWriter"/>.</summary>
+    private static string UnescapeDoubleQuoted(string value)
+    {
+        var builder = new StringBuilder(value.Length);
+        bool escaped = false;
+        foreach (char character in value)
+        {
+            if (escaped)
+            {
+                escaped = false;
+                builder.Append(character switch
+                {
+                    'n' => '\n',
+                    't' => '\t',
+                    _ => character,
+                });
+            }
+            else if (character == '\\')
+            {
+                escaped = true;
+            }
+            else
+            {
+                builder.Append(character);
+            }
+        }
+
+        if (escaped)
+        {
+            builder.Append('\\');
+        }
+
+        return builder.ToString();
     }
 }

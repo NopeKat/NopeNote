@@ -160,6 +160,12 @@
   <data name="NotesUntitled" xml:space="preserve">
     <value>Untitled note</value>
   </data>
+  <data name="NotesBrokenNote" xml:space="preserve">
+    <value>Broken note</value>
+  </data>
+  <data name="NotesUnreadableNote" xml:space="preserve">
+    <value>Unavailable note</value>
+  </data>
   <data name="NotesLoadingRing.AutomationProperties.Name" xml:space="preserve">
     <value>Loading notes</value>
   </data>
@@ -569,6 +575,9 @@
   <data name="NotesExportDone" xml:space="preserve">
     <value>Exported</value>
   </data>
+  <data name="NotesExportFailedTitle" xml:space="preserve">
+    <value>Export failed</value>
+  </data>
   <data name="NotesExportMarkdownMenu" xml:space="preserve">
     <value>Export Markdown</value>
   </data>
@@ -580,6 +589,9 @@
   </data>
   <data name="NotesCopyDone" xml:space="preserve">
     <value>Copied</value>
+  </data>
+  <data name="NotesCopyFailedTitle" xml:space="preserve">
+    <value>Copy failed</value>
   </data>
   <data name="NotesBacklinksHeader" xml:space="preserve">
     <value>Linked mentions ({0})</value>

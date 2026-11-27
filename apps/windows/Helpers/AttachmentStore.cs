@@ -74,18 +74,30 @@ internal static class AttachmentStore
         Directory.CreateDirectory(tempDirectory);
         string tempPath = Path.Combine(tempDirectory, $"{Guid.NewGuid():N}.tmp");
 
-        string hash = await WriteTempAsync(source, tempPath).ConfigureAwait(false);
-        string name = ComposeName(hash, extension);
-        string destination = Path.Combine(FolderPath(root), name);
-        Directory.CreateDirectory(FolderPath(root));
+        string hash = string.Empty;
+        string name = string.Empty;
+        try
+        {
+            hash = await WriteTempAsync(source, tempPath).ConfigureAwait(false);
+            name = ComposeName(hash, extension);
+            string destination = Path.Combine(FolderPath(root), name);
+            Directory.CreateDirectory(FolderPath(root));
 
-        if (File.Exists(destination))
-        {
-            File.Delete(tempPath);
+            if (File.Exists(destination))
+            {
+                File.Delete(tempPath);
+            }
+            else
+            {
+                File.Move(tempPath, destination);
+            }
         }
-        else
+        finally
         {
-            File.Move(tempPath, destination);
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
         }
 
         await store.RegisterAttachmentAsync(hash).ConfigureAwait(false);

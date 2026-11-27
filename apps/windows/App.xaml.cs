@@ -40,6 +40,9 @@ public partial class App : Application
     private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs args)
     {
         FileLog.Error("unhandled exception", args.Exception);
+        // Keep the process alive after a UI callback fault; every known async
+        // entry point now catches locally, so this is the last-resort guard.
+        args.Handled = true;
     }
 
     private async Task EnsureWindowAsync()

@@ -437,13 +437,14 @@ public sealed partial class NotesPage
     {
         TemplateMenu.Items.Clear();
 
-        string templatesPath = Path.Combine(_services.Vault.VaultPath, ".templates");
+        string templatesPath;
         try
         {
-            Directory.CreateDirectory(templatesPath);
+            templatesPath = EnsureTemplatesDirectory();
         }
-        catch (IOException)
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
+            FileLog.Warn($"templates directory unavailable: {exception.Message}");
             return;
         }
 
@@ -473,6 +474,34 @@ public sealed partial class NotesPage
         TemplateMenu.Items.Add(saveItem);
     }
 
+    /// <summary>Templates used to live in a root-level .templates directory, which is
+    /// outside the fixed vault layout. Move app-created templates under .meta once.</summary>
+    private string EnsureTemplatesDirectory()
+    {
+        string root = _services.Vault.VaultPath;
+        string templatesPath = Path.Combine(root, VaultLayout.TemplatesDirectory);
+        Directory.CreateDirectory(templatesPath);
+
+        string legacyPath = Path.Combine(root, ".templates");
+        if (!Directory.Exists(legacyPath))
+        {
+            return templatesPath;
+        }
+
+        foreach (string legacyFile in Directory.EnumerateFiles(legacyPath, "*.md"))
+        {
+            string destination = Path.Combine(templatesPath, Path.GetFileName(legacyFile));
+            File.Move(legacyFile, destination, overwrite: true);
+        }
+
+        if (!Directory.EnumerateFileSystemEntries(legacyPath).Any())
+        {
+            Directory.Delete(legacyPath);
+        }
+
+        return templatesPath;
+    }
+
     private async void TemplateItem_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not MenuFlyoutItem item || item.Tag is not string path)
@@ -496,6 +525,22 @@ public sealed partial class NotesPage
     }
 
     private async void SaveAsTemplateItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await SaveAsTemplateAsync();
+        }
+        catch (Exception exception)
+        {
+            ShowError(
+                Strings.Get("NotesTemplateFailedTitle"),
+                Describe(exception),
+                RetryOperation.None,
+                null);
+        }
+    }
+
+    private async Task SaveAsTemplateAsync()
     {
         if (SelectedNote is null)
         {
@@ -528,13 +573,29 @@ public sealed partial class NotesPage
             return;
         }
 
-        string folder = Path.Combine(_services.Vault.VaultPath, ".templates");
+        string folder = Path.Combine(_services.Vault.VaultPath, VaultLayout.TemplatesDirectory);
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, name + ".md"), NoteEditor.Text);
         LoadTemplateMenu();
     }
 
     private async void DailyNoteButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            await CreateDailyNoteAsync();
+        }
+        catch (Exception exception)
+        {
+            ShowError(
+                Strings.Get("NotesTemplateFailedTitle"),
+                Describe(exception),
+                RetryOperation.None,
+                null);
+        }
+    }
+
+    private async Task CreateDailyNoteAsync()
     {
         string title = DateTime.Now.ToString("yyyy-MM-dd");
         Note? existing = ViewModel.AllNotes.FirstOrDefault(note =>
@@ -546,7 +607,10 @@ public sealed partial class NotesPage
         }
 
         string body = $"# {title}\n\n";
-        string dailyTemplate = Path.Combine(_services.Vault.VaultPath, ".templates", "Daily.md");
+        string dailyTemplate = Path.Combine(
+            _services.Vault.VaultPath,
+            VaultLayout.TemplatesDirectory,
+            "Daily.md");
         if (File.Exists(dailyTemplate))
         {
             body = (await File.ReadAllTextAsync(dailyTemplate)).Replace("{date}", title);
@@ -734,15 +798,15 @@ public sealed partial class NotesPage
             return;
         }
 
-        DataPackageView content = Clipboard.GetContent();
-        if (!content.Contains(StandardDataFormats.Bitmap))
-        {
-            return;
-        }
-
         e.Handled = true;
         try
         {
+            DataPackageView content = Clipboard.GetContent();
+            if (!content.Contains(StandardDataFormats.Bitmap))
+            {
+                return;
+            }
+
             string? path = await AttachmentStore.SaveClipboardImageAsync(store);
             if (path is not null)
             {
@@ -782,7 +846,21 @@ public sealed partial class NotesPage
             return;
         }
 
-        var items = await e.DataView.GetStorageItemsAsync();
+        IReadOnlyList<global::Windows.Storage.IStorageItem> items;
+        try
+        {
+            items = await e.DataView.GetStorageItemsAsync();
+        }
+        catch (Exception exception)
+        {
+            ShowError(
+                Strings.Get("NotesAttachmentFailedTitle"),
+                Describe(exception),
+                RetryOperation.None,
+                null);
+            return;
+        }
+
         foreach (var item in items.OfType<StorageFile>())
         {
             try
@@ -815,10 +893,30 @@ public sealed partial class NotesPage
     // ---------- 单篇导出、复制与独立窗口 ----------
 
     private async void ExportMarkdownButton_Click(object sender, RoutedEventArgs e)
-        => await ExportSelectedNoteAsync(".md", "NotesExportMarkdownType", markdown: true);
+    {
+        await ExportSafelyAsync(".md", "NotesExportMarkdownType", markdown: true);
+    }
 
     private async void ExportHtmlButton_Click(object sender, RoutedEventArgs e)
-        => await ExportSelectedNoteAsync(".html", "NotesExportHtmlType", markdown: false);
+    {
+        await ExportSafelyAsync(".html", "NotesExportHtmlType", markdown: false);
+    }
+
+    private async Task ExportSafelyAsync(string extension, string typeKey, bool markdown)
+    {
+        try
+        {
+            await ExportSelectedNoteAsync(extension, typeKey, markdown);
+        }
+        catch (Exception exception)
+        {
+            ShowError(
+                Strings.Get("NotesExportFailedTitle"),
+                Describe(exception),
+                RetryOperation.None,
+                null);
+        }
+    }
 
     private async Task ExportSelectedNoteAsync(string extension, string typeKey, bool markdown)
     {
@@ -874,10 +972,21 @@ public sealed partial class NotesPage
             return;
         }
 
-        DataPackage package = new();
-        package.SetText(NoteEditor.Text);
-        Clipboard.SetContent(package);
-        SaveStatusTextBlock.Text = Strings.Get("NotesCopyDone");
+        try
+        {
+            DataPackage package = new();
+            package.SetText(NoteEditor.Text);
+            Clipboard.SetContent(package);
+            SaveStatusTextBlock.Text = Strings.Get("NotesCopyDone");
+        }
+        catch (Exception exception)
+        {
+            ShowError(
+                Strings.Get("NotesCopyFailedTitle"),
+                Describe(exception),
+                RetryOperation.None,
+                null);
+        }
     }
 
     private async void OpenWindowButton_Click(object sender, RoutedEventArgs e)

@@ -17,6 +17,7 @@ public static class WindowHelper
     {
         window.Closed += (_, _) => ActiveWindowList.Remove(window);
         ActiveWindowList.Add(window);
+        ThemeHelper.ApplyToWindow(window);
     }
 
     public static void SetWindowMinSize(Window window, double width, double height)

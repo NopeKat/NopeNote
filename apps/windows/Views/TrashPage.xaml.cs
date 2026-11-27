@@ -15,7 +15,8 @@ public sealed class TrashItem
     public TrashItem(TrashNoteSummary summary)
     {
         Id = summary.Id;
-        Title = summary.Title;
+        Title = NoteTitle.Display(summary.Title);
+        IsAvailable = summary.IsAvailable;
         Details = Strings.Format(
             "TrashItemDetails",
             summary.DeletedAt.LocalDateTime.ToString("g"),
@@ -25,6 +26,8 @@ public sealed class TrashItem
     public Guid Id { get; }
 
     public string Title { get; }
+
+    public bool IsAvailable { get; }
 
     public string Details { get; }
 }
@@ -129,9 +132,9 @@ public sealed partial class TrashPage : Page
     private void UpdateActionState()
     {
         bool writable = _services.Vault.IsWritable;
-        bool hasSelection = TrashList.SelectedItem is TrashItem;
-        RestoreButton.IsEnabled = !_isLoading && writable && hasSelection;
-        PurgeButton.IsEnabled = !_isLoading && writable && hasSelection;
+        bool hasAvailableSelection = TrashList.SelectedItem is TrashItem { IsAvailable: true };
+        RestoreButton.IsEnabled = !_isLoading && writable && hasAvailableSelection;
+        PurgeButton.IsEnabled = !_isLoading && writable && TrashList.SelectedItem is TrashItem;
     }
 
     private void UpdateEmptyState()

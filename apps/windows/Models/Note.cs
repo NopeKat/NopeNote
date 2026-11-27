@@ -42,7 +42,7 @@ public sealed class Note : INotifyPropertyChanged
         _text = text;
         _savedText = text;
         _updated = updated;
-        DisplayTitle = title;
+        DisplayTitle = NoteTitle.Display(title);
         Tags = tags;
         IsPinned = pinned;
         Folder = folder;
@@ -131,6 +131,8 @@ public sealed class Note : INotifyPropertyChanged
 
     public DateTime Date => _updated.LocalDateTime;
 
+    public DateTimeOffset Updated => _updated;
+
     public bool HasUnsavedChanges
         => IsDraft || !string.Equals(Text, _savedText, StringComparison.Ordinal);
 
@@ -197,7 +199,7 @@ public sealed class Note : INotifyPropertyChanged
 
         _savedText = document.Body;
         _updated = document.Summary.Updated;
-        DisplayTitle = document.Summary.Title;
+        DisplayTitle = NoteTitle.Display(document.Summary.Title);
         Tags = document.Summary.Tags;
         IsPinned = document.Summary.Pinned;
         Folder = document.Summary.Folder;
@@ -224,7 +226,7 @@ public sealed class Note : INotifyPropertyChanged
         _text = document.Body;
         _savedText = document.Body;
         _updated = document.Summary.Updated;
-        DisplayTitle = document.Summary.Title;
+        DisplayTitle = NoteTitle.Display(document.Summary.Title);
         Tags = document.Summary.Tags;
         IsPinned = document.Summary.Pinned;
         Folder = document.Summary.Folder;
@@ -236,8 +238,25 @@ public sealed class Note : INotifyPropertyChanged
         OnPropertyChanged(nameof(PinVisibility));
     }
 
+    /// <summary>After a conflict, rebase the optimistic token on what is on disk so
+    /// the next explicit save no longer conflicts with the same revision. The local
+    /// editor text is intentionally kept; only the saved baseline moves.</summary>
+    public async Task RefreshBaseAsync(IVaultStore store)
+    {
+        NoteDocument? document = await store.ReadNoteAsync(Id);
+        if (document is null)
+        {
+            return;
+        }
+
+        _savedText = document.Body;
+        _updated = document.Summary.Updated;
+        OnPropertyChanged(nameof(Date));
+    }
+
     private static string DeriveTitle(string text)
     {
+        string? fallback = null;
         foreach (string line in text.Split('\n'))
         {
             string trimmed = line.Trim();
@@ -251,10 +270,14 @@ public sealed class Note : INotifyPropertyChanged
                 return trimmed[2..].Trim();
             }
 
-            return trimmed.Length <= 80 ? trimmed : trimmed[..80];
+            if (fallback is null)
+            {
+                string plain = trimmed.TrimStart('-', '*', '>', '#', ' ');
+                fallback = plain.Length <= 80 ? plain : plain[..80];
+            }
         }
 
-        return Strings.Get("NotesUntitled");
+        return fallback ?? Strings.Get("NotesUntitled");
     }
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

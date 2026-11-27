@@ -21,6 +21,10 @@ public static class VaultLayout
 
     public const string ConflictsDirectory = ".sync/conflicts";
 
+    /// <summary>User templates live under the already-allowed .meta root, not as a
+    /// new root entry that would violate the fixed root layout.</summary>
+    public const string TemplatesDirectory = ".meta/templates";
+
     public static IReadOnlyList<string> RequiredDirectories { get; } = new[]
     {
         ".vault",

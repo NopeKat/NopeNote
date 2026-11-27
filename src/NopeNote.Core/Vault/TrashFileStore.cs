@@ -37,7 +37,7 @@ internal sealed class TrashFileStore
             id,
             current.Summary.Created,
             current.Summary.Updated,
-            current.Summary.Title,
+            NoteFrontMatterWriter.TitleForWrite(current.FrontMatterLines, current.Summary.Title, null),
             current.Summary.Tags,
             current.Summary.Pinned,
             current.Body,
@@ -82,7 +82,7 @@ internal sealed class TrashFileStore
             id,
             trashed.Summary.Created,
             updated,
-            trashed.Summary.Title,
+            NoteFrontMatterWriter.TitleForWrite(trashed.FrontMatterLines, trashed.Summary.Title, null),
             trashed.Summary.Tags,
             trashed.Summary.Pinned,
             trashed.Body,
@@ -165,7 +165,28 @@ internal sealed class TrashFileStore
                 continue;
             }
 
-            string text = File.ReadAllText(path);
+            string text;
+            try
+            {
+                text = File.ReadAllText(path);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // Spec 12.4: one unavailable file must not fail the whole listing.
+                DateTimeOffset stamp;
+                try
+                {
+                    stamp = new DateTimeOffset(File.GetLastWriteTimeUtc(path));
+                }
+                catch (Exception)
+                {
+                    stamp = VaultStorage.UtcNowSeconds();
+                }
+
+                items.Add(new TrashNoteSummary(id, "(Unreadable note)", stamp, stamp, IsAvailable: false));
+                continue;
+            }
+
             string title;
             DateTimeOffset updated;
 

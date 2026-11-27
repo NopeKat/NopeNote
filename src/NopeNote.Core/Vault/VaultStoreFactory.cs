@@ -110,6 +110,15 @@ public static class VaultStoreFactory
                 metadata.Schema);
         }
 
+        if (metadata.FormatVersion < 1)
+        {
+            return new VaultOpenResult(
+                VaultOpenStatus.NotAVault,
+                null,
+                VaultProblem.FormatInvalid,
+                "formatVersion must be a positive integer.");
+        }
+
         if (metadata.FormatVersion > 1)
         {
             var readOnlyStore = new LocalVaultStore(

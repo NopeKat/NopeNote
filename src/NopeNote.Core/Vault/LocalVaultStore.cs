@@ -22,6 +22,7 @@ public sealed class LocalVaultStore : IVaultStore
         Capabilities = capabilities;
 
         var storage = new VaultStorage(rootPath, capabilities);
+        storage.ClearTempDirectory();
         _history = new HistoryStore(storage);
         _notes = new NoteFileStore(storage, _history, NormalizeDeviceId(deviceId));
         _trash = new TrashFileStore(storage, _history);

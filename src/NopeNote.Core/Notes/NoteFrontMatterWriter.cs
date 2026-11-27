@@ -94,6 +94,41 @@ public static class NoteFrontMatterWriter
     public static string NormalizeBody(string body)
         => body.Replace("\r\n", "\n").Replace('\r', '\n');
 
+    /// <summary>
+    /// A derived title must not be materialised into front matter: doing so freezes
+    /// the title and stops it from following the body on later saves. Only an
+    /// explicitly requested title, or a title that already exists in front matter,
+    /// is written back.
+    /// </summary>
+    public static string? TitleForWrite(
+        IReadOnlyList<string>? frontMatterLines,
+        string? currentTitle,
+        string? requestedTitle)
+    {
+        if (requestedTitle is not null)
+        {
+            return requestedTitle;
+        }
+
+        return frontMatterLines is not null && HasFrontMatterKey(frontMatterLines, "title")
+            ? currentTitle
+            : null;
+    }
+
+    public static bool HasFrontMatterKey(IReadOnlyList<string> lines, string key)
+    {
+        foreach (string line in lines)
+        {
+            int colon = line.IndexOf(':');
+            if (colon > 0 && string.Equals(line[..colon].Trim(), key, StringComparison.Ordinal))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static string FormatTimestamp(DateTimeOffset value)
         => value.ToUniversalTime().ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
 

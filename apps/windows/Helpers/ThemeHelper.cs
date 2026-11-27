@@ -33,14 +33,19 @@ public static class ThemeHelper
              Application.Current.RequestedTheme == ApplicationTheme.Dark);
     }
 
+    public static void ApplyToWindow(Window window)
+    {
+        if (window.Content is FrameworkElement root)
+        {
+            root.RequestedTheme = _rootTheme;
+        }
+    }
+
     private static void Apply(ElementTheme theme)
     {
         foreach (Window window in WindowHelper.ActiveWindows)
         {
-            if (window.Content is FrameworkElement root)
-            {
-                root.RequestedTheme = theme;
-            }
+            ApplyToWindow(window);
         }
     }
 }

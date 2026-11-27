@@ -33,10 +33,12 @@ public static class VaultMetadataReader
                 : 0;
 
             Guid repoId = Guid.Empty;
+            string repoIdText = string.Empty;
             if (root.TryGetProperty("repoId", out JsonElement repoElement) &&
                 repoElement.ValueKind == JsonValueKind.String)
             {
-                Guid.TryParse(repoElement.GetString(), out repoId);
+                repoIdText = repoElement.GetString() ?? string.Empty;
+                Guid.TryParse(repoIdText, out repoId);
             }
 
             DateTimeOffset createdAt = DateTimeOffset.MinValue;
@@ -53,7 +55,10 @@ public static class VaultMetadataReader
             bool encrypted = root.TryGetProperty("encryption", out JsonElement encryptionElement) &&
                              encryptionElement.ValueKind != JsonValueKind.Null;
 
-            return new VaultMetadata(schema, formatVersion, repoId, createdAt, encrypted);
+            return new VaultMetadata(schema, formatVersion, repoId, createdAt, encrypted)
+            {
+                RepoIdText = repoIdText,
+            };
         }
         catch (JsonException exception)
         {

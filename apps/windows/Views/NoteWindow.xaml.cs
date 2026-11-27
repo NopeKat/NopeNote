@@ -57,26 +57,38 @@ public sealed partial class NoteWindow : Window
 
     private async Task LoadAsync()
     {
-        VaultOpenResult opened = await _services.Vault.GetVaultAsync();
-        if (opened.Store is null)
+        try
         {
-            ShowError(VaultProblemText.Describe(opened));
-            return;
-        }
+            VaultOpenResult opened = await _services.Vault.GetVaultAsync();
+            if (opened.Store is null)
+            {
+                ShowError(VaultProblemText.Describe(opened));
+                return;
+            }
 
-        NoteDocument? document = await opened.Store.ReadNoteAsync(_noteId);
-        if (document is null)
+            NoteDocument? document = await opened.Store.ReadNoteAsync(_noteId);
+            if (document is null)
+            {
+                ShowError(Strings.Get("NoteWindowMissing"));
+                return;
+            }
+
+            _document = document;
+            Editor.Text = document.Body;
+            _savedText = document.Body;
+            TitleTextBlock.Text = NoteTitle.Display(document.Summary.Title);
+            Editor.IsEnabled = true;
+        }
+        catch (Exception exception)
         {
-            ShowError(Strings.Get("NoteWindowMissing"));
-            return;
+            ShowError(Describe(exception));
         }
-
-        _document = document;
-        Editor.Text = document.Body;
-        _savedText = document.Body;
-        TitleTextBlock.Text = document.Summary.Title;
-        Editor.IsEnabled = true;
     }
+
+    private static string Describe(Exception exception)
+        => string.IsNullOrWhiteSpace(exception.Message)
+            ? exception.GetType().Name
+            : exception.Message;
 
     private void Editor_TextChanged(object sender, TextChangedEventArgs e)
     {
@@ -150,7 +162,7 @@ public sealed partial class NoteWindow : Window
                 expectedUpdated: _document.Summary.Updated);
             _document = updated;
             _savedText = updated.Body;
-            TitleTextBlock.Text = updated.Summary.Title;
+            TitleTextBlock.Text = NoteTitle.Display(updated.Summary.Title);
             StatusTextBlock.Text = Strings.Get("NoteWindowSaved");
             UpdateBodySizeStatus();
             _services.Vault.NotifyDataChanged();
@@ -158,6 +170,22 @@ public sealed partial class NoteWindow : Window
         }
         catch (VaultConflictException conflict)
         {
+            // 本地版本已写进冲突副本；把基准刷新到磁盘最新版，下一次保存不再
+            // 重复撞同一个旧 revision。编辑器里的本地文本保持不变。
+            try
+            {
+                NoteDocument? current = await store.ReadNoteAsync(_noteId);
+                if (current is not null)
+                {
+                    _document = current;
+                    _savedText = current.Body;
+                }
+            }
+            catch (Exception exception)
+            {
+                FileLog.Warn($"conflict rebase failed: {exception.Message}");
+            }
+
             ShowConflict(conflict.ConflictPath, store.RootPath);
             return false;
         }

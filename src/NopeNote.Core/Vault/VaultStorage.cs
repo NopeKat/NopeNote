@@ -64,8 +64,17 @@ internal sealed class VaultStorage
         }
         catch (TimeoutException)
         {
-            // The gate is released when the abandoned task finishes, never before.
-            throw new VaultTimeoutException(timeout);
+            // Give the abandoned task one more bounded wait so a write that was
+            // merely slow can finish before we report a result. Only when it is
+            // still running after that do we admit the outcome is unknown.
+            try
+            {
+                return await task.WaitAsync(timeout, CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (TimeoutException)
+            {
+                throw new VaultTimeoutException(timeout, mayHaveCompleted: true);
+            }
         }
         finally
         {
@@ -92,7 +101,14 @@ internal sealed class VaultStorage
         }
         catch (TimeoutException)
         {
-            throw new VaultTimeoutException(timeout);
+            try
+            {
+                await task.WaitAsync(timeout, CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (TimeoutException)
+            {
+                throw new VaultTimeoutException(timeout, mayHaveCompleted: true);
+            }
         }
         finally
         {
@@ -110,6 +126,44 @@ internal sealed class VaultStorage
         if (!Capabilities.Writable)
         {
             throw new VaultReadOnlyException("vault was opened read-only; writes are disabled.");
+        }
+    }
+
+    /// <summary>Spec 2.2/11.4: clear leftover temp files when a writable vault opens.
+    /// Required subdirectories are kept; only their contents are removed.</summary>
+    internal void ClearTempDirectory()
+    {
+        if (!Capabilities.Writable)
+        {
+            return;
+        }
+
+        string tempRoot = Path.Combine(RootPath, ".tmp");
+        if (!Directory.Exists(tempRoot))
+        {
+            return;
+        }
+
+        IEnumerable<string> files;
+        try
+        {
+            files = Directory.EnumerateFiles(tempRoot, "*", SearchOption.AllDirectories);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            return;
+        }
+
+        foreach (string file in files)
+        {
+            try
+            {
+                File.Delete(file);
+            }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+            {
+                // A file still held by another process is left for the next startup.
+            }
         }
     }
 
