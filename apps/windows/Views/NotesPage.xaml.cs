@@ -24,6 +24,8 @@ public sealed partial class NotesPage : Page
         DeleteNote
     }
 
+    private static readonly TimeSpan PreviewRefreshDelay = TimeSpan.FromMilliseconds(200);
+
     private bool _isSaving;
     private bool _isLoadingNotes;
     private bool _loadFailed;
@@ -36,6 +38,7 @@ public sealed partial class NotesPage : Page
     private RetryOperation _retryOperation = RetryOperation.None;
     private string? _conflictPath;
     private readonly DispatcherTimer _autoSaveTimer = new();
+    private readonly DispatcherTimer _previewTimer = new();
     private AppServices _services = null!;
 
     public NotesPage()
@@ -50,6 +53,8 @@ public sealed partial class NotesPage : Page
         InitializeFeatures();
         _autoSaveTimer.Interval = TimeSpan.FromSeconds(1.2);
         _autoSaveTimer.Tick += AutoSaveTimer_Tick;
+        _previewTimer.Interval = PreviewRefreshDelay;
+        _previewTimer.Tick += PreviewTimer_Tick;
         Loaded += NotesPage_Loaded;
         SizeChanged += NotesPage_SizeChanged;
         Unloaded += NotesPage_Unloaded;
@@ -92,6 +97,7 @@ public sealed partial class NotesPage : Page
     {
         _services.Vault.CommitFailed -= OnGitCommitFailed;
         _autoSaveTimer.Stop();
+        _previewTimer.Stop();
         await PersistEditorTextAsync();
     }
 
@@ -118,6 +124,13 @@ public sealed partial class NotesPage : Page
         }
 
         _autoSaveTimer.Start();
+        _previewTimer.Stop();
+        _previewTimer.Start();
+    }
+
+    private void PreviewTimer_Tick(object? sender, object e)
+    {
+        _previewTimer.Stop();
         RefreshPreviewIfVisible();
     }
 

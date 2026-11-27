@@ -700,6 +700,7 @@ public sealed partial class NotesPage
 
         if (_previewVisible)
         {
+            _previewTimer.Stop();
             RefreshPreview();
         }
     }
