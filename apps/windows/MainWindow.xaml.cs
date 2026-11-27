@@ -18,10 +18,10 @@ public sealed partial class MainWindow : Window
     private bool _isNavigating;
     private object? _navItemBeforePress;
     private bool _paneOpenBeforePress;
-    private bool _closeConfirmed;
-    private bool _closeFlowRunning;
     private QuickCaptureWindow? _quickCaptureWindow;
     private readonly AppServices _services;
+    private readonly AppLockGate _appLock;
+    private readonly WindowCloseCoordinator _closeFlow;
 
     public MainWindow(AppServices services)
     {
@@ -35,6 +35,12 @@ public sealed partial class MainWindow : Window
         AppWindow.Closing += AppWindow_Closing;
 
         RootGrid.ActualThemeChanged += RootGrid_ActualThemeChanged;
+
+        _appLock = new AppLockGate(_services.Settings);
+        _closeFlow = new WindowCloseCoordinator(
+            () => ContentFrame.XamlRoot,
+            HasPendingWork,
+            SavePendingWorkAsync);
 
         try
         {
@@ -59,58 +65,7 @@ public sealed partial class MainWindow : Window
         GlobalHotkey.RegisterQuickCapture(WindowHelper.GetWindowHandle(this), ShowQuickCapture);
     }
 
-    internal async Task<bool> EnsureUnlockedAsync()
-    {
-        if (!_services.Settings.HasAppLock)
-        {
-            return true;
-        }
-
-        string? error = null;
-        while (true)
-        {
-            XamlRoot? root = RootGrid.XamlRoot;
-            if (root is null)
-            {
-                await Task.Delay(100);
-                continue;
-            }
-
-            PasswordBox input = new() { PlaceholderText = Strings.Get("AppLockPasswordPlaceholder") };
-            StackPanel panel = new() { Spacing = 8 };
-            panel.Children.Add(input);
-            if (error is not null)
-            {
-                panel.Children.Add(new TextBlock { Text = error, TextWrapping = TextWrapping.Wrap });
-            }
-
-            ContentDialog dialog = new()
-            {
-                XamlRoot = root,
-                Title = Strings.Get("AppLockTitle"),
-                Content = panel,
-                PrimaryButtonText = Strings.Get("AppLockUnlock"),
-                CloseButtonText = Strings.Get("AppLockExit"),
-                DefaultButton = ContentDialogButton.Primary,
-            };
-
-            if (await dialog.ShowAsync() != ContentDialogResult.Primary)
-            {
-                return false;
-            }
-
-            if (PasswordHasher.Verify(
-                    input.Password,
-                    _services.Settings.AppLockSalt,
-                    _services.Settings.AppLockHash))
-            {
-                return true;
-            }
-
-            error = Strings.Get("AppLockWrongPassword");
-            await Task.Delay(50);
-        }
-    }
+    internal Task<bool> EnsureUnlockedAsync() => _appLock.UnlockAsync(() => RootGrid.XamlRoot);
 
     private void RootGrid_Loaded(object sender, RoutedEventArgs e)
     {
@@ -268,87 +223,32 @@ public sealed partial class MainWindow : Window
         Close();
     }
 
+    private bool HasPendingWork()
+        => _services.Vault.HasPendingCommits ||
+            (ContentFrame.Content is NotesPage notes && notes.HasUnsavedWork());
+
+    private async Task<bool> SavePendingWorkAsync()
+    {
+        bool saved = ContentFrame.Content is not NotesPage page || await page.FlushBeforeCloseAsync();
+        return saved && await _services.Vault.FlushCommitsAsync(TimeSpan.FromSeconds(10));
+    }
+
     private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
     {
         // 主题这类高频改动是延迟写盘的，关窗前先把它们落盘。
         _services.Settings.FlushDeferred();
 
-        if (_closeConfirmed)
+        if (await _closeFlow.HandleAsync(args) == WindowCloseOutcome.CloseNow)
         {
-            return;
-        }
-
-        if (_closeFlowRunning)
-        {
-            args.Cancel = true;
-            return;
-        }
-
-        bool hasWork = _services.Vault.HasPendingCommits ||
-            (ContentFrame.Content is NotesPage notes && notes.HasUnsavedWork());
-
-        if (!hasWork)
-        {
-            return;
-        }
-
-        args.Cancel = true;
-        _closeFlowRunning = true;
-
-        bool canClose = false;
-        try
-        {
-            bool saved = true;
-            if (ContentFrame.Content is NotesPage page)
-            {
-                saved = await page.FlushBeforeCloseAsync();
-            }
-
-            bool committed = saved &&
-                await _services.Vault.FlushCommitsAsync(TimeSpan.FromSeconds(10));
-
-            canClose = saved && committed
-                ? true
-                : await ConfirmCloseWithoutSavingAsync();
-        }
-        finally
-        {
-            _closeFlowRunning = false;
-        }
-
-        if (canClose)
-        {
-            _closeConfirmed = true;
             Close();
         }
-    }
-
-    private async Task<bool> ConfirmCloseWithoutSavingAsync()
-    {
-        ContentDialog dialog = new()
-        {
-            XamlRoot = ContentFrame.XamlRoot,
-            Title = Strings.Get("CloseUnsavedTitle"),
-            Content = Strings.Get("CloseUnsavedBody"),
-            PrimaryButtonText = Strings.Get("CloseUnsavedPrimary"),
-            CloseButtonText = Strings.Get("CloseUnsavedCancel"),
-            DefaultButton = ContentDialogButton.Close,
-        };
-
-        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     private async void WaitForIdleInvokerButton_Click(object sender, RoutedEventArgs e)
     {
         IdleStateEnteredCheckBox.IsChecked = false;
 
-        // 探测放到后台，结果回到 UI 线程再写入辅助控件。
-        string error = string.Empty;
-        string log = string.Empty;
-        await Task.Run(() =>
-        {
-            error = IdleSynchronizer.TryWait(out log);
-        });
+        (string error, string log) = await AutomationIdleProbe.RunAsync();
 
         ErrorReportingTextBox.Text = error;
         LogReportingTextBox.Text = log;
