@@ -1,26 +1,15 @@
-using System.Globalization;
-using System.Security.Cryptography;
-using System.Text;
 using NopeNote.Core.Notes;
 
 namespace NopeNote.Core.Vault;
 
+/// <summary>Vault store backed by plain files. The work is split across
+/// <see cref="NoteFileStore"/>, <see cref="TrashFileStore"/> and
+/// <see cref="HistoryStore"/>, which share one <see cref="VaultStorage"/> gate.</summary>
 public sealed class LocalVaultStore : IVaultStore
 {
-    private static readonly UTF8Encoding Utf8NoBom = new(encoderShouldEmitUTF8Identifier: false);
-    private static readonly TimeSpan SnapshotThrottle = TimeSpan.FromMinutes(1);
-    private static readonly TimeSpan ReadTimeout = TimeSpan.FromSeconds(10);
-    private static readonly TimeSpan WriteTimeout = TimeSpan.FromSeconds(30);
-
-    private readonly string _notesDirectory;
-    private readonly string _trashDirectory;
-    private readonly string _historyDirectory;
-    private readonly string _conflictsDirectory;
-    private readonly string _deviceId;
-
-    // All vault IO runs off the calling thread and is serialized here so
-    // writes and reads never interleave on the same files.
-    private readonly SemaphoreSlim _ioGate = new(1, 1);
+    private readonly NoteFileStore _notes;
+    private readonly TrashFileStore _trash;
+    private readonly HistoryStore _history;
 
     public LocalVaultStore(
         string rootPath,
@@ -31,14 +20,18 @@ public sealed class LocalVaultStore : IVaultStore
         RootPath = rootPath;
         Metadata = metadata;
         Capabilities = capabilities;
-        _deviceId = NormalizeDeviceId(deviceId);
-        _notesDirectory = Path.Combine(rootPath, ".vault", "notes");
-        _trashDirectory = Path.Combine(rootPath, ".trash");
-        _historyDirectory = Path.Combine(rootPath, ".history");
-        _conflictsDirectory = Path.Combine(rootPath, ".sync", "conflicts");
+
+        var storage = new VaultStorage(rootPath, capabilities);
+        _history = new HistoryStore(storage);
+        _notes = new NoteFileStore(storage, _history, NormalizeDeviceId(deviceId));
+        _trash = new TrashFileStore(storage, _history);
     }
 
     public string RootPath { get; }
+
+    public VaultMetadata Metadata { get; }
+
+    public VaultCapabilities Capabilities { get; }
 
     /// <summary>Keeps only 8-character lowercase ids; anything else falls back.</summary>
     private static string NormalizeDeviceId(string? deviceId)
@@ -61,75 +54,11 @@ public sealed class LocalVaultStore : IVaultStore
         return deviceId;
     }
 
-    public VaultMetadata Metadata { get; }
-
-    public VaultCapabilities Capabilities { get; }
-
     public Task<NoteScanResult> ScanNotesAsync(CancellationToken cancellationToken = default)
-        => RunAsync(() => ScanNotesCore(cancellationToken), ReadTimeout, cancellationToken);
-
-    private NoteScanResult ScanNotesCore(CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var notes = new List<NoteSummary>();
-        var issues = new List<VaultIssue>();
-
-        if (!Directory.Exists(_notesDirectory))
-        {
-            return new NoteScanResult(notes, issues);
-        }
-
-        foreach (string path in Directory.EnumerateFiles(_notesDirectory, "*.md", SearchOption.TopDirectoryOnly))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            string relativePath = $".vault/notes/{Path.GetFileName(path)}";
-
-            if (!TryParseCanonicalId(Path.GetFileNameWithoutExtension(path), out Guid id))
-            {
-                issues.Add(new VaultIssue(relativePath, "file name is not a canonical UUID."));
-                continue;
-            }
-
-            try
-            {
-                NoteDocument document = ReadDocument(id, relativePath, File.ReadAllText(path));
-                notes.Add(document.Summary);
-            }
-            catch (VaultFormatException exception)
-            {
-                issues.Add(new VaultIssue(relativePath, exception.Message));
-            }
-            catch (IOException exception)
-            {
-                issues.Add(new VaultIssue(relativePath, exception.Message));
-            }
-        }
-
-        notes.Sort(static (left, right) =>
-        {
-            int byUpdated = right.Updated.CompareTo(left.Updated);
-            return byUpdated != 0 ? byUpdated : right.Id.CompareTo(left.Id);
-        });
-
-        return new NoteScanResult(notes, issues);
-    }
+        => _notes.ScanAsync(cancellationToken);
 
     public Task<NoteDocument?> ReadNoteAsync(Guid id, CancellationToken cancellationToken = default)
-        => RunAsync(() => ReadNoteCore(id, cancellationToken), ReadTimeout, cancellationToken);
-
-    private NoteDocument? ReadNoteCore(Guid id, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string? text = ReadNoteFile(id);
-        if (text is null)
-        {
-            return null;
-        }
-
-        return ReadDocument(id, NoteRelativePath(id), text);
-    }
+        => _notes.ReadAsync(id, cancellationToken);
 
     public Task<NoteDocument> CreateNoteAsync(
         string title,
@@ -140,45 +69,7 @@ public sealed class LocalVaultStore : IVaultStore
         DateTimeOffset? updatedAt = null,
         string? folder = null,
         CancellationToken cancellationToken = default)
-        => RunAsync(
-            () => CreateNoteCore(title, body, tags, pinned, createdAt, updatedAt, folder, cancellationToken),
-            WriteTimeout,
-            cancellationToken);
-
-    private NoteDocument CreateNoteCore(
-        string title,
-        string body,
-        IReadOnlyList<string>? tags,
-        bool pinned,
-        DateTimeOffset? createdAt,
-        DateTimeOffset? updatedAt,
-        string? folder,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        EnsureWritable();
-
-        Guid id = Guid.NewGuid();
-        DateTimeOffset created = createdAt ?? UtcNowSeconds();
-        DateTimeOffset updated = updatedAt ?? (created > UtcNowSeconds() ? created : UtcNowSeconds());
-        if (updated < created)
-        {
-            updated = created;
-        }
-
-        string text = NoteFrontMatterWriter.Build(
-            id,
-            created,
-            updated,
-            title,
-            tags ?? Array.Empty<string>(),
-            pinned,
-            body,
-            folder: folder);
-
-        WriteText(NotePath(id), text);
-        return ReadDocument(id, NoteRelativePath(id), text);
-    }
+        => _notes.CreateAsync(title, body, tags, pinned, createdAt, updatedAt, folder, cancellationToken);
 
     public Task<NoteDocument> UpdateNoteAsync(
         Guid id,
@@ -189,693 +80,35 @@ public sealed class LocalVaultStore : IVaultStore
         DateTimeOffset? expectedUpdated = null,
         string? folder = null,
         CancellationToken cancellationToken = default)
-        => RunAsync(
-            () => UpdateNoteCore(id, body, title, tags, pinned, expectedUpdated, folder, cancellationToken),
-            WriteTimeout,
-            cancellationToken);
-
-    private NoteDocument UpdateNoteCore(
-        Guid id,
-        string? body,
-        string? title,
-        IReadOnlyList<string>? tags,
-        bool? pinned,
-        DateTimeOffset? expectedUpdated,
-        string? folder,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        EnsureWritable();
-
-        string? currentText = ReadNoteFile(id);
-        if (currentText is null)
-        {
-            throw new VaultNoteNotFoundException(id);
-        }
-
-        NoteDocument current = ReadDocument(id, NoteRelativePath(id), currentText);
-        DateTimeOffset updated = NextUpdated(current.Summary.Updated);
-        string noteBody = body ?? current.Body;
-
-        string text = NoteFrontMatterWriter.Build(
-            id,
-            current.Summary.Created,
-            updated,
-            title ?? current.Summary.Title,
-            tags ?? current.Summary.Tags,
-            pinned ?? current.Summary.Pinned,
-            noteBody,
-            current.FrontMatterLines,
-            folder: folder ?? current.Summary.Folder);
-
-        if (expectedUpdated.HasValue && expectedUpdated.Value != current.Summary.Updated)
-        {
-            string conflictPath = WriteConflictCopy(id, text);
-            throw new VaultConflictException(conflictPath);
-        }
-
-        WriteSnapshotIfNeeded(id, currentText, updated);
-        WriteText(NotePath(id), text, currentText);
-
-        return ReadDocument(id, NoteRelativePath(id), text);
-    }
+        => _notes.UpdateAsync(id, body, title, tags, pinned, expectedUpdated, folder, cancellationToken);
 
     public Task TrashNoteAsync(Guid id, CancellationToken cancellationToken = default)
-        => RunAsync(() => TrashNoteCore(id, cancellationToken), WriteTimeout, cancellationToken);
-
-    private void TrashNoteCore(Guid id, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        EnsureWritable();
-
-        string? currentText = ReadNoteFile(id);
-        if (currentText is null)
-        {
-            throw new VaultNoteNotFoundException(id);
-        }
-
-        NoteDocument current = ReadDocument(id, NoteRelativePath(id), currentText);
-        DateTimeOffset deletedAt = UtcNowSeconds();
-
-        string text = NoteFrontMatterWriter.Build(
-            id,
-            current.Summary.Created,
-            current.Summary.Updated,
-            current.Summary.Title,
-            current.Summary.Tags,
-            current.Summary.Pinned,
-            current.Body,
-            current.FrontMatterLines,
-            deletedAt,
-            current.Summary.Folder);
-
-        // One rename and then an in-place rewrite: if the process dies between the two
-        // steps the note carries no deletedAt yet, but it never exists in both places.
-        string trashPath = TrashPath(id);
-        MoveVaultFile(NotePath(id), trashPath);
-        try
-        {
-            WriteText(trashPath, text, currentText);
-        }
-        catch
-        {
-            MoveVaultFile(trashPath, NotePath(id));
-            throw;
-        }
-    }
+        => _trash.TrashAsync(id, cancellationToken);
 
     public Task RestoreNoteAsync(Guid id, CancellationToken cancellationToken = default)
-        => RunAsync(() => RestoreNoteCore(id, cancellationToken), WriteTimeout, cancellationToken);
-
-    private void RestoreNoteCore(Guid id, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        EnsureWritable();
-
-        string trashPath = TrashPath(id);
-        if (!File.Exists(trashPath))
-        {
-            throw new VaultNoteNotFoundException(id);
-        }
-
-        string trashText = File.ReadAllText(trashPath);
-        NoteDocument trashed = ReadDocument(id, TrashRelativePath(id), trashText);
-        DateTimeOffset updated = NextUpdated(trashed.Summary.Updated);
-
-        string text = NoteFrontMatterWriter.Build(
-            id,
-            trashed.Summary.Created,
-            updated,
-            trashed.Summary.Title,
-            trashed.Summary.Tags,
-            trashed.Summary.Pinned,
-            trashed.Body,
-            trashed.FrontMatterLines,
-            folder: trashed.Summary.Folder);
-
-        // Same shape as trashing: rename first, rewrite second. A crash leaves a live
-        // note that still carries a stale deletedAt, never a duplicate.
-        string notePath = NotePath(id);
-        MoveVaultFile(trashPath, notePath);
-        try
-        {
-            WriteText(notePath, text, trashText);
-        }
-        catch
-        {
-            MoveVaultFile(notePath, trashPath);
-            throw;
-        }
-    }
+        => _trash.RestoreAsync(id, cancellationToken);
 
     public Task PurgeNoteAsync(Guid id, CancellationToken cancellationToken = default)
-        => RunAsync(() => PurgeNoteCore(id, cancellationToken), WriteTimeout, cancellationToken);
+        => _trash.PurgeAsync(id, cancellationToken);
 
-    private void PurgeNoteCore(Guid id, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        EnsureWritable();
+    public Task<IReadOnlyList<TrashNoteSummary>> ListTrashAsync(CancellationToken cancellationToken = default)
+        => _trash.ListAsync(cancellationToken);
 
-        bool touched = false;
-
-        string notePath = NotePath(id);
-        if (File.Exists(notePath))
-        {
-            File.Delete(notePath);
-            touched = true;
-        }
-
-        string trashPath = TrashPath(id);
-        if (File.Exists(trashPath))
-        {
-            File.Delete(trashPath);
-            touched = true;
-        }
-
-        string historyPath = Path.Combine(_historyDirectory, id.ToString("D"));
-        if (Directory.Exists(historyPath))
-        {
-            Directory.Delete(historyPath, recursive: true);
-            touched = true;
-        }
-
-        if (!touched)
-        {
-            throw new VaultNoteNotFoundException(id);
-        }
-    }
+    public Task<NoteDocument?> ReadTrashAsync(Guid id, CancellationToken cancellationToken = default)
+        => _trash.ReadAsync(id, cancellationToken);
 
     public Task<IReadOnlyList<VaultSnapshotInfo>> ListHistoryAsync(
         Guid id,
         CancellationToken cancellationToken = default)
-        => RunAsync(() => ListHistoryCore(id, cancellationToken), ReadTimeout, cancellationToken);
-
-    private IReadOnlyList<VaultSnapshotInfo> ListHistoryCore(Guid id, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var snapshots = new List<VaultSnapshotInfo>();
-        string directory = Path.Combine(_historyDirectory, id.ToString("D"));
-        if (!Directory.Exists(directory))
-        {
-            return snapshots;
-        }
-
-        foreach (string path in Directory.EnumerateFiles(directory, "*.md", SearchOption.TopDirectoryOnly))
-        {
-            string name = Path.GetFileName(path);
-            if (!TryParseSnapshotName(name, out DateTimeOffset takenAt))
-            {
-                continue;
-            }
-
-            snapshots.Add(new VaultSnapshotInfo(name, $".history/{id:D}/{name}", takenAt));
-        }
-
-        snapshots.Sort(static (left, right) => left.TakenAt.CompareTo(right.TakenAt));
-        return snapshots;
-    }
+        => _history.ListAsync(id, cancellationToken);
 
     public Task<NoteDocument?> ReadHistoryAsync(
         Guid id,
         string snapshotName,
         CancellationToken cancellationToken = default)
-        => RunAsync(() => ReadHistoryCore(id, snapshotName, cancellationToken), ReadTimeout, cancellationToken);
+        => _history.ReadAsync(id, snapshotName, cancellationToken);
 
+    /// <summary>Records an attachment write; a git-backed store commits it as atts: add.</summary>
     public Task RegisterAttachmentAsync(string sha256, CancellationToken cancellationToken = default)
         => Task.CompletedTask;
-
-    private NoteDocument? ReadHistoryCore(
-        Guid id,
-        string snapshotName,
-        CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string path = Path.Combine(_historyDirectory, id.ToString("D"), snapshotName);
-        if (!File.Exists(path))
-        {
-            return null;
-        }
-
-        string relativePath = $".history/{id:D}/{snapshotName}";
-        return ReadDocument(id, relativePath, File.ReadAllText(path));
-    }
-
-    public Task<IReadOnlyList<TrashNoteSummary>> ListTrashAsync(CancellationToken cancellationToken = default)
-        => RunAsync(() => ListTrashCore(cancellationToken), ReadTimeout, cancellationToken);
-
-    private IReadOnlyList<TrashNoteSummary> ListTrashCore(CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var items = new List<TrashNoteSummary>();
-        if (!Directory.Exists(_trashDirectory))
-        {
-            return items;
-        }
-
-        foreach (string path in Directory.EnumerateFiles(_trashDirectory, "*.md", SearchOption.TopDirectoryOnly))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            string name = Path.GetFileNameWithoutExtension(path);
-            if (!TryParseCanonicalId(name, out Guid id))
-            {
-                continue;
-            }
-
-            string text = File.ReadAllText(path);
-            string title;
-            DateTimeOffset updated;
-
-            try
-            {
-                NoteDocument document = ReadDocument(id, TrashRelativePath(id), text);
-                title = document.Summary.Title;
-                updated = document.Summary.Updated;
-            }
-            catch (VaultFormatException)
-            {
-                title = "(Broken note)";
-                updated = new DateTimeOffset(File.GetLastWriteTimeUtc(path));
-            }
-
-            DateTimeOffset deletedAt = updated;
-            if (TryReadFrontMatterValue(text, "deletedAt", out string? deletedText) &&
-                DateTimeOffset.TryParse(
-                    deletedText,
-                    CultureInfo.InvariantCulture,
-                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                    out DateTimeOffset parsed))
-            {
-                deletedAt = parsed;
-            }
-
-            items.Add(new TrashNoteSummary(id, title, updated, deletedAt));
-        }
-
-        items.Sort(static (left, right) => right.DeletedAt.CompareTo(left.DeletedAt));
-        return items;
-    }
-
-    public Task<NoteDocument?> ReadTrashAsync(Guid id, CancellationToken cancellationToken = default)
-        => RunAsync(() => ReadTrashCore(id, cancellationToken), ReadTimeout, cancellationToken);
-
-    private NoteDocument? ReadTrashCore(Guid id, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        string path = TrashPath(id);
-        if (!File.Exists(path))
-        {
-            return null;
-        }
-
-        return ReadDocument(id, TrashRelativePath(id), File.ReadAllText(path));
-    }
-
-    private static bool TryReadFrontMatterValue(string text, string key, out string? value)
-    {
-        value = null;
-        string normalized = text.Replace("\r\n", "\n").Replace('\r', '\n');
-        string[] lines = normalized.Split('\n');
-        if (lines.Length == 0 || lines[0].Trim() != "---")
-        {
-            return false;
-        }
-
-        for (int i = 1; i < lines.Length; i++)
-        {
-            string line = lines[i];
-            if (line.Trim() == "---")
-            {
-                return false;
-            }
-
-            int colon = line.IndexOf(':');
-            if (colon <= 0)
-            {
-                continue;
-            }
-
-            if (string.Equals(line[..colon].Trim(), key, StringComparison.Ordinal))
-            {
-                value = line[(colon + 1)..].Trim().Trim('"', '\'');
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private void WriteSnapshotIfNeeded(Guid id, string currentText, DateTimeOffset updated)
-    {
-        string directory = Path.Combine(_historyDirectory, id.ToString("D"));
-        Directory.CreateDirectory(directory);
-
-        string? latest = FindLatestSnapshot(directory);
-        if (latest is not null)
-        {
-            string latestText = File.ReadAllText(latest);
-            if (string.Equals(latestText, currentText, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            if (TryParseSnapshotName(Path.GetFileName(latest), out DateTimeOffset takenAt) &&
-                updated - takenAt < SnapshotThrottle)
-            {
-                return;
-            }
-        }
-
-        DateTimeOffset stamp = updated;
-        string target = SnapshotPath(directory, stamp);
-        while (File.Exists(target))
-        {
-            stamp = stamp.AddSeconds(1);
-            target = SnapshotPath(directory, stamp);
-        }
-
-        WriteText(target, currentText);
-    }
-
-    private string WriteConflictCopy(Guid id, string text)
-    {
-        string name = $"{id:D}.{_deviceId}.{NoteFrontMatterWriter.FormatTimestamp(UtcNowSeconds()).Replace("-", string.Empty).Replace(":", string.Empty)}.md";
-        string relativePath = $".sync/conflicts/{name}";
-        WriteText(Path.Combine(_conflictsDirectory, name), text);
-        return relativePath;
-    }
-
-    private async Task<T> RunAsync<T>(Func<T> action, TimeSpan timeout, CancellationToken cancellationToken)
-    {
-        if (!await _ioGate.WaitAsync(timeout, cancellationToken).ConfigureAwait(false))
-        {
-            throw new VaultTimeoutException(timeout);
-        }
-
-        Task<T> task = Task.Run(() => InvokeWithRetry(action), cancellationToken);
-        try
-        {
-            return await task.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
-        }
-        catch (TimeoutException)
-        {
-            // The gate is released when the abandoned task finishes, never before.
-            throw new VaultTimeoutException(timeout);
-        }
-        finally
-        {
-            _ = task.ContinueWith(
-                static (_, state) => ((SemaphoreSlim)state!).Release(),
-                _ioGate,
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-        }
-    }
-
-    private async Task RunAsync(Action action, TimeSpan timeout, CancellationToken cancellationToken)
-    {
-        if (!await _ioGate.WaitAsync(timeout, cancellationToken).ConfigureAwait(false))
-        {
-            throw new VaultTimeoutException(timeout);
-        }
-
-        Task task = Task.Run(() => InvokeWithRetry(action), cancellationToken);
-        try
-        {
-            await task.WaitAsync(timeout, cancellationToken).ConfigureAwait(false);
-        }
-        catch (TimeoutException)
-        {
-            throw new VaultTimeoutException(timeout);
-        }
-        finally
-        {
-            _ = task.ContinueWith(
-                static (_, state) => ((SemaphoreSlim)state!).Release(),
-                _ioGate,
-                CancellationToken.None,
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-        }
-    }
-
-    /// <summary>Retries a vanished file up to three times with 1, 2 and 4 second waits.</summary>
-    private static T InvokeWithRetry<T>(Func<T> action)
-    {
-        int attempt = 0;
-        while (true)
-        {
-            try
-            {
-                return action();
-            }
-            catch (Exception exception) when (attempt < 3 && IsTransient(exception))
-            {
-                attempt++;
-                Thread.Sleep(TimeSpan.FromSeconds(1 << (attempt - 1)));
-            }
-        }
-    }
-
-    private static void InvokeWithRetry(Action action)
-    {
-        int attempt = 0;
-        while (true)
-        {
-            try
-            {
-                action();
-                return;
-            }
-            catch (Exception exception) when (attempt < 3 && IsTransient(exception))
-            {
-                attempt++;
-                Thread.Sleep(TimeSpan.FromSeconds(1 << (attempt - 1)));
-            }
-        }
-    }
-
-    private static bool IsTransient(Exception exception)
-    {
-        if (exception is FileNotFoundException or DirectoryNotFoundException)
-        {
-            return true;
-        }
-
-        return exception is IOException io && (io.HResult & 0xFFFF) is 32 or 33;
-    }
-
-    private void EnsureWritable()
-    {
-        if (!Capabilities.Writable)
-        {
-            throw new VaultReadOnlyException("vault was opened read-only; writes are disabled.");
-        }
-    }
-
-    private void WriteText(string path, string text, string? fallbackText = null)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-
-        if (Capabilities.AtomicRename)
-        {
-            string temporary = path + ".tmp-" + Guid.NewGuid().ToString("N")[..8];
-            try
-            {
-                WriteAllTextFlushed(temporary, text);
-                File.Move(temporary, path, overwrite: true);
-            }
-            finally
-            {
-                if (File.Exists(temporary))
-                {
-                    File.Delete(temporary);
-                }
-            }
-
-            return;
-        }
-
-        WriteAllTextFlushed(path, text);
-        string readBack = File.ReadAllText(path);
-        if (string.Equals(readBack, text, StringComparison.Ordinal))
-        {
-            return;
-        }
-
-        if (fallbackText is not null)
-        {
-            WriteAllTextFlushed(path, fallbackText);
-        }
-
-        throw new IOException($"write verification failed for {Relative(path)}.");
-    }
-
-    /// <summary>Writes UTF-8 without BOM and flushes the file to disk before returning.</summary>
-    private static void WriteAllTextFlushed(string path, string text)
-    {
-        using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-        using (var writer = new StreamWriter(stream, Utf8NoBom))
-        {
-            writer.Write(text);
-            writer.Flush();
-            stream.Flush(flushToDisk: true);
-        }
-    }
-
-    /// <summary>
-    /// Moves a vault file between the notes and trash directories with one rename when
-    /// both live on the same volume. Cross-volume moves copy, verify by hash, then delete
-    /// the source, so a failing move never leaves the same note in both places.
-    /// </summary>
-    private static void MoveVaultFile(string source, string destination)
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
-
-        try
-        {
-            File.Move(source, destination, overwrite: true);
-            return;
-        }
-        catch (IOException moveFailure)
-        {
-            string temporary = destination + ".tmp-" + Guid.NewGuid().ToString("N")[..8];
-            try
-            {
-                File.Copy(source, temporary, overwrite: true);
-                if (!HasSameContent(source, temporary))
-                {
-                    throw new IOException(
-                        $"copy verification failed for {Path.GetFileName(destination)}.",
-                        moveFailure);
-                }
-
-                File.Move(temporary, destination, overwrite: true);
-            }
-            finally
-            {
-                if (File.Exists(temporary))
-                {
-                    File.Delete(temporary);
-                }
-            }
-
-            try
-            {
-                File.Delete(source);
-            }
-            catch (IOException)
-            {
-                File.Delete(destination);
-                throw;
-            }
-        }
-    }
-
-    private static bool HasSameContent(string left, string right)
-    {
-        using FileStream leftStream = File.OpenRead(left);
-        using FileStream rightStream = File.OpenRead(right);
-        byte[] leftHash = SHA256.HashData(leftStream);
-        byte[] rightHash = SHA256.HashData(rightStream);
-        return leftHash.AsSpan().SequenceEqual(rightHash);
-    }
-
-    private string? ReadNoteFile(Guid id)
-    {
-        string path = NotePath(id);
-        return File.Exists(path) ? File.ReadAllText(path) : null;
-    }
-
-    private string NotePath(Guid id) => Path.Combine(_notesDirectory, id.ToString("D") + ".md");
-
-    private string TrashPath(Guid id) => Path.Combine(_trashDirectory, id.ToString("D") + ".md");
-
-    private static string NoteRelativePath(Guid id) => $".vault/notes/{id:D}.md";
-
-    private static string TrashRelativePath(Guid id) => $".trash/{id:D}.md";
-
-    private static string? FindLatestSnapshot(string directory)
-    {
-        string? latest = null;
-        DateTimeOffset latestStamp = DateTimeOffset.MinValue;
-
-        foreach (string path in Directory.EnumerateFiles(directory, "*.md", SearchOption.TopDirectoryOnly))
-        {
-            if (!TryParseSnapshotName(Path.GetFileName(path), out DateTimeOffset takenAt))
-            {
-                continue;
-            }
-
-            if (latest is null || takenAt > latestStamp)
-            {
-                latest = path;
-                latestStamp = takenAt;
-            }
-        }
-
-        return latest;
-    }
-
-    private static string SnapshotPath(string directory, DateTimeOffset stamp)
-        => Path.Combine(
-            directory,
-            stamp.ToUniversalTime().ToString("yyyyMMdd'T'HHmmss'Z'", CultureInfo.InvariantCulture) + ".md");
-
-    private static bool TryParseSnapshotName(string name, out DateTimeOffset takenAt)
-    {
-        takenAt = default;
-        if (!name.EndsWith(".md", StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        return DateTimeOffset.TryParseExact(
-            name[..^3],
-            "yyyyMMdd'T'HHmmss'Z'",
-            CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-            out takenAt);
-    }
-
-    private static DateTimeOffset NextUpdated(DateTimeOffset previous)
-    {
-        DateTimeOffset candidate = UtcNowSeconds();
-        return candidate > previous ? candidate : previous.AddSeconds(1);
-    }
-
-    private static DateTimeOffset UtcNowSeconds()
-    {
-        long ticks = DateTime.UtcNow.Ticks;
-        ticks -= ticks % TimeSpan.TicksPerSecond;
-        return new DateTimeOffset(ticks, TimeSpan.Zero);
-    }
-
-    private string Relative(string path) => Path.GetRelativePath(RootPath, path).Replace('\\', '/');
-
-    private static NoteDocument ReadDocument(Guid id, string relativePath, string text)
-        => FrontMatterParser.Parse(id, relativePath, text);
-
-    private static bool TryParseCanonicalId(string name, out Guid id)
-    {
-        id = Guid.Empty;
-        if (!Guid.TryParseExact(name, "D", out Guid parsed))
-        {
-            return false;
-        }
-
-        string canonical = parsed.ToString("D");
-        if (!string.Equals(name, canonical, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        id = parsed;
-        return true;
-    }
 }
