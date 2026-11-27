@@ -7,7 +7,7 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>NopeNote.Windows</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <ApplicationIcon>Assets\Tiles\NopeNoteIcon.ico</ApplicationIcon>
+    <ApplicationIcon>..\..\..\..\assets\windows\NopeNoteIcon.ico</ApplicationIcon>
     <UseWinUI>true</UseWinUI>
     <Nullable>enable</Nullable>
     <LangVersion>14</LangVersion>
@@ -55,7 +55,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Assets\Tiles\NopeNoteIcon.ico">
+    <Content Include="..\..\..\..\assets\windows\NopeNoteIcon.ico">
+      <Link>Assets\Tiles\NopeNoteIcon.ico</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -64,13 +65,27 @@
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
-    <Content Include="Assets\Tiles\StoreLogo.png" />
-    <Content Include="Assets\Tiles\AppList.png" />
-    <Content Include="Assets\Tiles\MedTile.png" />
-    <Content Include="Assets\Tiles\SmallTile.png" />
-    <Content Include="Assets\Tiles\WideTile.png" />
-    <Content Include="Assets\Tiles\LargeTile.png" />
-    <Content Include="Assets\Tiles\SplashScreen.png" />
+    <Content Include="..\..\..\..\assets\windows\StoreLogo.png">
+      <Link>Assets\Tiles\StoreLogo.png</Link>
+    </Content>
+    <Content Include="..\..\..\..\assets\windows\AppList.png">
+      <Link>Assets\Tiles\AppList.png</Link>
+    </Content>
+    <Content Include="..\..\..\..\assets\windows\MedTile.png">
+      <Link>Assets\Tiles\MedTile.png</Link>
+    </Content>
+    <Content Include="..\..\..\..\assets\windows\SmallTile.png">
+      <Link>Assets\Tiles\SmallTile.png</Link>
+    </Content>
+    <Content Include="..\..\..\..\assets\windows\WideTile.png">
+      <Link>Assets\Tiles\WideTile.png</Link>
+    </Content>
+    <Content Include="..\..\..\..\assets\windows\LargeTile.png">
+      <Link>Assets\Tiles\LargeTile.png</Link>
+    </Content>
+    <Content Include="..\..\..\..\assets\windows\SplashScreen.png">
+      <Link>Assets\Tiles\SplashScreen.png</Link>
+    </Content>
   </ItemGroup>
 
 </Project>
