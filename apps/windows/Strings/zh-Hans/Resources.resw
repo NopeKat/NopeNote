@@ -761,4 +761,10 @@
   <data name="OpenLogsButton.AutomationProperties.Name" xml:space="preserve">
     <value>打开日志文件夹</value>
   </data>
+  <data name="VerboseLogCard.Header" xml:space="preserve">
+    <value>详细日志</value>
+  </data>
+  <data name="VerboseLogToggle.AutomationProperties.Name" xml:space="preserve">
+    <value>记录详细日志</value>
+  </data>
 </root>

@@ -62,6 +62,13 @@ internal static class AttachmentStore
     /// </summary>
     private static async Task<string> SaveAsync(IVaultStore store, Stream source, string extension)
     {
+        // Guard here as well as at the caller: a read-only vault must not even get a
+        // temporary file, whichever UI path asks for the attachment.
+        if (!store.Capabilities.Writable)
+        {
+            throw new VaultReadOnlyException("vault was opened read-only; attachments cannot be saved.");
+        }
+
         string root = store.RootPath;
         string tempDirectory = Path.Combine(root, ".tmp");
         Directory.CreateDirectory(tempDirectory);

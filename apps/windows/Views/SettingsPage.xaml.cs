@@ -18,6 +18,7 @@ public sealed partial class SettingsPage : Page
     private bool _updatingThemeSelection;
     private bool _updatingGitToggle;
     private bool _updatingLanguageSelection;
+    private bool _updatingVerboseLog;
     private AppServices _services = null!;
 
     public SettingsPage()
@@ -54,6 +55,23 @@ public sealed partial class SettingsPage : Page
         _updatingGitToggle = true;
         GitToggle.IsOn = VaultSettings.Read(_services.Settings.VaultPath).GitEnabled;
         _updatingGitToggle = false;
+
+        _updatingVerboseLog = true;
+        VerboseLogToggle.IsOn = _services.Settings.VerboseLogging;
+        _updatingVerboseLog = false;
+    }
+
+    private void VerboseLogToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (_updatingVerboseLog)
+        {
+            return;
+        }
+
+        bool enabled = VerboseLogToggle.IsOn;
+        _services.Settings.VerboseLogging = enabled;
+        _services.Settings.SaveDeferred();
+        FileLog.SetVerbose(enabled);
     }
 
     private void ThemeMode_SelectionChanged(object sender, SelectionChangedEventArgs e)

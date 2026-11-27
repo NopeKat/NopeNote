@@ -29,6 +29,9 @@ public sealed class SettingsHelper
     /// <summary>Stable 8-character lowercase id used in conflict copy names.</summary>
     public string DeviceId { get; private set; } = string.Empty;
 
+    /// <summary>When on, the log also records routine events such as each vault open.</summary>
+    public bool VerboseLogging { get; set; }
+
     public bool HasAppLock => !string.IsNullOrWhiteSpace(AppLockSalt) &&
                               !string.IsNullOrWhiteSpace(AppLockHash);
 
@@ -102,6 +105,7 @@ public sealed class SettingsHelper
             AppLockSalt = AppLockSalt,
             AppLockHash = AppLockHash,
             DeviceId = DeviceId,
+            VerboseLogging = VerboseLogging,
         };
         string json = JsonSerializer.Serialize(dto, SettingsJsonContext.Default.SettingsDto);
         string tempPath = _settingsPath + ".tmp";
@@ -203,6 +207,7 @@ public sealed class SettingsHelper
                 AppLockSalt = dto.AppLockSalt ?? string.Empty;
                 AppLockHash = dto.AppLockHash ?? string.Empty;
                 DeviceId = dto.DeviceId ?? string.Empty;
+                VerboseLogging = dto.VerboseLogging;
                 if (!string.IsNullOrWhiteSpace(dto.VaultPath))
                 {
                     VaultPath = dto.VaultPath;
@@ -231,6 +236,8 @@ internal sealed class SettingsDto
     public string? AppLockHash { get; set; }
 
     public string? DeviceId { get; set; }
+
+    public bool VerboseLogging { get; set; }
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]

@@ -17,6 +17,7 @@ public partial class App : Application
         UnhandledException += App_UnhandledException;
 
         _services = AppServices.CreateDefault();
+        FileLog.SetVerbose(_services.Settings.VerboseLogging);
         LanguageHelper.ApplyStartupOverride(_services.Settings);
     }
 

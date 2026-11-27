@@ -761,4 +761,10 @@
   <data name="OpenLogsButton.AutomationProperties.Name" xml:space="preserve">
     <value>Open the log folder</value>
   </data>
+  <data name="VerboseLogCard.Header" xml:space="preserve">
+    <value>Detailed log</value>
+  </data>
+  <data name="VerboseLogToggle.AutomationProperties.Name" xml:space="preserve">
+    <value>Write detailed log entries</value>
+  </data>
 </root>

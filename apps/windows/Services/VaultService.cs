@@ -55,19 +55,19 @@ public sealed class VaultService
     public async Task<bool> FlushCommitsAsync(TimeSpan timeout)
     {
         IVaultStore? store = Store;
-        if (store is not GitVaultStore git)
+        if (store is null)
         {
             return true;
         }
 
         try
         {
-            await git.FlushAsync().WaitAsync(timeout).ConfigureAwait(false);
+            await store.FlushAsync().WaitAsync(timeout).ConfigureAwait(false);
             return true;
         }
         catch (Exception exception) when (exception is TimeoutException or IOException)
         {
-            FileLog.Warn($"git flush failed: {exception.Message}");
+            FileLog.Warn($"vault flush failed: {exception.Message}");
             return false;
         }
     }
@@ -147,7 +147,7 @@ public sealed class VaultService
 
         if (result.Status == VaultOpenStatus.Opened && result.Problem == VaultProblem.None)
         {
-            FileLog.Info($"vault opened at {path}");
+            FileLog.Verbose($"vault opened at {path}");
         }
         else
         {

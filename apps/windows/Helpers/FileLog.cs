@@ -18,6 +18,7 @@ internal static class FileLog
     private static readonly object Gate = new();
 
     private static string? _path;
+    private static volatile bool _verbose;
 
     internal static void Initialize()
     {
@@ -28,6 +29,9 @@ internal static class FileLog
 
         _path = Path.Combine(folder, "nopenote.log");
     }
+
+    /// <summary>Toggles the routine entries; warnings and errors are always written.</summary>
+    internal static void SetVerbose(bool verbose) => _verbose = verbose;
 
     internal static string? CurrentPath => _path;
 
@@ -54,6 +58,14 @@ internal static class FileLog
     }
 
     internal static void Info(string message) => Write("INFO", message, exception: null);
+
+    internal static void Verbose(string message)
+    {
+        if (_verbose)
+        {
+            Write("INFO", message, exception: null);
+        }
+    }
 
     internal static void Warn(string message) => Write("WARN", message, exception: null);
 

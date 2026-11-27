@@ -213,6 +213,13 @@
                                     Click="OpenLogsButton_Click"
                                     Content="Open folder" />
                             </toolkit:SettingsCard>
+                            <toolkit:SettingsCard x:Uid="VerboseLogCard" Header="Detailed log">
+                                <ToggleSwitch
+                                    x:Name="VerboseLogToggle"
+                                    x:Uid="VerboseLogToggle"
+                                    AutomationProperties.Name="Write detailed log entries"
+                                    Toggled="VerboseLogToggle_Toggled" />
+                            </toolkit:SettingsCard>
                         </toolkit:SettingsExpander.Items>
                     </toolkit:SettingsExpander>
                 </StackPanel>
