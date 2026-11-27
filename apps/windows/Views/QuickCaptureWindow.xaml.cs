@@ -37,6 +37,8 @@ public sealed partial class QuickCaptureWindow : Window
 
     private void RootGrid_Loaded(object sender, RoutedEventArgs e)
     {
+        BackdropHelper.Apply(this);
+
         if (!_sized)
         {
             double scale = RootGrid.XamlRoot?.RasterizationScale ?? 1.0;

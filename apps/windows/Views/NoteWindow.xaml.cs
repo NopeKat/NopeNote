@@ -45,6 +45,8 @@ public sealed partial class NoteWindow : Window
 
     private async void RootGrid_Loaded(object sender, RoutedEventArgs e)
     {
+        BackdropHelper.Apply(this);
+
         if (!_sizing)
         {
             double scale = RootGrid.XamlRoot?.RasterizationScale ?? 1.0;

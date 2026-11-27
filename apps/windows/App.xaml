@@ -9,6 +9,19 @@
                 <ResourceDictionary Source="ms-appx:///Styles/NoteItemTemplate.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
+            <!-- 项目统一禁用亚克力：把 WinUI 主题里的亚克力画刷全部换成纯色，
+                 覆盖浮层、下拉、提示等系统控件的默认外观 -->
+            <SolidColorBrush x:Key="AcrylicBackgroundFillColorBaseBrush" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="AcrylicBackgroundFillColorDefaultBrush" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="AcrylicBackgroundFillColorDefaultInverseBrush" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="AcrylicInAppFillColorBaseBrush" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="AcrylicInAppFillColorDefaultBrush" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="AcrylicInAppFillColorDefaultInverseBrush" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="AccentAcrylicBackgroundFillColorBaseBrush" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="AccentAcrylicBackgroundFillColorDefaultBrush" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="AccentAcrylicInAppFillColorBaseBrush" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+            <SolidColorBrush x:Key="AccentAcrylicInAppFillColorDefaultBrush" Color="{ThemeResource SolidBackgroundFillColorBase}" />
+
             <!-- 取自 WinUI 2.7.0 NavigationView.idl 官方默认值，经 Gallery 3.0.4 NavigationViewPage 验证 -->
             <x:Double x:Key="MasterDetailBreakpointWidth">1008</x:Double>
             <GridLength x:Key="MasterDetailListPaneWidth">320</GridLength>
