@@ -43,7 +43,55 @@ public sealed class SettingsHelper
         EnsureDeviceId();
     }
 
+    private readonly object _saveLock = new();
+    private static readonly TimeSpan DeferredSaveDelay = TimeSpan.FromMilliseconds(250);
+    private System.Threading.Timer? _deferredSaveTimer;
+    private bool _deferredPending;
+
+    /// <summary>Writes settings now. The file is replaced atomically so a crash
+    /// mid-write cannot leave a truncated settings.json behind.</summary>
     public void Save()
+    {
+        lock (_saveLock)
+        {
+            _deferredPending = false;
+            WriteNow();
+        }
+    }
+
+    /// <summary>Coalesces rapid changes (theme switching) into one write.</summary>
+    public void SaveDeferred()
+    {
+        lock (_saveLock)
+        {
+            _deferredPending = true;
+            _deferredSaveTimer ??= new System.Threading.Timer(
+                _ => FlushDeferred(),
+                null,
+                System.Threading.Timeout.Infinite,
+                System.Threading.Timeout.Infinite);
+            _deferredSaveTimer.Change(
+                (int)DeferredSaveDelay.TotalMilliseconds,
+                System.Threading.Timeout.Infinite);
+        }
+    }
+
+    /// <summary>Pushes a deferred write immediately, e.g. before the window closes.</summary>
+    public void FlushDeferred()
+    {
+        lock (_saveLock)
+        {
+            if (!_deferredPending)
+            {
+                return;
+            }
+
+            _deferredPending = false;
+            WriteNow();
+        }
+    }
+
+    private void WriteNow()
     {
         SettingsDto dto = new()
         {
@@ -56,7 +104,31 @@ public sealed class SettingsHelper
             DeviceId = DeviceId,
         };
         string json = JsonSerializer.Serialize(dto, SettingsJsonContext.Default.SettingsDto);
-        File.WriteAllText(_settingsPath, json);
+        string tempPath = _settingsPath + ".tmp";
+
+        try
+        {
+            File.WriteAllText(tempPath, json);
+            if (File.Exists(_settingsPath))
+            {
+                File.Replace(tempPath, _settingsPath, destinationBackupFileName: null);
+            }
+            else
+            {
+                File.Move(tempPath, _settingsPath);
+            }
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+            // Keep the in-memory settings when the file is locked or the disk is full.
+            try
+            {
+                File.Delete(tempPath);
+            }
+            catch (Exception)
+            {
+            }
+        }
     }
 
     private void EnsureDeviceId()

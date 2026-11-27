@@ -270,6 +270,9 @@ public sealed partial class MainWindow : Window
 
     private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
     {
+        // 主题这类高频改动是延迟写盘的，关窗前先把它们落盘。
+        _services.Settings.FlushDeferred();
+
         if (_closeConfirmed)
         {
             return;

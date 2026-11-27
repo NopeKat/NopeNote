@@ -22,7 +22,7 @@ public static class ThemeHelper
     {
         RootTheme = theme;
         settings.SelectedAppTheme = theme;
-        settings.Save();
+        settings.SaveDeferred();
         Apply(theme);
     }
 
