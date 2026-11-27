@@ -1,4 +1,3 @@
-using Microsoft.UI.Composition.SystemBackdrops;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
@@ -7,21 +6,13 @@ namespace NopeNote.Windows.Helpers;
 
 public static class BackdropHelper
 {
+    /// <summary>
+    /// 项目默认禁用 Mica 与 Acrylic，窗口一律使用纯色背景。
+    /// </summary>
     public static void Apply(Window window)
     {
-        if (MicaController.IsSupported())
-        {
-            window.SystemBackdrop = new MicaBackdrop();
-            return;
-        }
-
-        if (DesktopAcrylicController.IsSupported())
-        {
-            window.SystemBackdrop = new DesktopAcrylicBackdrop();
-            return;
-        }
-
         window.SystemBackdrop = null;
+
         if (window.Content is Panel root)
         {
             root.Background = GetSolidFallbackBrush();
