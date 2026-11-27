@@ -4,9 +4,11 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using NopeNote.Windows.Helpers;
+using NopeNote.Windows.Navigation;
 using NopeNote.Windows.Services;
 using NopeNote.Windows.Views;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.UI.ViewManagement;
 
@@ -22,11 +24,20 @@ public sealed partial class MainWindow : Window
     private readonly AppServices _services;
     private readonly AppLockGate _appLock;
     private readonly WindowCloseCoordinator _closeFlow;
+    private readonly IReadOnlyDictionary<string, NavigationViewItem> _navItems;
 
     public MainWindow(AppServices services)
     {
         _services = services;
         InitializeComponent();
+
+        _navItems = new Dictionary<string, NavigationViewItem>
+        {
+            [ShellRoutes.Notes.Tag] = NotesNavItem,
+            [ShellRoutes.Search.Tag] = SearchNavItem,
+            [ShellRoutes.Trash.Tag] = TrashNavItem,
+            [ShellRoutes.Settings.Tag] = SettingsNavItem,
+        };
 
         Title = "NopeNote";
         ExtendsContentIntoTitleBar = true;
@@ -60,10 +71,12 @@ public sealed partial class MainWindow : Window
 
     internal void InitializeNavigation()
     {
-        ContentFrame.Navigate(typeof(NotesPage), new NotesNavigation(null, _services));
-        NotesNavItem.IsSelected = true;
+        NavigateTo(ShellRoutes.Notes);
         GlobalHotkey.RegisterQuickCapture(WindowHelper.GetWindowHandle(this), ShowQuickCapture);
     }
+
+    private void NavigateTo(ShellRoute route)
+        => ContentFrame.Navigate(route.PageType, route.ParameterFactory(_services));
 
     internal Task<bool> EnsureUnlockedAsync() => _appLock.UnlockAsync(() => RootGrid.XamlRoot);
 
@@ -105,16 +118,16 @@ public sealed partial class MainWindow : Window
 
     private void SearchAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        if (ContentFrame.CurrentSourcePageType == typeof(SearchPage))
+        if (ContentFrame.CurrentSourcePageType == ShellRoutes.Search.PageType)
         {
             ((SearchPage)ContentFrame.Content).FocusSearch();
         }
         else
         {
-            ContentFrame.Navigate(typeof(SearchPage), _services);
+            NavigateTo(ShellRoutes.Search);
         }
 
-        SearchNavItem.IsSelected = true;
+        _navItems[ShellRoutes.Search.Tag].IsSelected = true;
         args.Handled = true;
     }
 
@@ -158,48 +171,27 @@ public sealed partial class MainWindow : Window
         }
 
         // 设置入口现在是普通页脚导航项，和其他导航项共用同一套选中逻辑
-        Type? pageType = args.SelectedItem is NavigationViewItem item
-            ? item.Tag?.ToString() switch
-            {
-                "Search" => typeof(SearchPage),
-                "Trash" => typeof(TrashPage),
-                "Settings" => typeof(SettingsPage),
-                _ => typeof(NotesPage),
-            }
+        ShellRoute? route = args.SelectedItem is NavigationViewItem item
+            ? ShellRoutes.ForTag(item.Tag?.ToString())
             : null;
 
-        if (pageType is null || ContentFrame.CurrentSourcePageType == pageType)
+        if (route is null || ContentFrame.CurrentSourcePageType == route.PageType)
         {
             return;
         }
 
-        ContentFrame.Navigate(pageType, _services);
+        NavigateTo(route);
     }
 
     private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
     {
         _isNavigating = true;
 
-        if (e.SourcePageType == typeof(SettingsPage))
-        {
-            SettingsNavItem.IsSelected = true;
-            CurrentPageTextBlock.Text = "Settings";
-        }
-        else if (e.SourcePageType == typeof(TrashPage))
-        {
-            TrashNavItem.IsSelected = true;
-            CurrentPageTextBlock.Text = "Trash";
-        }
-        else if (e.SourcePageType == typeof(SearchPage))
-        {
-            SearchNavItem.IsSelected = true;
-            CurrentPageTextBlock.Text = "Search";
-        }
-        else
-        {
-            NotesNavItem.IsSelected = true;
-            CurrentPageTextBlock.Text = "Notes";
-        }
+        ShellRoute route = ShellRoutes.ForPage(e.SourcePageType);
+        _navItems[route.Tag].IsSelected = true;
+
+        // 自动化测试按这个英文标记判断当前页，显示文案由各页自己的资源键负责。
+        CurrentPageTextBlock.Text = route.Tag;
 
         _isNavigating = false;
     }
