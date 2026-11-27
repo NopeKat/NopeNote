@@ -111,4 +111,8 @@ public sealed class LocalVaultStore : IVaultStore
     /// <summary>Records an attachment write; a git-backed store commits it as atts: add.</summary>
     public Task RegisterAttachmentAsync(string sha256, CancellationToken cancellationToken = default)
         => Task.CompletedTask;
+
+    /// <summary>Plain files are written synchronously inside the IO gate, so nothing is queued.</summary>
+    public Task FlushAsync(CancellationToken cancellationToken = default)
+        => Task.CompletedTask;
 }

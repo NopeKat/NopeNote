@@ -1,4 +1,5 @@
 using NopeNote.Core.Notes;
+using System.Text;
 
 namespace NopeNote.Core.Vault;
 
@@ -48,7 +49,10 @@ internal sealed class NoteFileStore
 
             try
             {
-                NoteDocument document = VaultStorage.ReadDocument(id, relativePath, File.ReadAllText(path));
+                NoteDocument document = VaultStorage.ReadDocument(
+                    id,
+                    relativePath,
+                    ReadSummaryText(path));
                 notes.Add(document.Summary);
             }
             catch (VaultFormatException exception)
@@ -211,5 +215,50 @@ internal sealed class NoteFileStore
     {
         string path = _storage.NotePath(id);
         return File.Exists(path) ? File.ReadAllText(path) : null;
+    }
+
+    /// <summary>Listing needs the front matter plus the first body lines, because a note
+    /// without an explicit title borrows its title from the body. The rest stays on disk.</summary>
+    private static string ReadSummaryText(string path)
+    {
+        const int MaxSummaryChars = 64 * 1024;
+        const int BodyPreviewLines = 12;
+
+        var builder = new StringBuilder(1024);
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var reader = new StreamReader(
+            stream,
+            Encoding.UTF8,
+            detectEncodingFromByteOrderMarks: true);
+
+        int fences = 0;
+        int bodyLines = 0;
+        while (builder.Length < MaxSummaryChars)
+        {
+            string? line = reader.ReadLine();
+            if (line is null)
+            {
+                break;
+            }
+
+            builder.Append(line).Append('\n');
+
+            if (fences < 2)
+            {
+                if (line.Trim() == "---")
+                {
+                    fences++;
+                }
+
+                continue;
+            }
+
+            if (++bodyLines >= BodyPreviewLines)
+            {
+                break;
+            }
+        }
+
+        return builder.ToString();
     }
 }

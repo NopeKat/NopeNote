@@ -53,4 +53,7 @@ public interface IVaultStore
 
     /// <summary>Records an attachment write; a git-backed store commits it as atts: add.</summary>
     Task RegisterAttachmentAsync(string sha256, CancellationToken cancellationToken = default);
+
+    /// <summary>Waits for queued background writes so callers can close safely.</summary>
+    Task FlushAsync(CancellationToken cancellationToken = default);
 }

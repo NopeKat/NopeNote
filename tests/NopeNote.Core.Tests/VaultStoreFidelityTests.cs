@@ -174,6 +174,33 @@ public sealed class VaultStoreFidelityTests
         Assert.Equal(before, after);
     }
 
+    [Fact]
+    public async Task Scan_DerivesTitleFromBodyWhenFrontMatterHasNone()
+    {
+        using var fixture = new VaultFixture();
+        fixture.Write(
+            $".vault/notes/{VaultFixture.SecondNoteId:D}.md",
+            $"""
+            ---
+            id: {VaultFixture.SecondNoteId:D}
+            created: 2026-11-20T09:00:00Z
+            updated: 2026-11-21T09:00:00Z
+            tags: []
+            pinned: false
+            ---
+
+            ## 正文里的标题
+
+            {new string('正', 2000)}
+            """);
+        IVaultStore store = await OpenAsync(fixture);
+
+        NoteScanResult scan = await store.ScanNotesAsync();
+
+        NoteSummary note = Assert.Single(scan.Notes, item => item.Id == VaultFixture.SecondNoteId);
+        Assert.Equal("正文里的标题", note.Title);
+    }
+
     private static string TrashText(Guid id, string title, string deletedAt)
         => $"""
         ---

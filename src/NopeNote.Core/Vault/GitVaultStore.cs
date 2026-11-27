@@ -114,5 +114,4 @@ public sealed class GitVaultStore : IVaultStore
 
     /// <summary>Waits until every queued commit has been attempted.</summary>
     public Task FlushAsync(CancellationToken cancellationToken = default)
-        => _commits.FlushAsync(cancellationToken);
-}
+        => _commits.FlushAsync(cancellationToken);}
