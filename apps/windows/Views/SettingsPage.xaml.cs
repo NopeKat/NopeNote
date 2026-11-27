@@ -114,7 +114,7 @@ public sealed partial class SettingsPage : Page
         _updatingThemeSelection = false;
     }
 
-    private async void LanguageMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void LanguageMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (_updatingLanguageSelection || LanguageModeComboBox.SelectedItem is not ComboBoxItem item)
         {
@@ -127,22 +127,20 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        LanguageHelper.Select(_services.Settings, language);
-
-        ContentDialog dialog = new()
+        // 语言立即生效，不再提示重启；主窗口会按新语言重建当前页和导航项。
+        // 重建放在输入回调返回之后做，避免在原生弹出还在收拢时就拆掉宿主页面。
+        LanguageModeComboBox.IsDropDownOpen = false;
+        DispatcherQueue.TryEnqueue(() =>
         {
-            XamlRoot = XamlRoot,
-            Title = Strings.Get("LanguageRestartDialogTitle"),
-            Content = Strings.Get("LanguageRestartDialogBody"),
-            PrimaryButtonText = Strings.Get("LanguageRestartDialogPrimary"),
-            CloseButtonText = Strings.Get("CommonLater"),
-            DefaultButton = ContentDialogButton.Close,
-        };
-
-        if (await DialogHost.ShowAsync(dialog) == ContentDialogResult.Primary)
-        {
-            LanguageHelper.RestartApplication();
-        }
+            if (Application.Current is App app)
+            {
+                app.ApplyLanguageChange(language);
+            }
+            else
+            {
+                LanguageHelper.Select(_services.Settings, language);
+            }
+        });
     }
 
     private void UpdateLanguageSelection()

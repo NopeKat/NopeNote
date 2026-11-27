@@ -1,7 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.Windows.Globalization;
 using System;
-using System.Diagnostics;
 
 namespace NopeNote.Windows.Helpers;
 
@@ -13,19 +12,36 @@ public static class LanguageHelper
 
     public static string SelectedLanguage(SettingsHelper settings) => settings.SelectedAppLanguage;
 
-    public static void ApplyStartupOverride(SettingsHelper settings)
+    /// <summary>把设置里的语言同步到运行时覆盖值，启动时和切换语言时都调用。</summary>
+    public static void Apply(SettingsHelper settings)
     {
         string language = settings.SelectedAppLanguage;
-        switch (language)
+        if (language is EnglishUnitedStates or SimplifiedChinese)
         {
-            case EnglishUnitedStates:
-            case SimplifiedChinese:
-                ApplicationLanguages.PrimaryLanguageOverride = language;
+            ApplicationLanguages.PrimaryLanguageOverride = language;
+            return;
+        }
+
+        if (IsPackaged())
+        {
+            // 打包应用的语言覆盖会跨会话保存，用系统 API 清空才能回到系统语言
+            global::Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = string.Empty;
+        }
+
+        // 非打包应用里把覆盖值清空会让原生层直接崩，所以改成显式设成系统语言列表的首项。
+        string system = string.Empty;
+        foreach (string tag in ApplicationLanguages.Languages)
+        {
+            if (tag.Length > 0)
+            {
+                system = tag;
                 break;
-            case FollowSystem when IsPackaged():
-                // 打包应用的语言覆盖会跨会话保存，用系统 API 清空才能回到系统语言
-                global::Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = string.Empty;
-                break;
+            }
+        }
+
+        if (system.Length > 0)
+        {
+            ApplicationLanguages.PrimaryLanguageOverride = system;
         }
     }
 
@@ -51,30 +67,5 @@ public static class LanguageHelper
 
         settings.SelectedAppLanguage = language;
         settings.Save();
-    }
-
-    public static void RestartApplication()
-    {
-        string? executablePath = Environment.ProcessPath;
-        if (string.IsNullOrEmpty(executablePath))
-        {
-            return;
-        }
-
-        try
-        {
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = executablePath,
-                WorkingDirectory = AppContext.BaseDirectory,
-                UseShellExecute = true,
-            });
-        }
-        catch (Exception)
-        {
-            return;
-        }
-
-        Application.Current.Exit();
     }
 }

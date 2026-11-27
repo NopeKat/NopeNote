@@ -432,15 +432,6 @@
   <data name="SettingsLanguageDescription" xml:space="preserve">
     <value>Select the language used by the app</value>
   </data>
-  <data name="LanguageRestartDialogTitle" xml:space="preserve">
-    <value>Restart required</value>
-  </data>
-  <data name="LanguageRestartDialogBody" xml:space="preserve">
-    <value>The app must restart to apply the new language.</value>
-  </data>
-  <data name="LanguageRestartDialogPrimary" xml:space="preserve">
-    <value>Restart now</value>
-  </data>
   <data name="CommonLater" xml:space="preserve">
     <value>Later</value>
   </data>

@@ -432,15 +432,6 @@
   <data name="SettingsLanguageDescription" xml:space="preserve">
     <value>选择应用显示语言</value>
   </data>
-  <data name="LanguageRestartDialogTitle" xml:space="preserve">
-    <value>需要重启</value>
-  </data>
-  <data name="LanguageRestartDialogBody" xml:space="preserve">
-    <value>更改语言后需要重启应用才能生效。</value>
-  </data>
-  <data name="LanguageRestartDialogPrimary" xml:space="preserve">
-    <value>立即重启</value>
-  </data>
   <data name="CommonLater" xml:space="preserve">
     <value>稍后</value>
   </data>

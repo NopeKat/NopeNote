@@ -18,7 +18,16 @@ public partial class App : Application
 
         _services = AppServices.CreateDefault();
         FileLog.SetVerbose(_services.Settings.VerboseLogging);
-        LanguageHelper.ApplyStartupOverride(_services.Settings);
+        LanguageHelper.Apply(_services.Settings);
+    }
+
+    /// <summary>切换语言后立即生效：改运行时覆盖值并让主窗口按新语言重建界面，不重启进程。</summary>
+    internal void ApplyLanguageChange(string language)
+    {
+        LanguageHelper.Select(_services.Settings, language);
+        LanguageHelper.Apply(_services.Settings);
+        Strings.Reload();
+        _window?.ReloadLanguageUi();
     }
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)

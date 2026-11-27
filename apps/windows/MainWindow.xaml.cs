@@ -1,5 +1,6 @@
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
@@ -73,6 +74,33 @@ public sealed partial class MainWindow : Window
     {
         NavigateTo(ShellRoutes.Notes);
         GlobalHotkey.RegisterQuickCapture(WindowHelper.GetWindowHandle(this), ShowQuickCapture);
+    }
+
+    /// <summary>切语言后重建界面：导航项文案和页面里的 x:Uid 文案都只在 XAML
+    /// 加载时解析，所以重设导航项、清掉页面缓存让当前页按新语言重新加载。</summary>
+    internal void ReloadLanguageUi()
+    {
+        ApplyNavText(NotesNavItem, "NavNotes");
+        ApplyNavText(SearchNavItem, "NavSearch");
+        ApplyNavText(TrashNavItem, "NavTrash");
+        ApplyNavText(SettingsNavItem, "NavSettings");
+
+        ShellRoute route = ContentFrame.CurrentSourcePageType is { } pageType
+            ? ShellRoutes.ForPage(pageType)
+            : ShellRoutes.Notes;
+
+        // 页面缓存会让旧语言的页面实例被复用。先把容量压到 0 清掉缓存、恢复容量，
+        // 再导航当前页，这样页面按新语言重建，后续导航也照常缓存。
+        int cacheSize = ContentFrame.CacheSize;
+        ContentFrame.CacheSize = 0;
+        ContentFrame.CacheSize = cacheSize;
+        NavigateTo(route);
+    }
+    private static void ApplyNavText(NavigationViewItem item, string key)
+    {
+        // 资源键里的点会被 PRI 当作路径分隔，所以取名字要写成多段路径。
+        item.Content = Strings.Get(key + "/Content");
+        AutomationProperties.SetName(item, Strings.Get(key + "/AutomationProperties/Name"));
     }
 
     private void NavigateTo(ShellRoute route)
