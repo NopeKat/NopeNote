@@ -16,9 +16,11 @@ public sealed partial class QuickCaptureWindow : Window
 {
     private bool _saving;
     private bool _sized;
+    private readonly AppServices _services;
 
-    public QuickCaptureWindow()
+    public QuickCaptureWindow(AppServices services)
     {
+        _services = services;
         InitializeComponent();
 
         Title = Strings.Get("QuickCaptureTitle");
@@ -86,14 +88,14 @@ public sealed partial class QuickCaptureWindow : Window
 
         try
         {
-            VaultOpenResult open = await VaultService.Current.GetVaultAsync();
+            VaultOpenResult open = await _services.Vault.GetVaultAsync();
             if (open.Store is null)
             {
                 throw new InvalidOperationException(Strings.Get("QuickCaptureNoVault"));
             }
 
             await open.Store.CreateNoteAsync(string.Empty, text);
-            VaultService.Current.NotifyDataChanged();
+            _services.Vault.NotifyDataChanged();
             Close();
         }
         catch (Exception exception)

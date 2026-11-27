@@ -728,4 +728,28 @@
   <data name="VaultDiagnosticsDismiss" xml:space="preserve">
     <value>知道了</value>
   </data>
+  <data name="VaultProblemOpened" xml:space="preserve">
+    <value>仓库已打开。</value>
+  </data>
+  <data name="VaultProblemDirectoryMissing" xml:space="preserve">
+    <value>仓库目录不存在。</value>
+  </data>
+  <data name="VaultProblemFormatInvalid" xml:space="preserve">
+    <value>仓库标记文件无效：{0}</value>
+  </data>
+  <data name="VaultProblemSchemaMismatch" xml:space="preserve">
+    <value>仓库 schema 是 {0}，不是 nopenote.vault。</value>
+  </data>
+  <data name="VaultProblemFormatVersionTooNew" xml:space="preserve">
+    <value>仓库格式版本 {0} 高于当前客户端支持的 1。</value>
+  </data>
+  <data name="VaultProblemEncrypted" xml:space="preserve">
+    <value>仓库已加密，以只读方式打开。</value>
+  </data>
+  <data name="VaultProblemProbeFailed" xml:space="preserve">
+    <value>目录不可写或能力探测失败：{0}</value>
+  </data>
+  <data name="VaultProblemGitInvalid" xml:space="preserve">
+    <value>Git 仓库校验失败，以只读方式打开；请修复 .git 后重新打开。</value>
+  </data>
 </root>

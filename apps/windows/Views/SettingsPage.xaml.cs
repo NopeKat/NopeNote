@@ -17,6 +17,7 @@ public sealed partial class SettingsPage : Page
     private bool _updatingThemeSelection;
     private bool _updatingGitToggle;
     private bool _updatingLanguageSelection;
+    private AppServices _services = null!;
 
     public SettingsPage()
     {
@@ -25,7 +26,6 @@ public sealed partial class SettingsPage : Page
         AppThemeCard.Description = Strings.Get("SettingsAppThemeDescription");
         VaultCard.Header = Strings.Get("SettingsVaultHeader");
         LockCard.Header = Strings.Get("SettingsLockHeader");
-        UpdateLockState();
         ExportCard.Header = Strings.Get("SettingsExportHeader");
         ExportCard.Description = Strings.Get("SettingsExportDescription");
         ExportButton.Content = Strings.Get("SettingsExportButton");
@@ -36,11 +36,22 @@ public sealed partial class SettingsPage : Page
         LanguageCard.Header = Strings.Get("SettingsLanguageHeader");
         LanguageCard.Description = Strings.Get("SettingsLanguageDescription");
         UpdateThemeSelection();
+    }
+
+    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        if (e.Parameter is AppServices services)
+        {
+            _services = services;
+        }
+
+        UpdateLockState();
         UpdateLanguageSelection();
-        VaultCard.Description = SettingsHelper.Current.VaultPath;
+        VaultCard.Description = _services.Settings.VaultPath;
 
         _updatingGitToggle = true;
-        GitToggle.IsOn = VaultSettings.Read(SettingsHelper.Current.VaultPath).GitEnabled;
+        GitToggle.IsOn = VaultSettings.Read(_services.Settings.VaultPath).GitEnabled;
         _updatingGitToggle = false;
     }
 
@@ -58,7 +69,7 @@ public sealed partial class SettingsPage : Page
             _ => ElementTheme.Default
         };
 
-        ThemeHelper.SetTheme(theme);
+        ThemeHelper.SetTheme(_services.Settings, theme);
     }
 
     private void UpdateThemeSelection()
@@ -92,12 +103,12 @@ public sealed partial class SettingsPage : Page
         }
 
         string language = item.Tag?.ToString() ?? LanguageHelper.FollowSystem;
-        if (language == LanguageHelper.SelectedLanguage)
+        if (language == LanguageHelper.SelectedLanguage(_services.Settings))
         {
             return;
         }
 
-        LanguageHelper.Select(language);
+        LanguageHelper.Select(_services.Settings, language);
 
         ContentDialog dialog = new()
         {
@@ -122,7 +133,7 @@ public sealed partial class SettingsPage : Page
         foreach (object item in LanguageModeComboBox.Items)
         {
             if (item is ComboBoxItem comboItem &&
-                (comboItem.Tag?.ToString() ?? LanguageHelper.FollowSystem) == LanguageHelper.SelectedLanguage)
+                (comboItem.Tag?.ToString() ?? LanguageHelper.FollowSystem) == LanguageHelper.SelectedLanguage(_services.Settings))
             {
                 LanguageModeComboBox.SelectedItem = comboItem;
                 break;
@@ -153,17 +164,17 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        SettingsHelper.Current.VaultPath = folder.Path;
-        SettingsHelper.Current.Save();
-        VaultService.Current.Reset();
+        _services.Settings.VaultPath = folder.Path;
+        _services.Settings.Save();
+        _services.Vault.Reset();
         VaultCard.Description = folder.Path;
 
-        Frame.Navigate(typeof(NotesPage));
+        Frame.Navigate(typeof(NotesPage), new NotesNavigation(null, _services));
     }
 
     private void UpdateLockState()
     {
-        bool locked = SettingsHelper.Current.HasAppLock;
+        bool locked = _services.Settings.HasAppLock;
         LockCard.Description = locked
             ? Strings.Get("SettingsLockEnabled")
             : Strings.Get("SettingsLockDisabled");
@@ -174,7 +185,7 @@ public sealed partial class SettingsPage : Page
 
     private async void LockButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!SettingsHelper.Current.HasAppLock)
+        if (!_services.Settings.HasAppLock)
         {
             await ShowSetPasswordDialogAsync();
             return;
@@ -194,9 +205,9 @@ public sealed partial class SettingsPage : Page
         ContentDialogResult result = await dialog.ShowAsync();
         if (result == ContentDialogResult.Primary)
         {
-            SettingsHelper.Current.AppLockSalt = string.Empty;
-            SettingsHelper.Current.AppLockHash = string.Empty;
-            SettingsHelper.Current.Save();
+            _services.Settings.AppLockSalt = string.Empty;
+            _services.Settings.AppLockHash = string.Empty;
+            _services.Settings.Save();
             UpdateLockState();
         }
         else if (result == ContentDialogResult.Secondary)
@@ -257,9 +268,9 @@ public sealed partial class SettingsPage : Page
             }
 
             (string salt, string hash) = PasswordHasher.Create(value);
-            SettingsHelper.Current.AppLockSalt = salt;
-            SettingsHelper.Current.AppLockHash = hash;
-            SettingsHelper.Current.Save();
+            _services.Settings.AppLockSalt = salt;
+            _services.Settings.AppLockHash = hash;
+            _services.Settings.Save();
             UpdateLockState();
             return;
         }
@@ -289,7 +300,7 @@ public sealed partial class SettingsPage : Page
         ExportButton.IsEnabled = false;
         try
         {
-            await VaultExporter.ExportAsync(SettingsHelper.Current.VaultPath, file.Path);
+            await VaultExporter.ExportAsync(_services.Settings.VaultPath, file.Path);
             ContentDialog doneDialog = new()
             {
                 XamlRoot = XamlRoot,
@@ -324,7 +335,7 @@ public sealed partial class SettingsPage : Page
         }
 
         bool enabled = GitToggle.IsOn;
-        VaultOpenResult opened = await VaultService.Current.GetVaultAsync();
+        VaultOpenResult opened = await _services.Vault.GetVaultAsync();
         if (opened.Status != VaultOpenStatus.Opened)
         {
             _updatingGitToggle = true;
@@ -333,10 +344,10 @@ public sealed partial class SettingsPage : Page
             return;
         }
 
-        await VaultService.Current.FlushCommitsAsync(TimeSpan.FromSeconds(10));
-        VaultSettings.Write(SettingsHelper.Current.VaultPath, new VaultSettings(enabled));
-        VaultService.Current.Reset();
-        await VaultService.Current.GetVaultAsync();
-        VaultService.Current.NotifyDataChanged();
+        await _services.Vault.FlushCommitsAsync(TimeSpan.FromSeconds(10));
+        VaultSettings.Write(_services.Settings.VaultPath, new VaultSettings(enabled));
+        _services.Vault.Reset();
+        await _services.Vault.GetVaultAsync();
+        _services.Vault.NotifyDataChanged();
     }
 }

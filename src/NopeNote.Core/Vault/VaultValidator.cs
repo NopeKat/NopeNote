@@ -395,7 +395,7 @@ public static partial class VaultValidator
         List<string> texts,
         CancellationToken cancellationToken)
     {
-        string attachmentDirectory = Path.Combine(root, ".vault", "atts");
+        string attachmentDirectory = Path.Combine(root, VaultLayout.AttachmentsDirectory);
         var existing = new HashSet<string>(StringComparer.Ordinal);
         var referenced = new HashSet<string>(StringComparer.Ordinal);
 
@@ -443,7 +443,7 @@ public static partial class VaultValidator
                 issues.Add(new VaultValidationIssue(
                     "ATT_MISSING",
                     VaultIssueSeverity.Error,
-                    $".vault/atts/{name}",
+                    $"{VaultLayout.AttachmentsDirectory}/{name}",
                     "attachment is referenced but not present."));
             }
         }
@@ -455,7 +455,7 @@ public static partial class VaultValidator
                 issues.Add(new VaultValidationIssue(
                     "ATT_ORPHAN",
                     VaultIssueSeverity.Info,
-                    $".vault/atts/{name}",
+                    $"{VaultLayout.AttachmentsDirectory}/{name}",
                     "attachment is not referenced by any note or snapshot."));
             }
         }

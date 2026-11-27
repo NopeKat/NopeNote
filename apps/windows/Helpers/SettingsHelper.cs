@@ -9,10 +9,7 @@ namespace NopeNote.Windows.Helpers;
 
 public sealed class SettingsHelper
 {
-    private static readonly SettingsHelper CurrentInstance = new();
     private readonly string _settingsPath;
-
-    public static SettingsHelper Current => CurrentInstance;
 
     public ElementTheme SelectedAppTheme { get; set; } = ElementTheme.Default;
 
@@ -35,7 +32,7 @@ public sealed class SettingsHelper
     public bool HasAppLock => !string.IsNullOrWhiteSpace(AppLockSalt) &&
                               !string.IsNullOrWhiteSpace(AppLockHash);
 
-    private SettingsHelper()
+    public SettingsHelper()
     {
         string folder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

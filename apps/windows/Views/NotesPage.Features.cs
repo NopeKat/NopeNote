@@ -53,8 +53,6 @@ public sealed partial class NotesPage
         ExportMarkdownItem.Text = Strings.Get("NotesExportMarkdownMenu");
         ExportHtmlItem.Text = Strings.Get("NotesExportHtmlMenu");
         CopyNoteItem.Text = Strings.Get("NotesCopyMenu");
-
-        LoadTemplateMenu();
     }
 
     // ---------- 文件夹 ----------
@@ -323,7 +321,7 @@ public sealed partial class NotesPage
         IReadOnlyList<Note> notes,
         Func<Note, IVaultStore, Task<NoteDocument>> update)
     {
-        IVaultStore? store = VaultService.Current.Store;
+        IVaultStore? store = _services.Vault.Store;
         if (store is null)
         {
             return;
@@ -376,7 +374,7 @@ public sealed partial class NotesPage
             return;
         }
 
-        IVaultStore? store = VaultService.Current.Store;
+        IVaultStore? store = _services.Vault.Store;
         if (store is null)
         {
             return;
@@ -439,7 +437,7 @@ public sealed partial class NotesPage
     {
         TemplateMenu.Items.Clear();
 
-        string templatesPath = Path.Combine(VaultService.Current.VaultPath, ".templates");
+        string templatesPath = Path.Combine(_services.Vault.VaultPath, ".templates");
         try
         {
             Directory.CreateDirectory(templatesPath);
@@ -530,7 +528,7 @@ public sealed partial class NotesPage
             return;
         }
 
-        string folder = Path.Combine(VaultService.Current.VaultPath, ".templates");
+        string folder = Path.Combine(_services.Vault.VaultPath, ".templates");
         Directory.CreateDirectory(folder);
         await File.WriteAllTextAsync(Path.Combine(folder, name + ".md"), NoteEditor.Text);
         LoadTemplateMenu();
@@ -548,7 +546,7 @@ public sealed partial class NotesPage
         }
 
         string body = $"# {title}\n\n";
-        string dailyTemplate = Path.Combine(VaultService.Current.VaultPath, ".templates", "Daily.md");
+        string dailyTemplate = Path.Combine(_services.Vault.VaultPath, ".templates", "Daily.md");
         if (File.Exists(dailyTemplate))
         {
             body = (await File.ReadAllTextAsync(dailyTemplate)).Replace("{date}", title);
@@ -563,7 +561,7 @@ public sealed partial class NotesPage
 
     private async Task CreateNoteFromBodyAsync(string body, string folder)
     {
-        if (!VaultService.Current.IsWritable)
+        if (!_services.Vault.IsWritable)
         {
             ShowError(
                 Strings.Get("NotesVaultReadOnlyCreateTitle"),
@@ -722,14 +720,14 @@ public sealed partial class NotesPage
             return;
         }
 
-        PreviewPanel.Children.Add(MarkdownRenderer.Render(NoteEditor.Text, VaultService.Current.VaultPath));
+        PreviewPanel.Children.Add(MarkdownRenderer.Render(NoteEditor.Text, _services.Vault.VaultPath));
     }
 
     // ---------- 附件 ----------
 
     private async void NoteEditor_Paste(object sender, TextControlPasteEventArgs e)
     {
-        IVaultStore? store = VaultService.Current.Store;
+        IVaultStore? store = _services.Vault.Store;
         if (SelectedNote is null || store is null || !store.Capabilities.Writable)
         {
             return;
@@ -763,7 +761,7 @@ public sealed partial class NotesPage
     private void NoteEditor_DragOver(object sender, DragEventArgs e)
     {
         if (SelectedNote is not null &&
-            VaultService.Current.IsWritable &&
+            _services.Vault.IsWritable &&
             e.DataView.Contains(StandardDataFormats.StorageItems))
         {
             e.AcceptedOperation = DataPackageOperation.Copy;
@@ -774,7 +772,7 @@ public sealed partial class NotesPage
 
     private async void NoteEditor_Drop(object sender, DragEventArgs e)
     {
-        IVaultStore? store = VaultService.Current.Store;
+        IVaultStore? store = _services.Vault.Store;
         if (SelectedNote is null ||
             store is null ||
             !store.Capabilities.Writable ||
@@ -895,7 +893,7 @@ public sealed partial class NotesPage
             return;
         }
 
-        NoteWindow window = new(note.Id);
+        NoteWindow window = new(note.Id, _services);
         WindowHelper.TrackWindow(window);
         window.Activate();
     }

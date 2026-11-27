@@ -14,11 +14,11 @@ namespace NopeNote.Windows.Helpers;
 /// <summary>Stores pasted or dropped files under the vault's content-addressed folder.</summary>
 internal static class AttachmentStore
 {
-    private const string AttachmentFolder = ".vault/atts";
-    private const string ReferencePrefix = "../atts";
+    private const string AttachmentFolder = VaultLayout.AttachmentsDirectory;
+    private const string ReferencePrefix = VaultLayout.AttachmentReferencePrefix;
 
     internal static string FolderPath(string vaultPath)
-        => Path.Combine(vaultPath, ".vault", "atts");
+        => Path.Combine(vaultPath, VaultLayout.AttachmentsDirectory);
 
     internal static async Task<string> SaveFileAsync(IVaultStore store, StorageFile file)
     {

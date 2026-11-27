@@ -84,7 +84,7 @@ public static class VaultStoreFactory
             return new VaultOpenResult(
                 VaultOpenStatus.NotAVault,
                 null,
-                "仓库目录不存在。");
+                VaultProblem.DirectoryMissing);
         }
 
         VaultMetadata metadata;
@@ -97,6 +97,7 @@ public static class VaultStoreFactory
             return new VaultOpenResult(
                 VaultOpenStatus.NotAVault,
                 null,
+                VaultProblem.FormatInvalid,
                 exception.Message);
         }
 
@@ -105,7 +106,8 @@ public static class VaultStoreFactory
             return new VaultOpenResult(
                 VaultOpenStatus.NotAVault,
                 null,
-                ".nopenote schema 不是 nopenote.vault。");
+                VaultProblem.SchemaMismatch,
+                metadata.Schema);
         }
 
         if (metadata.FormatVersion > 1)
@@ -118,7 +120,8 @@ public static class VaultStoreFactory
             return new VaultOpenResult(
                 VaultOpenStatus.ReadOnly,
                 readOnlyStore,
-                $"仓库格式版本 {metadata.FormatVersion} 高于当前客户端支持的 1。");
+                VaultProblem.FormatVersionTooNew,
+                metadata.FormatVersion.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         if (metadata.Encrypted)
@@ -131,7 +134,7 @@ public static class VaultStoreFactory
             return new VaultOpenResult(
                 VaultOpenStatus.ReadOnly,
                 readOnlyStore,
-                "仓库已加密，当前版本不支持解密写入。");
+                VaultProblem.Encrypted);
         }
 
         VaultCapabilities capabilities;
@@ -149,10 +152,11 @@ public static class VaultStoreFactory
             return new VaultOpenResult(
                 VaultOpenStatus.ReadOnly,
                 readOnlyStore,
-                $"目录不可写或能力探测失败：{exception.Message}");
+                VaultProblem.ProbeFailed,
+                exception.Message);
         }
 
         var store = new LocalVaultStore(rootPath, metadata, capabilities, deviceId);
-        return new VaultOpenResult(VaultOpenStatus.Opened, store, "仓库已打开。");
+        return new VaultOpenResult(VaultOpenStatus.Opened, store);
     }
 }

@@ -134,10 +134,9 @@ public sealed class Note : INotifyPropertyChanged
     public bool HasUnsavedChanges
         => IsDraft || !string.Equals(Text, _savedText, StringComparison.Ordinal);
 
-    public static async Task<IReadOnlyList<Note>> LoadAllAsync(IVaultStore store)
+    public static async Task<IReadOnlyList<Note>> LoadAllAsync(IVaultStore store, NoteSearchIndex index)
     {
         NoteScanResult scan = await store.ScanNotesAsync();
-        NoteSearchIndex index = NoteSearchIndex.Current;
         index.Configure(store.RootPath, scan.Notes.Count);
 
         var notes = new List<Note>(scan.Notes.Count);

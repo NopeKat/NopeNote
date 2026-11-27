@@ -9,23 +9,20 @@ public static class ThemeHelper
     public static ElementTheme RootTheme
     {
         get => _rootTheme;
-        private set
-        {
-            _rootTheme = value;
-            SettingsHelper.Current.SelectedAppTheme = value;
-            SettingsHelper.Current.Save();
-        }
+        private set => _rootTheme = value;
     }
 
-    public static void Initialize()
+    public static void Initialize(SettingsHelper settings)
     {
-        _rootTheme = SettingsHelper.Current.SelectedAppTheme;
+        _rootTheme = settings.SelectedAppTheme;
         Apply(_rootTheme);
     }
 
-    public static void SetTheme(ElementTheme theme)
+    public static void SetTheme(SettingsHelper settings, ElementTheme theme)
     {
         RootTheme = theme;
+        settings.SelectedAppTheme = theme;
+        settings.Save();
         Apply(theme);
     }
 

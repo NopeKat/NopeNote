@@ -728,4 +728,28 @@
   <data name="VaultDiagnosticsDismiss" xml:space="preserve">
     <value>Dismiss</value>
   </data>
+  <data name="VaultProblemOpened" xml:space="preserve">
+    <value>Vault opened.</value>
+  </data>
+  <data name="VaultProblemDirectoryMissing" xml:space="preserve">
+    <value>The vault folder does not exist.</value>
+  </data>
+  <data name="VaultProblemFormatInvalid" xml:space="preserve">
+    <value>The vault marker is not valid: {0}</value>
+  </data>
+  <data name="VaultProblemSchemaMismatch" xml:space="preserve">
+    <value>The vault schema is {0}, not nopenote.vault.</value>
+  </data>
+  <data name="VaultProblemFormatVersionTooNew" xml:space="preserve">
+    <value>Vault format version {0} is newer than this app supports (1).</value>
+  </data>
+  <data name="VaultProblemEncrypted" xml:space="preserve">
+    <value>The vault is encrypted, so it is opened read-only.</value>
+  </data>
+  <data name="VaultProblemProbeFailed" xml:space="preserve">
+    <value>The vault folder is not writable: {0}</value>
+  </data>
+  <data name="VaultProblemGitInvalid" xml:space="preserve">
+    <value>The git repository failed verification, so the vault is opened read-only. Fix .git and reopen.</value>
+  </data>
 </root>

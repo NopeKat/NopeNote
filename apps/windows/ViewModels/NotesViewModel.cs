@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Threading.Tasks;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Models;
+using NopeNote.Windows.Services;
 
 namespace NopeNote.Windows.ViewModels;
 
@@ -105,13 +106,13 @@ public sealed class NotesViewModel : INotifyPropertyChanged
         _store = store ?? throw new ArgumentNullException(nameof(store));
     }
 
-    public async Task LoadAsync()
+    public async Task LoadAsync(NoteSearchIndex index)
     {
         IsLoading = true;
         try
         {
             _allNotes.Clear();
-            IReadOnlyList<Note> notes = await Note.LoadAllAsync(Store);
+            IReadOnlyList<Note> notes = await Note.LoadAllAsync(Store, index);
             foreach (Note note in notes)
             {
                 _allNotes.Add(note);
@@ -128,7 +129,38 @@ public sealed class NotesViewModel : INotifyPropertyChanged
 
     public void ApplyFilter(string query)
     {
-        CurrentQuery = query;
+        Apply(new NoteQuery
+        {
+            Text = query,
+            Tag = TagFilter,
+            Folder = FolderFilter,
+        });
+    }
+
+    /// <summary>标签、文件夹、时间范围、仅标题和 tag:/folder:/title: 语法。</summary>
+    public void ApplySearch(
+        string query,
+        string? tag,
+        string? folder,
+        int days,
+        bool titleOnly)
+    {
+        Apply(new NoteQuery
+        {
+            Text = query,
+            Tag = string.IsNullOrWhiteSpace(tag) ? null : tag,
+            Folder = string.IsNullOrWhiteSpace(folder) ? null : folder,
+            Days = days,
+            TitleOnly = titleOnly,
+            UseSyntax = true,
+        });
+    }
+
+    /// <summary>唯一的求值入口：两个页面都走这里，只是传不同的条件。</summary>
+    public void Apply(NoteQuery query)
+    {
+        CurrentQuery = query.Text;
+
         var pinned = new List<Note>(_allNotes.Count);
         var others = new List<Note>(_allNotes.Count);
 
@@ -147,23 +179,36 @@ public sealed class NotesViewModel : INotifyPropertyChanged
         Notes = pinned;
     }
 
-    private bool Matches(Note note, string query)
+    private static bool Matches(Note note, NoteQuery query)
     {
-        if (TagFilter is not null && !HasTag(note, TagFilter))
+        if (query.Tag is not null && !HasTag(note, query.Tag))
         {
             return false;
         }
 
-        if (FolderFilter is not null && !IsInFolder(note, FolderFilter))
+        if (query.Folder is not null && !IsInFolder(note, query.Folder))
         {
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(query))
+        if (query.Days > 0 && note.Date < DateTime.Now.AddDays(-query.Days))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(query.Text))
         {
             return true;
         }
 
+        return query.UseSyntax
+            ? MatchesSyntax(note, query)
+            : MatchesPlain(note, query.Text);
+    }
+
+    /// <summary>整串子串匹配：标题、正文或任一标签命中即可。</summary>
+    private static bool MatchesPlain(Note note, string query)
+    {
         if (note.Text.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0 ||
             note.DisplayTitle.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
         {
@@ -181,61 +226,10 @@ public sealed class NotesViewModel : INotifyPropertyChanged
         return false;
     }
 
-    /// <summary>高级搜索：标签、文件夹、时间范围、仅标题和 tag:/folder:/title: 语法。</summary>
-    public void ApplySearch(
-        string query,
-        string? tag,
-        string? folder,
-        int days,
-        bool titleOnly)
+    /// <summary>逐 token 匹配，支持 tag: / folder: / title: 前缀，每个 token 都必须命中。</summary>
+    private static bool MatchesSyntax(Note note, NoteQuery query)
     {
-        CurrentQuery = query;
-
-        var pinned = new List<Note>(_allNotes.Count);
-        var others = new List<Note>(_allNotes.Count);
-        foreach (Note note in _allNotes)
-        {
-            if (!MatchesSearch(note, query, tag, folder, days, titleOnly))
-            {
-                continue;
-            }
-
-            (note.IsPinned ? pinned : others).Add(note);
-        }
-
-        pinned.AddRange(others);
-        Notes = pinned;
-    }
-
-    private static bool MatchesSearch(
-        Note note,
-        string query,
-        string? tag,
-        string? folder,
-        int days,
-        bool titleOnly)
-    {
-        if (!string.IsNullOrWhiteSpace(tag) && !HasTag(note, tag))
-        {
-            return false;
-        }
-
-        if (!string.IsNullOrWhiteSpace(folder) && !IsInFolder(note, folder))
-        {
-            return false;
-        }
-
-        if (days > 0 && note.Date < DateTime.Now.AddDays(-days))
-        {
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            return true;
-        }
-
-        foreach (string token in query.Split(
+        foreach (string token in query.Text.Split(
                      ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             if (token.StartsWith("tag:", StringComparison.OrdinalIgnoreCase))
@@ -266,7 +260,7 @@ public sealed class NotesViewModel : INotifyPropertyChanged
             }
 
             bool hit = note.DisplayTitle.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0;
-            if (!hit && !titleOnly)
+            if (!hit && !query.TitleOnly)
             {
                 hit = note.Text.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0;
                 foreach (string noteTag in note.Tags)

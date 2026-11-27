@@ -1,16 +1,19 @@
 using Microsoft.UI.Xaml;
 using NopeNote.Windows.Helpers;
+using NopeNote.Windows.Services;
 using System.Threading.Tasks;
 
 namespace NopeNote.Windows;
 
 public partial class App : Application
 {
+    private readonly AppServices _services;
     private MainWindow? _window;
 
     public App()
     {
-        LanguageHelper.ApplyStartupOverride();
+        _services = AppServices.CreateDefault();
+        LanguageHelper.ApplyStartupOverride(_services.Settings);
     }
 
     protected override async void OnLaunched(LaunchActivatedEventArgs args)
@@ -21,9 +24,9 @@ public partial class App : Application
 
     private async Task EnsureWindowAsync()
     {
-        _window = new MainWindow();
+        _window = new MainWindow(_services);
         WindowHelper.TrackWindow(_window);
-        ThemeHelper.Initialize();
+        ThemeHelper.Initialize(_services.Settings);
         _window.Activate();
 
         if (!await _window.EnsureUnlockedAsync())

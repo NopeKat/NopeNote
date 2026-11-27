@@ -21,9 +21,11 @@ public sealed partial class MainWindow : Window
     private bool _closeConfirmed;
     private bool _closeFlowRunning;
     private QuickCaptureWindow? _quickCaptureWindow;
+    private readonly AppServices _services;
 
-    public MainWindow()
+    public MainWindow(AppServices services)
     {
+        _services = services;
         InitializeComponent();
 
         Title = "NopeNote";
@@ -52,14 +54,14 @@ public sealed partial class MainWindow : Window
 
     internal void InitializeNavigation()
     {
-        ContentFrame.Navigate(typeof(NotesPage));
+        ContentFrame.Navigate(typeof(NotesPage), new NotesNavigation(null, _services));
         NotesNavItem.IsSelected = true;
         GlobalHotkey.RegisterQuickCapture(WindowHelper.GetWindowHandle(this), ShowQuickCapture);
     }
 
     internal async Task<bool> EnsureUnlockedAsync()
     {
-        if (!SettingsHelper.Current.HasAppLock)
+        if (!_services.Settings.HasAppLock)
         {
             return true;
         }
@@ -99,8 +101,8 @@ public sealed partial class MainWindow : Window
 
             if (PasswordHasher.Verify(
                     input.Password,
-                    SettingsHelper.Current.AppLockSalt,
-                    SettingsHelper.Current.AppLockHash))
+                    _services.Settings.AppLockSalt,
+                    _services.Settings.AppLockHash))
             {
                 return true;
             }
@@ -127,7 +129,7 @@ public sealed partial class MainWindow : Window
     {
         if (_quickCaptureWindow is null)
         {
-            _quickCaptureWindow = new QuickCaptureWindow();
+            _quickCaptureWindow = new QuickCaptureWindow(_services);
             WindowHelper.TrackWindow(_quickCaptureWindow);
             _quickCaptureWindow.Closed += (_, _) => _quickCaptureWindow = null;
         }
@@ -154,7 +156,7 @@ public sealed partial class MainWindow : Window
         }
         else
         {
-            ContentFrame.Navigate(typeof(SearchPage));
+            ContentFrame.Navigate(typeof(SearchPage), _services);
         }
 
         SearchNavItem.IsSelected = true;
@@ -216,7 +218,7 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        ContentFrame.Navigate(pageType);
+        ContentFrame.Navigate(pageType, _services);
     }
 
     private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
@@ -279,7 +281,7 @@ public sealed partial class MainWindow : Window
             return;
         }
 
-        bool hasWork = VaultService.Current.HasPendingCommits ||
+        bool hasWork = _services.Vault.HasPendingCommits ||
             (ContentFrame.Content is NotesPage notes && notes.HasUnsavedWork());
 
         if (!hasWork)
@@ -300,7 +302,7 @@ public sealed partial class MainWindow : Window
             }
 
             bool committed = saved &&
-                await VaultService.Current.FlushCommitsAsync(TimeSpan.FromSeconds(10));
+                await _services.Vault.FlushCommitsAsync(TimeSpan.FromSeconds(10));
 
             canClose = saved && committed
                 ? true

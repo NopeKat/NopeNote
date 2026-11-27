@@ -11,11 +11,11 @@ public static class LanguageHelper
     public const string EnglishUnitedStates = "en-US";
     public const string SimplifiedChinese = "zh-Hans";
 
-    public static string SelectedLanguage => SettingsHelper.Current.SelectedAppLanguage;
+    public static string SelectedLanguage(SettingsHelper settings) => settings.SelectedAppLanguage;
 
-    public static void ApplyStartupOverride()
+    public static void ApplyStartupOverride(SettingsHelper settings)
     {
-        string language = SettingsHelper.Current.SelectedAppLanguage;
+        string language = settings.SelectedAppLanguage;
         switch (language)
         {
             case EnglishUnitedStates:
@@ -42,15 +42,15 @@ public static class LanguageHelper
         }
     }
 
-    public static void Select(string language)
+    public static void Select(SettingsHelper settings, string language)
     {
         if (language is not (FollowSystem or EnglishUnitedStates or SimplifiedChinese))
         {
             throw new ArgumentOutOfRangeException(nameof(language));
         }
 
-        SettingsHelper.Current.SelectedAppLanguage = language;
-        SettingsHelper.Current.Save();
+        settings.SelectedAppLanguage = language;
+        settings.Save();
     }
 
     public static void RestartApplication()

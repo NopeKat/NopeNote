@@ -16,6 +16,7 @@ namespace NopeNote.Windows.Views;
 public sealed partial class NoteWindow : Window
 {
     private readonly Guid _noteId;
+    private readonly AppServices _services;
     private readonly DispatcherTimer _autoSaveTimer = new();
     private NoteDocument? _document;
     private string _savedText = string.Empty;
@@ -25,9 +26,10 @@ public sealed partial class NoteWindow : Window
     private bool _promptingClose;
     private string? _conflictPath;
 
-    public NoteWindow(Guid noteId)
+    public NoteWindow(Guid noteId, AppServices services)
     {
         _noteId = noteId;
+        _services = services;
         InitializeComponent();
 
         Title = Strings.Get("NoteWindowTitle");
@@ -55,10 +57,10 @@ public sealed partial class NoteWindow : Window
 
     private async Task LoadAsync()
     {
-        VaultOpenResult opened = await VaultService.Current.GetVaultAsync();
+        VaultOpenResult opened = await _services.Vault.GetVaultAsync();
         if (opened.Store is null)
         {
-            ShowError(opened.Message);
+            ShowError(VaultProblemText.Describe(opened));
             return;
         }
 
@@ -132,7 +134,7 @@ public sealed partial class NoteWindow : Window
             return true;
         }
 
-        IVaultStore? store = VaultService.Current.Store;
+        IVaultStore? store = _services.Vault.Store;
         if (store is null)
         {
             ShowError(Strings.Get("NoteWindowMissing"));
@@ -151,7 +153,7 @@ public sealed partial class NoteWindow : Window
             TitleTextBlock.Text = updated.Summary.Title;
             StatusTextBlock.Text = Strings.Get("NoteWindowSaved");
             UpdateBodySizeStatus();
-            VaultService.Current.NotifyDataChanged();
+            _services.Vault.NotifyDataChanged();
             return true;
         }
         catch (VaultConflictException conflict)

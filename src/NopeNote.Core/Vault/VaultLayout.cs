@@ -12,6 +12,9 @@ public static class VaultLayout
 
     public const string AttachmentsDirectory = ".vault/atts";
 
+    /// <summary>How attachments are linked from a note file, e.g. ../atts/&lt;sha256&gt;.png.</summary>
+    public const string AttachmentReferencePrefix = "../atts";
+
     public const string HistoryDirectory = ".history";
 
     public const string TrashDirectory = ".trash";

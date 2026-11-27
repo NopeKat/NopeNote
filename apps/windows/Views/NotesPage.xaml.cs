@@ -36,6 +36,7 @@ public sealed partial class NotesPage : Page
     private RetryOperation _retryOperation = RetryOperation.None;
     private string? _conflictPath;
     private readonly DispatcherTimer _autoSaveTimer = new();
+    private AppServices _services = null!;
 
     public NotesPage()
     {
@@ -61,7 +62,13 @@ public sealed partial class NotesPage : Page
     protected override void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-        _pendingNoteId = e.Parameter is Guid noteId ? noteId : null;
+        if (e.Parameter is NotesNavigation navigation)
+        {
+            _services = navigation.Services;
+            _pendingNoteId = navigation.NoteId;
+            LoadTemplateMenu();
+        }
+
         TrySelectPendingNote();
     }
 
@@ -75,15 +82,15 @@ public sealed partial class NotesPage : Page
 
     private async void NotesPage_Loaded(object sender, RoutedEventArgs e)
     {
-        VaultService.Current.CommitFailed -= OnGitCommitFailed;
-        VaultService.Current.CommitFailed += OnGitCommitFailed;
+        _services.Vault.CommitFailed -= OnGitCommitFailed;
+        _services.Vault.CommitFailed += OnGitCommitFailed;
         ApplyLayout(ActualWidth < NarrowWidthThreshold);
         await EnsureNotesLoadedAsync();
     }
 
     private async void NotesPage_Unloaded(object sender, RoutedEventArgs e)
     {
-        VaultService.Current.CommitFailed -= OnGitCommitFailed;
+        _services.Vault.CommitFailed -= OnGitCommitFailed;
         _autoSaveTimer.Stop();
         await PersistEditorTextAsync();
     }
@@ -181,7 +188,7 @@ public sealed partial class NotesPage : Page
     private async Task SaveNoteMetadataAsync()
     {
         Note? note = SelectedNote;
-        IVaultStore? store = VaultService.Current.Store;
+        IVaultStore? store = _services.Vault.Store;
         if (note is null || note.IsDraft || store is null || _isUpdatingMetadata)
         {
             return;
@@ -271,15 +278,15 @@ public sealed partial class NotesPage : Page
         }
 
         // 页面缓存会复用同一个实例：仓库和版本都没变就不必再重建列表。
-        if (ViewModel.IsLoaded && ReferenceEquals(ViewModel.StoreOrNull, VaultService.Current.Store))
+        if (ViewModel.IsLoaded && ReferenceEquals(ViewModel.StoreOrNull, _services.Vault.Store))
         {
-            if (_loadedVersion == VaultService.Current.DataVersion)
+            if (_loadedVersion == _services.Vault.DataVersion)
             {
                 return;
             }
 
-            await ViewModel.LoadAsync();
-            _loadedVersion = VaultService.Current.DataVersion;
+            await ViewModel.LoadAsync(_services.SearchIndex);
+            _loadedVersion = _services.Vault.DataVersion;
             UpdateListState();
             RefreshTagFilter();
             TrySelectPendingNote();
@@ -291,22 +298,22 @@ public sealed partial class NotesPage : Page
 
         try
         {
-            VaultOpenResult opened = await VaultService.Current.GetVaultAsync();
+            VaultOpenResult opened = await _services.Vault.GetVaultAsync();
             if (opened.Store is null)
             {
                 _loadFailed = true;
                 NewNoteButton.IsEnabled = false;
                 ShowError(
                     Strings.Get("NotesVaultOpenFailedTitle"),
-                    $"{opened.Message} {Strings.Get("NotesVaultOpenFailedHint")}",
+                    $"{VaultProblemText.Describe(opened)} {Strings.Get("NotesVaultOpenFailedHint")}",
                     RetryOperation.LoadNotes,
                     null);
                 return;
             }
 
             ViewModel.Attach(opened.Store);
-            await ViewModel.LoadAsync();
-            _loadedVersion = VaultService.Current.DataVersion;
+            await ViewModel.LoadAsync(_services.SearchIndex);
+            _loadedVersion = _services.Vault.DataVersion;
             ApplyVaultState(opened);
             RefreshTagFilter();
             await ReportVaultDiagnosticsAsync();
@@ -329,13 +336,13 @@ public sealed partial class NotesPage : Page
 
     private async Task ReportVaultDiagnosticsAsync()
     {
-        if (VaultService.Current.DiagnosticsReported)
+        if (_services.Vault.DiagnosticsReported)
         {
             return;
         }
 
-        VaultService.Current.DiagnosticsReported = true;
-        VaultValidationReport? report = await VaultService.Current.DiagnoseAsync();
+        _services.Vault.DiagnosticsReported = true;
+        VaultValidationReport? report = await _services.Vault.DiagnoseAsync();
         if (report is null || report.Issues.Count == 0)
         {
             return;
@@ -366,7 +373,7 @@ public sealed partial class NotesPage : Page
         {
             ShowError(
                 Strings.Get("NotesVaultReadOnlyTitle"),
-                opened.Message,
+                VaultProblemText.Describe(opened),
                 RetryOperation.None,
                 null,
                 InfoBarSeverity.Warning);
@@ -465,8 +472,8 @@ public sealed partial class NotesPage : Page
     // 本页自己已经更新了列表，同时把版本号对齐，避免下次进入再白刷一遍。
     private void MarkDataChanged()
     {
-        VaultService.Current.NotifyDataChanged();
-        _loadedVersion = VaultService.Current.DataVersion;
+        _services.Vault.NotifyDataChanged();
+        _loadedVersion = _services.Vault.DataVersion;
     }
 
     private void TrySelectPendingNote()
@@ -489,7 +496,7 @@ public sealed partial class NotesPage : Page
 
     private async void NewNoteButton_Click(object sender, RoutedEventArgs e)
     {
-        if (!VaultService.Current.IsWritable)
+        if (!_services.Vault.IsWritable)
         {
             ShowError(
                 Strings.Get("NotesVaultReadOnlyCreateTitle"),
@@ -674,7 +681,7 @@ public sealed partial class NotesPage : Page
     private async void HistoryButton_Click(object sender, RoutedEventArgs e)
     {
         Note? note = SelectedNote;
-        IVaultStore? store = VaultService.Current.Store;
+        IVaultStore? store = _services.Vault.Store;
         if (note is null || store is null || note.IsDraft)
         {
             return;
@@ -830,7 +837,7 @@ public sealed partial class NotesPage : Page
         {
             case RetryOperation.LoadNotes:
                 _loadFailed = false;
-                VaultService.Current.Reset();
+                _services.Vault.Reset();
                 await EnsureNotesLoadedAsync();
                 break;
             case RetryOperation.SaveNote:
@@ -927,7 +934,7 @@ public sealed partial class NotesPage : Page
         SelectedNote = note;
         NoteEditor.IsEnabled = true;
         NoteDateTextBlock.Text = note.Date.ToString("g");
-        DeleteNoteButton.IsEnabled = VaultService.Current.IsWritable;
+        DeleteNoteButton.IsEnabled = _services.Vault.IsWritable;
         HistoryButton.Visibility = Visibility.Visible;
         UpdateMetadataBar(note);
         OnNoteSelected(note);

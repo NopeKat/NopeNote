@@ -22,6 +22,7 @@ public sealed partial class SearchPage : Page
     private bool _loadFailed;
     private int _filterVersion;
     private int _loadedVersion = -1;
+    private AppServices _services = null!;
     private string? _appliedQuery;
     private bool _isUpdatingFilters;
     private readonly SolidColorBrush _highlightBrush = new(Colors.Gold) { Opacity = 0.35 };
@@ -38,6 +39,15 @@ public sealed partial class SearchPage : Page
     }
 
     public NotesViewModel ViewModel { get; }
+
+    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        if (e.Parameter is AppServices services)
+        {
+            _services = services;
+        }
+    }
 
     public void FocusSearch()
     {
@@ -59,16 +69,16 @@ public sealed partial class SearchPage : Page
         }
 
         // 页面缓存复用同一个实例，仓库和版本都没变就不重过滤。
-        if (ViewModel.IsLoaded && ReferenceEquals(ViewModel.StoreOrNull, VaultService.Current.Store))
+        if (ViewModel.IsLoaded && ReferenceEquals(ViewModel.StoreOrNull, _services.Vault.Store))
         {
-            if (_loadedVersion == VaultService.Current.DataVersion)
+            if (_loadedVersion == _services.Vault.DataVersion)
             {
                 ApplyFilterIfChanged();
                 return;
             }
 
-            await ViewModel.LoadAsync();
-            _loadedVersion = VaultService.Current.DataVersion;
+            await ViewModel.LoadAsync(_services.SearchIndex);
+            _loadedVersion = _services.Vault.DataVersion;
             RefreshFilterChoices();
             ApplyFilter();
             return;
@@ -84,16 +94,16 @@ public sealed partial class SearchPage : Page
 
         try
         {
-            VaultOpenResult opened = await VaultService.Current.GetVaultAsync();
+            VaultOpenResult opened = await _services.Vault.GetVaultAsync();
             if (opened.Store is null)
             {
-                ShowError(opened.Message);
+                ShowError(VaultProblemText.Describe(opened));
                 return;
             }
 
             ViewModel.Attach(opened.Store);
-            await ViewModel.LoadAsync();
-            _loadedVersion = VaultService.Current.DataVersion;
+            await ViewModel.LoadAsync(_services.SearchIndex);
+            _loadedVersion = _services.Vault.DataVersion;
             ErrorInfoBar.IsOpen = false;
         }
         catch (Exception exception)
@@ -113,7 +123,7 @@ public sealed partial class SearchPage : Page
 
     private void UpdateIndexNotice()
     {
-        bool indexed = NoteSearchIndex.Current.IsEnabled;
+        bool indexed = _services.SearchIndex.IsEnabled;
         if (indexed)
         {
             IndexNoticeTextBlock.Text = Strings.Get("SearchIndexNotice");
@@ -348,7 +358,7 @@ public sealed partial class SearchPage : Page
     {
         _loadFailed = false;
         ErrorInfoBar.IsOpen = false;
-        VaultService.Current.Reset();
+        _services.Vault.Reset();
         await EnsureNotesLoadedAsync();
     }
 
@@ -356,7 +366,7 @@ public sealed partial class SearchPage : Page
     {
         if (e.ClickedItem is Note note)
         {
-            Frame.Navigate(typeof(NotesPage), note.Id);
+            Frame.Navigate(typeof(NotesPage), new NotesNavigation(note.Id, _services));
         }
     }
 }

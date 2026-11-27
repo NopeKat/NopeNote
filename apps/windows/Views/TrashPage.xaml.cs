@@ -35,6 +35,7 @@ public sealed partial class TrashPage : Page
     private bool _isLoading;
     private IVaultStore? _loadedStore;
     private int _loadedVersion = -1;
+    private AppServices _services = null!;
 
     public TrashPage()
     {
@@ -42,12 +43,21 @@ public sealed partial class TrashPage : Page
         Loaded += TrashPage_Loaded;
     }
 
+    protected override void OnNavigatedTo(Microsoft.UI.Xaml.Navigation.NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        if (e.Parameter is AppServices services)
+        {
+            _services = services;
+        }
+    }
+
     private async void TrashPage_Loaded(object sender, RoutedEventArgs e)
     {
-        IVaultStore? store = VaultService.Current.Store;
+        IVaultStore? store = _services.Vault.Store;
         if (_loadedStore is not null &&
             ReferenceEquals(_loadedStore, store) &&
-            _loadedVersion == VaultService.Current.DataVersion)
+            _loadedVersion == _services.Vault.DataVersion)
         {
             return;
         }
@@ -61,7 +71,7 @@ public sealed partial class TrashPage : Page
 
         try
         {
-            IVaultStore? store = VaultService.Current.Store;
+            IVaultStore? store = _services.Vault.Store;
             if (store is null)
             {
                 ShowStatus(
@@ -76,7 +86,7 @@ public sealed partial class TrashPage : Page
             TrashList.ItemsSource = _items;
             TrashList.SelectedItem = null;
             _loadedStore = store;
-            _loadedVersion = VaultService.Current.DataVersion;
+            _loadedVersion = _services.Vault.DataVersion;
             UpdateEmptyState();
 
             if (!store.Capabilities.Writable)
@@ -118,7 +128,7 @@ public sealed partial class TrashPage : Page
 
     private void UpdateActionState()
     {
-        bool writable = VaultService.Current.IsWritable;
+        bool writable = _services.Vault.IsWritable;
         bool hasSelection = TrashList.SelectedItem is TrashItem;
         RestoreButton.IsEnabled = !_isLoading && writable && hasSelection;
         PurgeButton.IsEnabled = !_isLoading && writable && hasSelection;
@@ -132,8 +142,8 @@ public sealed partial class TrashPage : Page
     // 本页列表已就地更新，同时抬高版本号，让其他缓存页面下次进入时重新加载。
     private void MarkDataChanged()
     {
-        VaultService.Current.NotifyDataChanged();
-        _loadedVersion = VaultService.Current.DataVersion;
+        _services.Vault.NotifyDataChanged();
+        _loadedVersion = _services.Vault.DataVersion;
     }
 
     private void RemoveItem(TrashItem item)
@@ -157,7 +167,7 @@ public sealed partial class TrashPage : Page
             return;
         }
 
-        IVaultStore? store = VaultService.Current.Store;
+        IVaultStore? store = _services.Vault.Store;
         if (store is null)
         {
             return;
@@ -197,7 +207,7 @@ public sealed partial class TrashPage : Page
             return;
         }
 
-        IVaultStore? store = VaultService.Current.Store;
+        IVaultStore? store = _services.Vault.Store;
         if (store is null)
         {
             return;

@@ -29,8 +29,6 @@ public sealed class NoteSearchIndex
     private bool _dirty;
     private Task _saveTask = Task.CompletedTask;
 
-    public static NoteSearchIndex Current { get; } = new();
-
     public bool IsEnabled
     {
         get

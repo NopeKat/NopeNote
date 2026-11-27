@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using NopeNote.Core.Vault;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -337,9 +338,10 @@ internal static class MarkdownRenderer
         // The spec writes attachment links relative to the note file,
         // for example ../atts/<sha256>.png; map them onto .vault/atts.
         string relative = relativePath.Trim().Replace('\\', '/');
-        if (relative.StartsWith("../atts/", StringComparison.OrdinalIgnoreCase))
+        string attachmentPrefix = VaultLayout.AttachmentReferencePrefix + "/";
+        if (relative.StartsWith(attachmentPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            relative = ".vault/atts/" + relative["../atts/".Length..];
+            relative = VaultLayout.AttachmentsDirectory + "/" + relative[attachmentPrefix.Length..];
         }
 
         string root = Path.GetFullPath(vaultPath)

@@ -16,12 +16,17 @@ namespace NopeNote.Windows.Services;
 /// </summary>
 public sealed class VaultService
 {
-    public static VaultService Current { get; } = new();
+    private readonly SettingsHelper _settings;
 
     private Task<VaultOpenResult>? _opening;
     private bool _gitChecked;
     private VaultValidationReport? _diagnostics;
     private bool _diagnosticsChecked;
+
+    public VaultService(SettingsHelper settings)
+    {
+        _settings = settings;
+    }
 
     public VaultOpenResult? OpenResult { get; private set; }
 
@@ -45,7 +50,7 @@ public sealed class VaultService
 
     public bool HasPendingCommits => Store is GitVaultStore git && git.HasPendingCommits;
 
-    public string VaultPath => SettingsHelper.Current.VaultPath;
+    public string VaultPath => _settings.VaultPath;
 
     /// <summary>Waits for queued git commits, bounded by <paramref name="timeout"/>.</summary>
     public async Task<bool> FlushCommitsAsync(TimeSpan timeout)
@@ -115,14 +120,14 @@ public sealed class VaultService
 
         VaultOpenResult result = await VaultStoreFactory.OpenAsync(
             path,
-            SettingsHelper.Current.DeviceId).ConfigureAwait(false);
+            _settings.DeviceId).ConfigureAwait(false);
 
         bool emptyOrMissing = await Task.Run(
             () => !Directory.Exists(path) || !Directory.EnumerateFileSystemEntries(path).Any())
             .ConfigureAwait(false);
         if (result.Status == VaultOpenStatus.NotAVault && emptyOrMissing)
         {
-            result = await VaultStoreFactory.CreateAsync(path, SettingsHelper.Current.DeviceId);
+            result = await VaultStoreFactory.CreateAsync(path, _settings.DeviceId);
         }
 
         if (result.Status == VaultOpenStatus.Opened && result.Store is not null)
@@ -160,11 +165,11 @@ public sealed class VaultService
                 path,
                 store.Metadata,
                 new VaultCapabilities(false, false, false, false),
-                SettingsHelper.Current.DeviceId);
+                _settings.DeviceId);
             return new VaultOpenResult(
                 VaultOpenStatus.ReadOnly,
                 readOnlyStore,
-                "Git 仓库校验失败，已只读打开；请修复 .git 后重新打开。");
+                VaultProblem.GitInvalid);
         }
 
         return result with
@@ -206,9 +211,9 @@ public sealed class VaultService
         await VaultGit.InitializeAsync(path);
     }
 
-    private static async Task EnsureLegacyImportAsync(IVaultStore store, string vaultPath, bool gitEnabled)
+    private async Task EnsureLegacyImportAsync(IVaultStore store, string vaultPath, bool gitEnabled)
     {
-        if (SettingsHelper.Current.LegacyImportDone)
+        if (_settings.LegacyImportDone)
         {
             return;
         }
@@ -241,7 +246,7 @@ public sealed class VaultService
             await VaultGit.CommitAsync(vaultPath, $"meta: import {imported} notes");
         }
 
-        SettingsHelper.Current.LegacyImportDone = true;
-        SettingsHelper.Current.Save();
+        _settings.LegacyImportDone = true;
+        _settings.Save();
     }
 }
