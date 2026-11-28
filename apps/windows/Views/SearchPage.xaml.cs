@@ -154,7 +154,7 @@ public sealed partial class SearchPage : Page
         ErrorInfoBar.IsOpen = true;
     }
 
-    private void ApplyFilter()
+    private async void ApplyFilter()
     {
         // 先记录关键词，列表重建时模板里的高亮处理才能取到当前值。
         _appliedQuery = SearchInput.Text;
@@ -163,6 +163,24 @@ public sealed partial class SearchPage : Page
         string? folder = (SearchFolderFilter.SelectedItem as ComboBoxItem)?.Tag as string;
         int days = (SearchDateFilter.SelectedItem as ComboBoxItem)?.Tag is int value ? value : 0;
         bool titleOnly = SearchTitleOnly.IsChecked == true;
+
+        if (ViewModel.StoreOrNull is not null)
+        {
+            _isLoading = true;
+            UpdateViewState();
+            try
+            {
+                await ViewModel.EnsureBodiesAsync();
+            }
+            catch (Exception exception)
+            {
+                ShowError(exception.Message);
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
 
         ViewModel.ApplySearch(SearchInput.Text, tag, folder, days, titleOnly);
         UpdateViewState();

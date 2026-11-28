@@ -29,6 +29,7 @@ public sealed partial class NotesPage : Page
     private bool _isSaving;
     private bool _isLoadingNotes;
     private bool _loadFailed;
+    private int _selectionVersion;
     private int _loadedVersion = -1;
     private bool _isUpdatingTagFilter;
     private bool _isUpdatingMetadata;
@@ -1069,10 +1070,36 @@ public sealed partial class NotesPage : Page
             : exception.Message;
     }
 
-    private void SelectNote(Note note)
+    private async void SelectNote(Note note)
     {
         _autoSaveTimer.Stop();
-        _ = PersistEditorTextAsync();
+        await PersistEditorTextAsync();
+
+        // Rapid list clicks must not select an older note after a slower load.
+        int version = ++_selectionVersion;
+
+        if (!note.IsBodyLoaded)
+        {
+            NoteEditor.IsEnabled = false;
+            try
+            {
+                await note.EnsureBodyAsync(ViewModel.Store);
+            }
+            catch (Exception exception)
+            {
+                if (version == _selectionVersion)
+                {
+                    SaveStatusTextBlock.Text = exception.Message;
+                }
+
+                return;
+            }
+
+            if (version != _selectionVersion)
+            {
+                return;
+            }
+        }
 
         SelectedNote = note;
         NoteEditor.IsEnabled = true;
@@ -1089,6 +1116,7 @@ public sealed partial class NotesPage : Page
 
     private void ClearSelection(bool persist = true)
     {
+        _selectionVersion++;
         _autoSaveTimer.Stop();
         if (persist)
         {

@@ -21,6 +21,7 @@ public sealed class Note : INotifyPropertyChanged
     private DateTimeOffset _updated;
     private string _contentHash = string.Empty;
     private bool _isSelected;
+    private bool _bodyLoaded;
     private Visibility _selectionVisibility = Visibility.Collapsed;
     private string _folder = string.Empty;
 
@@ -28,6 +29,7 @@ public sealed class Note : INotifyPropertyChanged
     {
         IsDraft = true;
         Tags = Array.Empty<string>();
+        _bodyLoaded = true;
     }
 
     private Note(
@@ -38,7 +40,8 @@ public sealed class Note : INotifyPropertyChanged
         bool pinned,
         string folder,
         DateTimeOffset updated,
-        string contentHash = "")
+        string contentHash = "",
+        bool bodyLoaded = true)
     {
         Id = id;
         _text = text;
@@ -50,6 +53,7 @@ public sealed class Note : INotifyPropertyChanged
         IsPinned = pinned;
         Folder = folder;
         IsDraft = false;
+        _bodyLoaded = bodyLoaded;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -57,6 +61,9 @@ public sealed class Note : INotifyPropertyChanged
     public Guid Id { get; private set; }
 
     public bool IsDraft { get; private set; }
+
+    /// <summary>False while the list only holds the summary; reading the body is deferred.</summary>
+    public bool IsBodyLoaded => _bodyLoaded;
 
     public string DisplayTitle { get; private set; } = Strings.Get("NotesUntitled");
 
@@ -141,6 +148,8 @@ public sealed class Note : INotifyPropertyChanged
     public bool HasUnsavedChanges
         => IsDraft || !string.Equals(Text, _savedText, StringComparison.Ordinal);
 
+    /// <summary>Builds the list from summaries only; bodies are read when a note is
+    /// opened or when a query needs to search the text.</summary>
     public static async Task<IReadOnlyList<Note>> LoadAllAsync(IVaultStore store, NoteSearchIndex index)
     {
         NoteScanResult scan = await store.ScanNotesAsync();
@@ -151,38 +160,16 @@ public sealed class Note : INotifyPropertyChanged
 
         foreach (NoteSummary summary in scan.Notes)
         {
-            string? cached = index.TryGetBody(summary.Id, summary.Updated);
-            string? cachedHash = index.TryGetContentHash(summary.Id, summary.Updated);
-            string body;
-            string contentHash;
-            if (cached is not null && cachedHash is not null)
-            {
-                body = cached;
-                contentHash = cachedHash;
-            }
-            else
-            {
-                NoteDocument? document = await store.ReadNoteAsync(summary.Id);
-                if (document is null)
-                {
-                    continue;
-                }
-
-                body = document.Body;
-                contentHash = document.ContentHash;
-                index.Remember(summary.Id, summary.Updated, body, contentHash);
-            }
-
             seen.Add(summary.Id);
             notes.Add(new Note(
                 summary.Id,
-                body,
+                string.Empty,
                 summary.Title,
                 summary.Tags,
                 summary.Pinned,
                 summary.Folder,
                 summary.Updated,
-                contentHash));
+                bodyLoaded: false));
         }
 
         index.Prune(seen);
@@ -190,9 +177,42 @@ public sealed class Note : INotifyPropertyChanged
         return notes;
     }
 
+    /// <summary>Reads the body once and refreshes the summary fields from the document.</summary>
+    public async Task EnsureBodyAsync(IVaultStore store)
+    {
+        if (_bodyLoaded)
+        {
+            return;
+        }
+
+        NoteDocument? document = await store.ReadNoteAsync(Id);
+        if (document is null)
+        {
+            return;
+        }
+
+        _text = document.Body;
+        _savedText = document.Body;
+        _contentHash = document.ContentHash;
+        _updated = document.Summary.Updated;
+        DisplayTitle = NoteTitle.Display(document.Summary.Title);
+        Tags = document.Summary.Tags;
+        IsPinned = document.Summary.Pinned;
+        Folder = document.Summary.Folder;
+        _bodyLoaded = true;
+        OnPropertyChanged(nameof(Text));
+        OnPropertyChanged(nameof(DisplayTitle));
+        OnPropertyChanged(nameof(Date));
+        OnPropertyChanged(nameof(TagText));
+        OnPropertyChanged(nameof(TagVisibility));
+        OnPropertyChanged(nameof(PinVisibility));
+    }
+
     public async Task SaveAsync(IVaultStore store)
     {
-        if (!HasUnsavedChanges)
+        // A note whose body was never loaded has an empty editor; saving it would
+        // overwrite the file, so such a note is never persisted before EnsureBodyAsync.
+        if (!_bodyLoaded || !HasUnsavedChanges)
         {
             return;
         }

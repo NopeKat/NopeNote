@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Threading;
 using System.Threading.Tasks;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Models;
@@ -132,6 +133,18 @@ public sealed class NotesViewModel : INotifyPropertyChanged
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    /// <summary>Reads every body the list still holds as a summary only. Callers
+    /// that need to search the text (the search page) await this first.</summary>
+    public async Task EnsureBodiesAsync(CancellationToken cancellationToken = default)
+    {
+        IVaultStore store = Store;
+        foreach (Note note in _allNotes)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await note.EnsureBodyAsync(store);
         }
     }
 
