@@ -26,6 +26,7 @@ public sealed partial class SearchPage : Page
     private int _filterVersion;
     private int _loadedVersion = -1;
     private CancellationTokenSource? _searchCts;
+    private CancellationTokenSource? _filterDelayCts;
     private AppServices _services = null!;
     private string? _appliedQuery;
     private bool _isUpdatingFilters;
@@ -360,7 +361,18 @@ public sealed partial class SearchPage : Page
     private async void ScheduleApplyFilter()
     {
         int version = ++_filterVersion;
-        await Task.Delay(FilterDelay);
+        _filterDelayCts?.Cancel();
+        var delayCts = new CancellationTokenSource();
+        _filterDelayCts = delayCts;
+
+        try
+        {
+            await Task.Delay(FilterDelay, delayCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
 
         if (version != _filterVersion || !_isReady)
         {
