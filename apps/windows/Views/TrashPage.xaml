@@ -72,9 +72,16 @@
             <Button
                 x:Name="PurgeButton"
                 x:Uid="PurgeButton"
-                AutomationProperties.Name="Delete note permanently"
+                AutomationProperties.Name="Delete selected notes permanently"
                 Click="PurgeButton_Click"
                 Content="Delete permanently"
+                IsEnabled="False" />
+            <Button
+                x:Name="EmptyTrashButton"
+                x:Uid="TrashEmptyButton"
+                AutomationProperties.Name="Empty the trash"
+                Click="EmptyTrashButton_Click"
+                Content="Empty trash"
                 IsEnabled="False" />
         </StackPanel>
 
@@ -85,7 +92,7 @@
                 AutomationProperties.Name="Trashed notes"
                 ItemContainerTransitions="{x:Null}"
                 SelectionChanged="TrashList_SelectionChanged"
-                SelectionMode="Single">
+                SelectionMode="Multiple">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Padding="8" Spacing="2">
@@ -111,14 +118,23 @@
                 IsActive="False"
                 Visibility="Collapsed" />
 
-            <TextBlock
-                x:Name="EmptyStateTextBlock"
-                x:Uid="TrashEmptyState"
+            <StackPanel
+                x:Name="EmptyStatePanel"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Style="{StaticResource BodyTextBlockStyle}"
-                Text="The trash is empty."
-                Visibility="Collapsed" />
+                Spacing="12"
+                Visibility="Collapsed">
+                <TextBlock
+                    x:Uid="TrashEmptyState"
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Text="The trash is empty." />
+                <Button
+                    x:Uid="TrashOpenNotesButton"
+                    AutomationProperties.Name="Open the notes list"
+                    Click="OpenNotesButton_Click"
+                    Content="Open notes" />
+            </StackPanel>
         </Grid>
     </Grid>
 </Page>

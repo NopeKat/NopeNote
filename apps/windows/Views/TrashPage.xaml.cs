@@ -87,7 +87,7 @@ public sealed partial class TrashPage : Page
             IReadOnlyList<TrashNoteSummary> summaries = await store.ListTrashAsync();
             _items = summaries.Select(summary => new TrashItem(summary)).ToArray();
             TrashList.ItemsSource = _items;
-            TrashList.SelectedItem = null;
+            TrashList.SelectedItems.Clear();
             _loadedStore = store;
             _loadedVersion = _services.Vault.DataVersion;
             UpdateEmptyState();
@@ -121,25 +121,24 @@ public sealed partial class TrashPage : Page
         LoadingRing.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
         TrashList.Visibility = isLoading ? Visibility.Collapsed : Visibility.Visible;
 
-        if (isLoading)
-        {
-            EmptyStateTextBlock.Visibility = Visibility.Collapsed;
-        }
-
+        UpdateEmptyState();
         UpdateActionState();
     }
 
     private void UpdateActionState()
     {
         bool writable = _services.Vault.IsWritable;
-        bool hasAvailableSelection = TrashList.SelectedItem is TrashItem { IsAvailable: true };
+        bool hasAvailableSelection = TrashList.SelectedItems.OfType<TrashItem>().Any(item => item.IsAvailable);
         RestoreButton.IsEnabled = !_isLoading && writable && hasAvailableSelection;
-        PurgeButton.IsEnabled = !_isLoading && writable && TrashList.SelectedItem is TrashItem;
+        PurgeButton.IsEnabled = !_isLoading && writable && TrashList.SelectedItems.Count > 0;
+        EmptyTrashButton.IsEnabled = !_isLoading && writable && _items.Count > 0;
     }
 
     private void UpdateEmptyState()
     {
-        EmptyStateTextBlock.Visibility = _items.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        EmptyStatePanel.Visibility = !_isLoading && _items.Count == 0
+            ? Visibility.Visible
+            : Visibility.Collapsed;
     }
 
     // 本页列表已就地更新，同时抬高版本号，让其他缓存页面下次进入时重新加载。
@@ -149,15 +148,6 @@ public sealed partial class TrashPage : Page
         _loadedVersion = _services.Vault.DataVersion;
     }
 
-    private void RemoveItem(TrashItem item)
-    {
-        _items = _items.Where(existing => existing.Id != item.Id).ToArray();
-        TrashList.ItemsSource = _items;
-        TrashList.SelectedItem = null;
-        UpdateEmptyState();
-        UpdateActionState();
-    }
-
     private void TrashList_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         UpdateActionState();
@@ -165,32 +155,47 @@ public sealed partial class TrashPage : Page
 
     private async void RestoreButton_Click(object sender, RoutedEventArgs e)
     {
-        if (TrashList.SelectedItem is not TrashItem item)
-        {
-            return;
-        }
+        TrashItem[] selected = TrashList.SelectedItems
+            .OfType<TrashItem>()
+            .Where(item => item.IsAvailable)
+            .ToArray();
 
         IVaultStore? store = _services.Vault.Store;
-        if (store is null)
+        if (selected.Length == 0 || store is null)
         {
             return;
         }
 
-        try
+        int failed = 0;
+        foreach (TrashItem item in selected)
         {
-            await store.RestoreNoteAsync(item.Id);
-            MarkDataChanged();
-            RemoveItem(item);
+            try
+            {
+                await store.RestoreNoteAsync(item.Id);
+            }
+            catch (Exception)
+            {
+                failed++;
+            }
         }
-        catch (Exception exception)
+
+        MarkDataChanged();
+        await LoadAsync();
+
+        if (failed > 0)
         {
-            ShowStatus(Strings.Get("TrashRestoreFailedTitle"), exception.Message, InfoBarSeverity.Error);
+            ShowStatus(
+                Strings.Get("TrashRestoreFailedTitle"),
+                Strings.Format("TrashBatchRestoreFailedMessage", failed),
+                InfoBarSeverity.Warning);
         }
     }
 
     private async void PurgeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (TrashList.SelectedItem is not TrashItem item)
+        TrashItem[] selected = TrashList.SelectedItems.OfType<TrashItem>().ToArray();
+        IVaultStore? store = _services.Vault.Store;
+        if (selected.Length == 0 || store is null)
         {
             return;
         }
@@ -199,7 +204,7 @@ public sealed partial class TrashPage : Page
         {
             XamlRoot = XamlRoot,
             Title = Strings.Get("TrashPurgeDialogTitle"),
-            Content = Strings.Get("TrashPurgeDialogBody"),
+            Content = Strings.Get("TrashPurgeSelectedDialogBody"),
             PrimaryButtonText = Strings.Get("TrashPurgeDialogPrimary"),
             CloseButtonText = Strings.Get("CommonCancel"),
             DefaultButton = ContentDialogButton.Close,
@@ -210,22 +215,72 @@ public sealed partial class TrashPage : Page
             return;
         }
 
+        int failed = await PurgeAsync(store, selected);
+        if (failed > 0)
+        {
+            ShowStatus(
+                Strings.Get("TrashPurgeFailedTitle"),
+                Strings.Format("TrashBatchPurgeFailedMessage", failed),
+                InfoBarSeverity.Warning);
+        }
+    }
+
+    private async void EmptyTrashButton_Click(object sender, RoutedEventArgs e)
+    {
         IVaultStore? store = _services.Vault.Store;
-        if (store is null)
+        if (_items.Count == 0 || store is null)
         {
             return;
         }
 
-        try
+        ContentDialog dialog = new()
         {
-            await store.PurgeNoteAsync(item.Id);
-            MarkDataChanged();
-            RemoveItem(item);
-        }
-        catch (Exception exception)
+            XamlRoot = XamlRoot,
+            Title = Strings.Get("TrashEmptyDialogTitle"),
+            Content = Strings.Get("TrashEmptyDialogBody"),
+            PrimaryButtonText = Strings.Get("TrashEmptyDialogPrimary"),
+            CloseButtonText = Strings.Get("CommonCancel"),
+            DefaultButton = ContentDialogButton.Close,
+        };
+
+        if (await DialogHost.ShowAsync(dialog) != ContentDialogResult.Primary)
         {
-            ShowStatus(Strings.Get("TrashPurgeFailedTitle"), exception.Message, InfoBarSeverity.Error);
+            return;
         }
+
+        int failed = await PurgeAsync(store, _items);
+        if (failed > 0)
+        {
+            ShowStatus(
+                Strings.Get("TrashPurgeFailedTitle"),
+                Strings.Format("TrashBatchPurgeFailedMessage", failed),
+                InfoBarSeverity.Warning);
+        }
+    }
+
+    private async Task<int> PurgeAsync(IVaultStore store, IReadOnlyList<TrashItem> items)
+    {
+        int failed = 0;
+        foreach (TrashItem item in items)
+        {
+            try
+            {
+                await store.PurgeNoteAsync(item.Id);
+            }
+            catch (Exception)
+            {
+                failed++;
+            }
+        }
+
+        MarkDataChanged();
+        await LoadAsync();
+        return failed;
+    }
+
+    private void OpenNotesButton_Click(object sender, RoutedEventArgs e)
+    {
+        Frame?.Navigate(typeof(NotesPage), _services);
     }
 
     private void ShowStatus(string title, string message, InfoBarSeverity severity)

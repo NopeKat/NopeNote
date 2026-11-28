@@ -312,7 +312,19 @@
     <value>永久删除</value>
   </data>
   <data name="PurgeButton.AutomationProperties.Name" xml:space="preserve">
-    <value>永久删除笔记</value>
+    <value>永久删除选中的笔记</value>
+  </data>
+  <data name="TrashEmptyButton.Content" xml:space="preserve">
+    <value>清空回收站</value>
+  </data>
+  <data name="TrashEmptyButton.AutomationProperties.Name" xml:space="preserve">
+    <value>清空回收站</value>
+  </data>
+  <data name="TrashOpenNotesButton.Content" xml:space="preserve">
+    <value>打开笔记</value>
+  </data>
+  <data name="TrashOpenNotesButton.AutomationProperties.Name" xml:space="preserve">
+    <value>打开笔记列表</value>
   </data>
   <data name="TrashList.AutomationProperties.Name" xml:space="preserve">
     <value>已删除的笔记</value>
@@ -523,6 +535,24 @@
   </data>
   <data name="TrashPurgeFailedTitle" xml:space="preserve">
     <value>无法删除笔记</value>
+  </data>
+  <data name="TrashPurgeSelectedDialogBody" xml:space="preserve">
+    <value>选中的笔记会连同历史快照一起被永久删除。是否继续？</value>
+  </data>
+  <data name="TrashBatchRestoreFailedMessage" xml:space="preserve">
+    <value>有 {0} 条笔记未能还原。</value>
+  </data>
+  <data name="TrashBatchPurgeFailedMessage" xml:space="preserve">
+    <value>有 {0} 条笔记未能删除。</value>
+  </data>
+  <data name="TrashEmptyDialogTitle" xml:space="preserve">
+    <value>清空回收站？</value>
+  </data>
+  <data name="TrashEmptyDialogBody" xml:space="preserve">
+    <value>回收站里的笔记会连同历史快照一起被永久删除。是否继续？</value>
+  </data>
+  <data name="TrashEmptyDialogPrimary" xml:space="preserve">
+    <value>清空</value>
   </data>
   <data name="TrashItemDetails" xml:space="preserve">
     <value>删除于 {0} · 更新于 {1}</value>

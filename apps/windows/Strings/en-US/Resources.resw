@@ -312,7 +312,19 @@
     <value>Delete permanently</value>
   </data>
   <data name="PurgeButton.AutomationProperties.Name" xml:space="preserve">
-    <value>Delete note permanently</value>
+    <value>Delete selected notes permanently</value>
+  </data>
+  <data name="TrashEmptyButton.Content" xml:space="preserve">
+    <value>Empty trash</value>
+  </data>
+  <data name="TrashEmptyButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Empty the trash</value>
+  </data>
+  <data name="TrashOpenNotesButton.Content" xml:space="preserve">
+    <value>Open notes</value>
+  </data>
+  <data name="TrashOpenNotesButton.AutomationProperties.Name" xml:space="preserve">
+    <value>Open the notes list</value>
   </data>
   <data name="TrashList.AutomationProperties.Name" xml:space="preserve">
     <value>Trashed notes</value>
@@ -523,6 +535,24 @@
   </data>
   <data name="TrashPurgeFailedTitle" xml:space="preserve">
     <value>Note could not be deleted</value>
+  </data>
+  <data name="TrashPurgeSelectedDialogBody" xml:space="preserve">
+    <value>The selected notes and their history snapshots will be removed permanently. Continue?</value>
+  </data>
+  <data name="TrashBatchRestoreFailedMessage" xml:space="preserve">
+    <value>{0} notes could not be restored.</value>
+  </data>
+  <data name="TrashBatchPurgeFailedMessage" xml:space="preserve">
+    <value>{0} notes could not be deleted.</value>
+  </data>
+  <data name="TrashEmptyDialogTitle" xml:space="preserve">
+    <value>Empty the trash?</value>
+  </data>
+  <data name="TrashEmptyDialogBody" xml:space="preserve">
+    <value>All notes in the trash and their history snapshots will be removed permanently. Continue?</value>
+  </data>
+  <data name="TrashEmptyDialogPrimary" xml:space="preserve">
+    <value>Empty</value>
   </data>
   <data name="TrashItemDetails" xml:space="preserve">
     <value>Deleted {0} · Updated {1}</value>
