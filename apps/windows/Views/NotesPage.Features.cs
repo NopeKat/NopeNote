@@ -877,9 +877,13 @@ public sealed partial class NotesPage
 
     private void NoteEditor_DragOver(object sender, DragEventArgs e)
     {
-        if (SelectedNote is not null &&
+        bool accepted = SelectedNote is not null &&
             _services.Vault.IsWritable &&
-            e.DataView.Contains(StandardDataFormats.StorageItems))
+            e.DataView.Contains(StandardDataFormats.StorageItems);
+
+        AttachmentDropHint.Visibility = accepted ? Visibility.Visible : Visibility.Collapsed;
+
+        if (accepted)
         {
             e.AcceptedOperation = DataPackageOperation.Copy;
             e.DragUIOverride.Caption = Strings.Get("NotesAttachmentDropCaption");
@@ -887,8 +891,15 @@ public sealed partial class NotesPage
         }
     }
 
+    private void NoteEditor_DragLeave(object sender, DragEventArgs e)
+    {
+        AttachmentDropHint.Visibility = Visibility.Collapsed;
+    }
+
     private async void NoteEditor_Drop(object sender, DragEventArgs e)
     {
+        AttachmentDropHint.Visibility = Visibility.Collapsed;
+
         IVaultStore? store = _services.Vault.Store;
         if (SelectedNote is null ||
             store is null ||

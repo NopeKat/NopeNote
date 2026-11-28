@@ -64,10 +64,26 @@ public sealed partial class MainWindow : Window
             _uiSettings = null;
         }
 
-        if (AppWindow.Presenter is OverlappedPresenter presenter)
+        RegisterSettingsAccelerator();
+    }
+
+    // Ctrl+, 直接跳到设置页。用虚拟键码注册，KeyboardAccelerator 的 Key 枚举里没有 OemComma。
+    private void RegisterSettingsAccelerator()
+    {
+        KeyboardAccelerator accelerator = new()
         {
-            presenter.Maximize();
-        }
+            Key = (global::Windows.System.VirtualKey)0xBC,
+            Modifiers = global::Windows.System.VirtualKeyModifiers.Control,
+        };
+
+        accelerator.Invoked += (_, args) =>
+        {
+            NavigateTo(ShellRoutes.Settings);
+            _navItems[ShellRoutes.Settings.Tag].IsSelected = true;
+            args.Handled = true;
+        };
+
+        RootGrid.KeyboardAccelerators.Add(accelerator);
     }
 
     internal void InitializeNavigation()
@@ -125,6 +141,13 @@ public sealed partial class MainWindow : Window
         BackdropHelper.Apply(this);
         WindowHelper.SetWindowMinSize(this, 640, 500);
         TitleBarHelper.ApplySystemThemeToCaptionButtons(this, RootGrid.ActualTheme);
+
+        // 有保存过的尺寸就按它开，否则维持原来的一上来就最大化。
+        if (!WindowHelper.TryApplySavedSize(this, _services.Settings) &&
+            AppWindow.Presenter is OverlappedPresenter presenter)
+        {
+            presenter.Maximize();
+        }
     }
 
     private void ShowQuickCapture()
@@ -261,7 +284,8 @@ public sealed partial class MainWindow : Window
 
     private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
     {
-        // 主题这类高频改动是延迟写盘的，关窗前先把它们落盘。
+        // 尺寸先排进延迟写盘，再和主题这类高频改动一起立即落盘。
+        WindowHelper.SaveSize(this, _services.Settings);
         _services.Settings.FlushDeferred();
 
         if (await _closeFlow.HandleAsync(args) == WindowCloseOutcome.CloseNow)

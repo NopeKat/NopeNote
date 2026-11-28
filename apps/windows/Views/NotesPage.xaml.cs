@@ -1,6 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using NopeNote.Core.Notes;
 using NopeNote.Core.Vault;
@@ -54,6 +55,7 @@ public sealed partial class NotesPage : Page
         PinCheckBox.Content = Strings.Get("NotesPinLabel");
         VaultNoticeDismiss.Content = Strings.Get("VaultDiagnosticsDismiss");
         ApplyToolbarStrings();
+        AttachmentDropHintText.Text = Strings.Get("NotesAttachmentDropCaption");
         InitializeFeatures();
         _autoSaveTimer.Interval = TimeSpan.FromSeconds(1.2);
         _autoSaveTimer.Tick += AutoSaveTimer_Tick;
@@ -62,6 +64,30 @@ public sealed partial class NotesPage : Page
         Loaded += NotesPage_Loaded;
         SizeChanged += NotesPage_SizeChanged;
         Unloaded += NotesPage_Unloaded;
+    }
+
+    private async void SaveAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        args.Handled = true;
+
+        if (SelectedNote is null)
+        {
+            return;
+        }
+
+        await PersistEditorTextAsync();
+    }
+
+    private void EscapeAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        // 只有窄布局下详情是覆盖在列表上的，Esc 才需要退回列表。
+        if (SelectedNote is null || ActualWidth >= NarrowWidthThreshold)
+        {
+            return;
+        }
+
+        args.Handled = true;
+        ClearSelection();
     }
 
     private void ApplyToolbarStrings()

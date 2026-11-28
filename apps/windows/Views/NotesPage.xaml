@@ -7,6 +7,13 @@
     NavigationCacheMode="Enabled">
 
     <Grid x:Name="RootGrid">
+        <Grid.KeyboardAccelerators>
+            <input:KeyboardAccelerator
+                Invoked="SaveAccelerator_Invoked"
+                Key="S"
+                Modifiers="Control" />
+            <input:KeyboardAccelerator Invoked="EscapeAccelerator_Invoked" Key="Escape" />
+        </Grid.KeyboardAccelerators>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -604,6 +611,7 @@
                             AutomationProperties.Name="Note text"
                             Background="Transparent"
                             BorderThickness="0"
+                            DragLeave="NoteEditor_DragLeave"
                             DragOver="NoteEditor_DragOver"
                             Drop="NoteEditor_Drop"
                             IsEnabled="False"
@@ -614,6 +622,23 @@
                             TextChanged="NoteEditor_TextChanged"
                             TextWrapping="Wrap"
                             VerticalAlignment="Stretch" />
+
+                        <!-- 拖放时给编辑器加一层高亮，松手位置比系统浮层更明确；不参与命中测试。 -->
+                        <Border
+                            x:Name="AttachmentDropHint"
+                            Grid.Row="2"
+                            Background="{ThemeResource AccentFillColorDefaultBrush}"
+                            CornerRadius="4"
+                            IsHitTestVisible="False"
+                            Opacity="0.85"
+                            Visibility="Collapsed">
+                            <TextBlock
+                                x:Name="AttachmentDropHintText"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Foreground="{ThemeResource TextOnAccentFillColorPrimaryBrush}"
+                                Style="{StaticResource SubtitleTextBlockStyle}" />
+                        </Border>
                         </Grid>
                     </Border>
 

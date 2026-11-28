@@ -32,6 +32,11 @@ public sealed class SettingsHelper
     /// <summary>When on, the log also records routine events such as each vault open.</summary>
     public bool VerboseLogging { get; set; }
 
+    /// <summary>Last normal (non-maximized) window size in DIPs; 0 means none saved yet.</summary>
+    public double WindowWidth { get; set; }
+
+    public double WindowHeight { get; set; }
+
     public bool HasAppLock => !string.IsNullOrWhiteSpace(AppLockSalt) &&
                               !string.IsNullOrWhiteSpace(AppLockHash);
 
@@ -106,6 +111,8 @@ public sealed class SettingsHelper
             AppLockHash = AppLockHash,
             DeviceId = DeviceId,
             VerboseLogging = VerboseLogging,
+            WindowWidth = WindowWidth,
+            WindowHeight = WindowHeight,
         };
         string json = JsonSerializer.Serialize(dto, SettingsJsonContext.Default.SettingsDto);
         string tempPath = _settingsPath + ".tmp";
@@ -208,6 +215,8 @@ public sealed class SettingsHelper
                 AppLockHash = dto.AppLockHash ?? string.Empty;
                 DeviceId = dto.DeviceId ?? string.Empty;
                 VerboseLogging = dto.VerboseLogging;
+                WindowWidth = dto.WindowWidth;
+                WindowHeight = dto.WindowHeight;
                 if (!string.IsNullOrWhiteSpace(dto.VaultPath))
                 {
                     VaultPath = dto.VaultPath;
@@ -238,6 +247,10 @@ internal sealed class SettingsDto
     public string? DeviceId { get; set; }
 
     public bool VerboseLogging { get; set; }
+
+    public double WindowWidth { get; set; }
+
+    public double WindowHeight { get; set; }
 }
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
