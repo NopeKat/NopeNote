@@ -164,6 +164,35 @@
                             Content="Export backup" />
                     </toolkit:SettingsCard>
 
+                    <toolkit:SettingsCard x:Name="AttachmentGcCard">
+                        <StackPanel Spacing="8">
+                            <TextBlock
+                                x:Name="AttachmentGcStatus"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                TextWrapping="Wrap" />
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button
+                                    x:Name="AttachmentScanButton"
+                                    AutomationProperties.Name="Scan for unused attachments"
+                                    Click="AttachmentScanButton_Click"
+                                    Content="Scan" />
+                                <Button
+                                    x:Name="AttachmentCleanButton"
+                                    AutomationProperties.Name="Move unused attachments to quarantine"
+                                    Click="AttachmentCleanButton_Click"
+                                    Content="Move to quarantine"
+                                    IsEnabled="False" />
+                                <Button
+                                    x:Name="AttachmentPurgeButton"
+                                    AutomationProperties.Name="Empty the attachment quarantine"
+                                    Click="AttachmentPurgeButton_Click"
+                                    Content="Empty quarantine"
+                                    IsEnabled="False" />
+                            </StackPanel>
+                        </StackPanel>
+                    </toolkit:SettingsCard>
+
                     <toolkit:SettingsCard x:Name="VersionHistoryCard">
                         <toolkit:SettingsCard.HeaderIcon>
                             <!-- Fluent UI System Icons: history_20_regular; ink 14.00 x 14.00 -> 17.50 px long edge, centered on 20; 1 px bands after the 1 px correction. Source: fluentui-system-icons main (official SVG). -->

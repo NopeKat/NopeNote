@@ -114,6 +114,12 @@ public sealed class GitVaultStore : IVaultStore
         return Task.CompletedTask;
     }
 
+    public Task RegisterAttachmentRemovalAsync(string name, CancellationToken cancellationToken = default)
+    {
+        _commits.Enqueue($"atts: remove {name}");
+        return Task.CompletedTask;
+    }
+
     /// <summary>Waits until every queued commit has been attempted.</summary>
     public Task FlushAsync(CancellationToken cancellationToken = default)
         => _commits.FlushAsync(cancellationToken);}

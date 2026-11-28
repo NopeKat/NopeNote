@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,7 @@ public sealed partial class SettingsPage : Page
     private bool _updatingLanguageSelection;
     private bool _updatingVerboseLog;
     private AppServices _services = null!;
+    private AttachmentGcPlan? _attachmentPlan;
 
     public SettingsPage()
     {
@@ -37,6 +39,14 @@ public sealed partial class SettingsPage : Page
         AboutExpander.Description = Strings.Get("SettingsAboutDescription");
         LanguageCard.Header = Strings.Get("SettingsLanguageHeader");
         LanguageCard.Description = Strings.Get("SettingsLanguageDescription");
+        AttachmentGcCard.Header = Strings.Get("SettingsAttachmentGcHeader");
+        AttachmentGcCard.Description = Strings.Get("SettingsAttachmentGcDescription");
+        AttachmentScanButton.Content = Strings.Get("SettingsAttachmentScanButton");
+        AttachmentCleanButton.Content = Strings.Get("SettingsAttachmentCleanButton");
+        AttachmentPurgeButton.Content = Strings.Get("SettingsAttachmentPurgeButton");
+        AutomationProperties.SetName(AttachmentScanButton, Strings.Get("SettingsAttachmentScanButton"));
+        AutomationProperties.SetName(AttachmentCleanButton, Strings.Get("SettingsAttachmentCleanButton"));
+        AutomationProperties.SetName(AttachmentPurgeButton, Strings.Get("SettingsAttachmentPurgeButton"));
         UpdateThemeSelection();
     }
 
@@ -59,6 +69,8 @@ public sealed partial class SettingsPage : Page
         _updatingVerboseLog = true;
         VerboseLogToggle.IsOn = _services.Settings.VerboseLogging;
         _updatingVerboseLog = false;
+
+        UpdateAttachmentGcState();
     }
 
     private void VerboseLogToggle_Toggled(object sender, RoutedEventArgs e)
@@ -381,5 +393,141 @@ public sealed partial class SettingsPage : Page
         _services.Vault.Reset();
         await _services.Vault.GetVaultAsync();
         _services.Vault.NotifyDataChanged();
+    }
+
+    private void UpdateAttachmentGcState()
+    {
+        IVaultStore? store = _services.Vault.Store;
+        bool writable = store is not null && store.Capabilities.Writable;
+        AttachmentScanButton.IsEnabled = writable;
+        AttachmentPurgeButton.IsEnabled = writable && store is not null && AttachmentGc.HasQuarantine(store);
+        if (!writable)
+        {
+            AttachmentGcStatus.Text = Strings.Get("AttachmentGcReadOnly");
+        }
+    }
+
+    private async void AttachmentScanButton_Click(object sender, RoutedEventArgs e)
+    {
+        IVaultStore? store = _services.Vault.Store;
+        if (store is null)
+        {
+            return;
+        }
+
+        AttachmentScanButton.IsEnabled = false;
+        try
+        {
+            AttachmentGcPlan plan = await Task.Run(() => AttachmentGc.Scan(store)).ConfigureAwait(true);
+            _attachmentPlan = plan;
+            AttachmentCleanButton.IsEnabled = plan.Count > 0;
+            AttachmentGcStatus.Text = plan.Count == 0
+                ? Strings.Get("AttachmentGcNone")
+                : Strings.Format("AttachmentGcScanResult", plan.Count, FormatBytes(plan.Bytes));
+        }
+        catch (Exception exception)
+        {
+            AttachmentGcStatus.Text = exception.Message;
+        }
+        finally
+        {
+            AttachmentScanButton.IsEnabled = true;
+        }
+    }
+
+    private async void AttachmentCleanButton_Click(object sender, RoutedEventArgs e)
+    {
+        IVaultStore? store = _services.Vault.Store;
+        AttachmentGcPlan? plan = _attachmentPlan;
+        if (store is null || plan is null || plan.Count == 0)
+        {
+            return;
+        }
+
+        ContentDialog confirm = new()
+        {
+            XamlRoot = XamlRoot,
+            Title = Strings.Get("AttachmentGcConfirmTitle"),
+            Content = Strings.Format("AttachmentGcConfirmBody", plan.Count, FormatBytes(plan.Bytes)),
+            PrimaryButtonText = Strings.Get("SettingsAttachmentCleanButton"),
+            CloseButtonText = Strings.Get("CommonCancel"),
+        };
+
+        if (await DialogHost.ShowAsync(confirm) != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        AttachmentCleanButton.IsEnabled = false;
+        try
+        {
+            int moved = await Task.Run(() => AttachmentGc.Quarantine(store, plan)).ConfigureAwait(true);
+            foreach (AttachmentOrphan orphan in plan.Orphans)
+            {
+                await store.RegisterAttachmentRemovalAsync(orphan.Name).ConfigureAwait(true);
+            }
+
+            await store.FlushAsync().ConfigureAwait(true);
+            _attachmentPlan = null;
+            AttachmentGcStatus.Text = Strings.Format("AttachmentGcMoved", moved, FormatBytes(plan.Bytes));
+            UpdateAttachmentGcState();
+        }
+        catch (Exception exception)
+        {
+            AttachmentGcStatus.Text = exception.Message;
+            AttachmentCleanButton.IsEnabled = true;
+        }
+    }
+
+    private async void AttachmentPurgeButton_Click(object sender, RoutedEventArgs e)
+    {
+        IVaultStore? store = _services.Vault.Store;
+        if (store is null)
+        {
+            return;
+        }
+
+        ContentDialog confirm = new()
+        {
+            XamlRoot = XamlRoot,
+            Title = Strings.Get("AttachmentGcPurgeTitle"),
+            Content = Strings.Get("AttachmentGcPurgeBody"),
+            PrimaryButtonText = Strings.Get("SettingsAttachmentPurgeButton"),
+            CloseButtonText = Strings.Get("CommonCancel"),
+        };
+
+        if (await DialogHost.ShowAsync(confirm) != ContentDialogResult.Primary)
+        {
+            return;
+        }
+
+        AttachmentPurgeButton.IsEnabled = false;
+        try
+        {
+            int deleted = await Task.Run(() => AttachmentGc.PurgeQuarantine(store)).ConfigureAwait(true);
+            AttachmentGcStatus.Text = Strings.Format("AttachmentGcPurged", deleted);
+            UpdateAttachmentGcState();
+        }
+        catch (Exception exception)
+        {
+            AttachmentGcStatus.Text = exception.Message;
+            AttachmentPurgeButton.IsEnabled = true;
+        }
+    }
+
+    private static string FormatBytes(long bytes)
+    {
+        if (bytes < 1024)
+        {
+            return $"{bytes} B";
+        }
+
+        double kilobytes = bytes / 1024.0;
+        if (kilobytes < 1024)
+        {
+            return $"{kilobytes:0.#} KB";
+        }
+
+        return $"{kilobytes / 1024.0:0.#} MB";
     }
 }

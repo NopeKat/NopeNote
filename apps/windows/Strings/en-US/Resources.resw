@@ -785,4 +785,46 @@
   <data name="VerboseLogToggle.AutomationProperties.Name" xml:space="preserve">
     <value>Write detailed log entries</value>
   </data>
+  <data name="SettingsAttachmentGcHeader" xml:space="preserve">
+    <value>Unused attachments</value>
+  </data>
+  <data name="SettingsAttachmentGcDescription" xml:space="preserve">
+    <value>Find attachment files that no note, snapshot or template points at.</value>
+  </data>
+  <data name="SettingsAttachmentScanButton" xml:space="preserve">
+    <value>Scan</value>
+  </data>
+  <data name="SettingsAttachmentCleanButton" xml:space="preserve">
+    <value>Move to quarantine</value>
+  </data>
+  <data name="SettingsAttachmentPurgeButton" xml:space="preserve">
+    <value>Empty quarantine</value>
+  </data>
+  <data name="AttachmentGcScanResult" xml:space="preserve">
+    <value>{0} unused attachments, {1} in total.</value>
+  </data>
+  <data name="AttachmentGcNone" xml:space="preserve">
+    <value>No unused attachments were found.</value>
+  </data>
+  <data name="AttachmentGcMoved" xml:space="preserve">
+    <value>Moved {0} attachments to quarantine; {1} can be reclaimed.</value>
+  </data>
+  <data name="AttachmentGcPurged" xml:space="preserve">
+    <value>Quarantine emptied; {0} files were deleted.</value>
+  </data>
+  <data name="AttachmentGcReadOnly" xml:space="preserve">
+    <value>The vault is read-only, so attachments cannot be reclaimed.</value>
+  </data>
+  <data name="AttachmentGcConfirmTitle" xml:space="preserve">
+    <value>Move unused attachments?</value>
+  </data>
+  <data name="AttachmentGcConfirmBody" xml:space="preserve">
+    <value>{0} files ({1}) will be moved to the cache quarantine. They can still be restored from there until the quarantine is emptied.</value>
+  </data>
+  <data name="AttachmentGcPurgeTitle" xml:space="preserve">
+    <value>Empty the quarantine?</value>
+  </data>
+  <data name="AttachmentGcPurgeBody" xml:space="preserve">
+    <value>Every attachment in the cache quarantine is deleted permanently.</value>
+  </data>
 </root>
