@@ -512,40 +512,78 @@
                                 HorizontalScrollMode="Enabled"
                                 VerticalScrollBarVisibility="Disabled">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
+                                <!-- Fluent UI System Icons: text_bold_20_regular. Source: fluentui-system-icons main (official SVG). -->
                                 <Button
                                     x:Name="BoldButton"
-                                    Click="BoldButton_Click"
-                                    Content="B"
-                                    FontWeight="SemiBold" />
+                                    Click="BoldButton_Click">
+                                    <PathIcon
+                                        Width="20"
+                                        Height="20"
+                                        Data="F1 M5.5 4.25C5.5 3.56 6.06 3 6.75 3h3.501c2.403 0 3.999 1.988 3.999 4 0 .872-.3 1.738-.834 2.44.904.703 1.581 1.802 1.581 3.31 0 2.863-2.437 4.245-4.244 4.245H6.75c-.69 0-1.25-.56-1.25-1.25V4.25ZM8 11v3.495h2.753c.811 0 1.744-.618 1.744-1.745 0-1.129-.937-1.75-1.744-1.75H8Zm0-2.5h2.248A1.5 1.5 0 0 0 11.75 7c0-.78-.62-1.5-1.499-1.5H8v3Z" />
+                                </Button>
+                                <!-- Fluent UI System Icons: text_italic_20_regular. Source: fluentui-system-icons main (official SVG). -->
                                 <Button
                                     x:Name="ItalicButton"
-                                    Click="ItalicButton_Click"
-                                    Content="I"
-                                    FontStyle="Italic" />
+                                    Click="ItalicButton_Click">
+                                    <PathIcon
+                                        Width="20"
+                                        Height="20"
+                                        Data="F1 M16 3a.5.5 0 0 1 0 1h-3.157L8.227 16H11.5a.5.5 0 0 1 0 1H4a.5.5 0 0 1 0-1h3.156l4.615-12H8.5a.5.5 0 0 1 0-1H16Z" />
+                                </Button>
+                                <!-- Fluent UI System Icons: text_header_1_20_regular. Source: fluentui-system-icons main (official SVG). -->
                                 <Button
                                     x:Name="HeadingButton"
-                                    Click="HeadingButton_Click"
-                                    Content="H2" />
+                                    Click="HeadingButton_Click">
+                                    <PathIcon
+                                        Width="20"
+                                        Height="20"
+                                        Data="F1 M16.553 4.003a.497.497 0 0 1 .447.506V15.5a.5.5 0 0 1-1 0V6.732a8.576 8.576 0 0 1-2.223 2.184.5.5 0 1 1-.554-.832c1.415-.943 2.517-2.467 2.787-3.682a.5.5 0 0 1 .543-.4ZM2.5 4a.5.5 0 0 1 .5.5V9h6V4.5a.5.5 0 1 1 1 0v11a.5.5 0 0 1-1 0V10H3v5.5a.5.5 0 0 1-1 0v-11a.5.5 0 0 1 .5-.5Z" />
+                                </Button>
+                                <!-- Fluent UI System Icons: text_bullet_list_ltr_20_regular. Source: fluentui-system-icons main (official SVG). -->
                                 <Button
                                     x:Name="BulletButton"
-                                    Click="BulletButton_Click"
-                                    Content="•" />
+                                    Click="BulletButton_Click">
+                                    <PathIcon
+                                        Width="20"
+                                        Height="20"
+                                        Data="F1 M3 6.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm3-1a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5Zm0 5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5Zm.5 4.5a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11Zm-2.5.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm-1-4a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+                                </Button>
+                                <!-- Fluent UI System Icons: checkbox_checked_20_regular. Source: fluentui-system-icons main (official SVG). -->
                                 <Button
                                     x:Name="ChecklistButton"
-                                    Click="ChecklistButton_Click"
-                                    Content="☑" />
+                                    Click="ChecklistButton_Click">
+                                    <PathIcon
+                                        Width="20"
+                                        Height="20"
+                                        Data="F1 M13.854 7.854a.5.5 0 0 0-.708-.708L8.5 11.793l-1.646-1.647a.5.5 0 0 0-.708.708l2 2a.5.5 0 0 0 .708 0l5-5ZM5.682 3A2.682 2.682 0 0 0 3 5.682v8.636C3 15.8 4.2 17 5.682 17h8.636C15.8 17 17 15.8 17 14.318V5.682C17 4.2 15.8 3 14.318 3H5.682ZM4 5.682C4 4.753 4.753 4 5.682 4h8.636C15.247 4 16 4.753 16 5.682v8.636c0 .929-.753 1.682-1.682 1.682H5.682A1.682 1.682 0 0 1 4 14.318V5.682Z" />
+                                </Button>
+                                <!-- Fluent UI System Icons: code_20_regular. Source: fluentui-system-icons main (official SVG). -->
                                 <Button
                                     x:Name="CodeButton"
-                                    Click="CodeButton_Click"
-                                    Content="&lt;/&gt;" />
+                                    Click="CodeButton_Click">
+                                    <PathIcon
+                                        Width="20"
+                                        Height="20"
+                                        Data="F1 M12.967 3.68a.5.5 0 0 0-.934-.36l-5 13a.5.5 0 1 0 .934.36l5-13ZM5.825 6.12a.5.5 0 0 1 .055.706L3.159 10l2.72 3.175a.5.5 0 0 1-.759.65l-3-3.5a.5.5 0 0 1 0-.65l3-3.5a.5.5 0 0 1 .705-.054Zm8.35 8.26a.5.5 0 0 1-.055-.705l2.722-3.175-2.722-3.174a.5.5 0 1 1 .76-.651l3 3.5a.5.5 0 0 1 0 .65l-3 3.5a.5.5 0 0 1-.705.055Z" />
+                                </Button>
+                                <!-- Fluent UI System Icons: table_20_regular. Source: fluentui-system-icons main (official SVG). -->
                                 <Button
                                     x:Name="TableButton"
-                                    Click="TableButton_Click"
-                                    Content="▦" />
+                                    Click="TableButton_Click">
+                                    <PathIcon
+                                        Width="20"
+                                        Height="20"
+                                        Data="F1 M17 5.5A2.5 2.5 0 0 0 14.5 3h-9A2.5 2.5 0 0 0 3 5.5v9A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5v-9Zm-13 9V13h3v3H5.5l-.144-.007A1.5 1.5 0 0 1 4 14.5Zm8-1.5v3H8v-3h4Zm2.5 3H13v-3h3v1.5l-.007.145A1.5 1.5 0 0 1 14.5 16ZM12 8v4H8V8h4Zm1 0h3v4h-3V8Zm-1-4v3H8V4h4Zm1 0h1.5l.145.007A1.5 1.5 0 0 1 16 5.5V7h-3V4ZM7 4v3H4V5.5l.007-.144A1.5 1.5 0 0 1 5.5 4H7Zm0 4v4H4V8h3Z" />
+                                </Button>
+                                <!-- Fluent UI System Icons: link_20_regular. Source: fluentui-system-icons main (official SVG). -->
                                 <Button
                                     x:Name="LinkButton"
-                                    Click="LinkButton_Click"
-                                    Content="[[" />
+                                    Click="LinkButton_Click">
+                                    <PathIcon
+                                        Width="20"
+                                        Height="20"
+                                        Data="F1 M8 6a.5.5 0 0 1 .09.992L8 7H6a3 3 0 0 0-.197 5.994L6 13h2a.5.5 0 0 1 .09.992L8 14H6a4 4 0 0 1-.22-7.994L6 6h2Zm6 0a4 4 0 0 1 .22 7.994L14 14h-2a.5.5 0 0 1-.09-.992L12 13h2a3 3 0 0 0 .197-5.994L14 7h-2a.5.5 0 0 1-.09-.992L12 6h2ZM6 9.5h8a.5.5 0 0 1 .09.992L14 10.5H6a.5.5 0 0 1-.09-.992L6 9.5h8-8Z" />
+                                </Button>
                                 </StackPanel>
                             </ScrollViewer>
 
