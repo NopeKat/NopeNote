@@ -554,6 +554,18 @@
   <data name="TrashEmptyDialogPrimary" xml:space="preserve">
     <value>清空</value>
   </data>
+  <data name="TrashSuccessTitle" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="TrashRestoredMessage" xml:space="preserve">
+    <value>已还原 {0} 条笔记。</value>
+  </data>
+  <data name="TrashPurgedMessage" xml:space="preserve">
+    <value>已永久删除 {0} 条笔记。</value>
+  </data>
+  <data name="TrashEmptiedMessage" xml:space="preserve">
+    <value>回收站已清空。</value>
+  </data>
   <data name="TrashItemDetails" xml:space="preserve">
     <value>删除于 {0} · 更新于 {1}</value>
   </data>

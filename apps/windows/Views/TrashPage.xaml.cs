@@ -39,10 +39,16 @@ public sealed partial class TrashPage : Page
     private IVaultStore? _loadedStore;
     private int _loadedVersion = -1;
     private AppServices _services = null!;
+    private readonly DispatcherTimer _statusTimer = new() { Interval = TimeSpan.FromSeconds(4) };
 
     public TrashPage()
     {
         InitializeComponent();
+        _statusTimer.Tick += (_, _) =>
+        {
+            _statusTimer.Stop();
+            StatusInfoBar.IsOpen = false;
+        };
         Loaded += TrashPage_Loaded;
     }
 
@@ -189,6 +195,10 @@ public sealed partial class TrashPage : Page
                 Strings.Format("TrashBatchRestoreFailedMessage", failed),
                 InfoBarSeverity.Warning);
         }
+        else
+        {
+            ShowSuccess(Strings.Format("TrashRestoredMessage", selected.Length));
+        }
     }
 
     private async void PurgeButton_Click(object sender, RoutedEventArgs e)
@@ -223,6 +233,10 @@ public sealed partial class TrashPage : Page
                 Strings.Format("TrashBatchPurgeFailedMessage", failed),
                 InfoBarSeverity.Warning);
         }
+        else
+        {
+            ShowSuccess(Strings.Format("TrashPurgedMessage", selected.Length));
+        }
     }
 
     private async void EmptyTrashButton_Click(object sender, RoutedEventArgs e)
@@ -256,6 +270,10 @@ public sealed partial class TrashPage : Page
                 Strings.Format("TrashBatchPurgeFailedMessage", failed),
                 InfoBarSeverity.Warning);
         }
+        else
+        {
+            ShowSuccess(Strings.Get("TrashEmptiedMessage"));
+        }
     }
 
     private async Task<int> PurgeAsync(IVaultStore store, IReadOnlyList<TrashItem> items)
@@ -285,9 +303,17 @@ public sealed partial class TrashPage : Page
 
     private void ShowStatus(string title, string message, InfoBarSeverity severity)
     {
+        _statusTimer.Stop();
         StatusInfoBar.Title = title;
         StatusInfoBar.Message = message;
         StatusInfoBar.Severity = severity;
         StatusInfoBar.IsOpen = true;
+    }
+
+    // 成功提示不常驻，几秒后自动收起；出错提示保持可见，等用户处理。
+    private void ShowSuccess(string message)
+    {
+        ShowStatus(Strings.Get("TrashSuccessTitle"), message, InfoBarSeverity.Success);
+        _statusTimer.Start();
     }
 }

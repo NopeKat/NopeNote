@@ -554,6 +554,18 @@
   <data name="TrashEmptyDialogPrimary" xml:space="preserve">
     <value>Empty</value>
   </data>
+  <data name="TrashSuccessTitle" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="TrashRestoredMessage" xml:space="preserve">
+    <value>{0} notes restored.</value>
+  </data>
+  <data name="TrashPurgedMessage" xml:space="preserve">
+    <value>{0} notes deleted permanently.</value>
+  </data>
+  <data name="TrashEmptiedMessage" xml:space="preserve">
+    <value>The trash is emptied.</value>
+  </data>
   <data name="TrashItemDetails" xml:space="preserve">
     <value>Deleted {0} · Updated {1}</value>
   </data>

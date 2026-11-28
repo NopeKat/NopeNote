@@ -52,6 +52,7 @@
             x:Name="StatusInfoBar"
             Grid.Row="1"
             Margin="{StaticResource PageInfoBarMargin}"
+            AutomationProperties.LiveSetting="Polite"
             IsClosable="True"
             IsOpen="False"
             Severity="Warning" />
