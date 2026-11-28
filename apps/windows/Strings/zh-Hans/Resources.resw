@@ -334,6 +334,9 @@
   <data name="NotesStatusSaving" xml:space="preserve">
     <value>正在保存...</value>
   </data>
+  <data name="NotesStatusEdited" xml:space="preserve">
+    <value>已修改</value>
+  </data>
   <data name="NotesSelectPlaceholder" xml:space="preserve">
     <value>选择一条笔记</value>
   </data>
@@ -559,6 +562,30 @@
   </data>
   <data name="NotesSaveTemplateTitle" xml:space="preserve">
     <value>存为模板</value>
+  </data>
+  <data name="NotesToolbarBold" xml:space="preserve">
+    <value>粗体</value>
+  </data>
+  <data name="NotesToolbarItalic" xml:space="preserve">
+    <value>斜体</value>
+  </data>
+  <data name="NotesToolbarHeading" xml:space="preserve">
+    <value>标题</value>
+  </data>
+  <data name="NotesToolbarBulletedList" xml:space="preserve">
+    <value>无序列表</value>
+  </data>
+  <data name="NotesToolbarChecklist" xml:space="preserve">
+    <value>清单</value>
+  </data>
+  <data name="NotesToolbarInlineCode" xml:space="preserve">
+    <value>行内代码</value>
+  </data>
+  <data name="NotesToolbarInsertTable" xml:space="preserve">
+    <value>插入表格</value>
+  </data>
+  <data name="NotesToolbarLinkNote" xml:space="preserve">
+    <value>链接笔记</value>
   </data>
   <data name="NotesBoldPlaceholder" xml:space="preserve">
     <value>粗体文字</value>

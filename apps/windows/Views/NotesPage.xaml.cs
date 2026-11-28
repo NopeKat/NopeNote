@@ -1,4 +1,5 @@
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using NopeNote.Core.Notes;
@@ -52,6 +53,7 @@ public sealed partial class NotesPage : Page
         TagsEditor.PlaceholderText = Strings.Get("NotesTagsPlaceholder");
         PinCheckBox.Content = Strings.Get("NotesPinLabel");
         VaultNoticeDismiss.Content = Strings.Get("VaultDiagnosticsDismiss");
+        ApplyToolbarStrings();
         InitializeFeatures();
         _autoSaveTimer.Interval = TimeSpan.FromSeconds(1.2);
         _autoSaveTimer.Tick += AutoSaveTimer_Tick;
@@ -60,6 +62,25 @@ public sealed partial class NotesPage : Page
         Loaded += NotesPage_Loaded;
         SizeChanged += NotesPage_SizeChanged;
         Unloaded += NotesPage_Unloaded;
+    }
+
+    private void ApplyToolbarStrings()
+    {
+        ApplyToolbarText(BoldButton, "NotesToolbarBold");
+        ApplyToolbarText(ItalicButton, "NotesToolbarItalic");
+        ApplyToolbarText(HeadingButton, "NotesToolbarHeading");
+        ApplyToolbarText(BulletButton, "NotesToolbarBulletedList");
+        ApplyToolbarText(ChecklistButton, "NotesToolbarChecklist");
+        ApplyToolbarText(CodeButton, "NotesToolbarInlineCode");
+        ApplyToolbarText(TableButton, "NotesToolbarInsertTable");
+        ApplyToolbarText(LinkButton, "NotesToolbarLinkNote");
+    }
+
+    private static void ApplyToolbarText(Button button, string resourceKey)
+    {
+        string text = Strings.Get(resourceKey);
+        ToolTipService.SetToolTip(button, text);
+        AutomationProperties.SetName(button, text);
     }
 
     public NotesViewModel ViewModel { get; }
@@ -128,6 +149,12 @@ public sealed partial class NotesPage : Page
         _autoSaveTimer.Start();
         _previewTimer.Stop();
         _previewTimer.Start();
+
+        if (!_isSaving &&
+            SaveStatusTextBlock.Text != Strings.Get("NotesStatusNotSaved"))
+        {
+            SaveStatusTextBlock.Text = Strings.Get("NotesStatusEdited");
+        }
     }
 
     private void PreviewTimer_Tick(object? sender, object e)
@@ -1211,6 +1238,13 @@ public sealed partial class NotesPage : Page
         if (_isSaving)
         {
             SaveStatusTextBlock.Text = Strings.Get("NotesStatusSaving");
+            return;
+        }
+
+        // 保存队列结束时若没有分支写入结果，不能把“正在保存”留在界面上。
+        if (SaveStatusTextBlock.Text == Strings.Get("NotesStatusSaving"))
+        {
+            SaveStatusTextBlock.Text = string.Empty;
         }
     }
 

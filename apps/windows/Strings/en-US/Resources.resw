@@ -334,6 +334,9 @@
   <data name="NotesStatusSaving" xml:space="preserve">
     <value>Saving...</value>
   </data>
+  <data name="NotesStatusEdited" xml:space="preserve">
+    <value>Edited</value>
+  </data>
   <data name="NotesSelectPlaceholder" xml:space="preserve">
     <value>Select a note</value>
   </data>
@@ -559,6 +562,30 @@
   </data>
   <data name="NotesSaveTemplateTitle" xml:space="preserve">
     <value>Save as template</value>
+  </data>
+  <data name="NotesToolbarBold" xml:space="preserve">
+    <value>Bold</value>
+  </data>
+  <data name="NotesToolbarItalic" xml:space="preserve">
+    <value>Italic</value>
+  </data>
+  <data name="NotesToolbarHeading" xml:space="preserve">
+    <value>Heading</value>
+  </data>
+  <data name="NotesToolbarBulletedList" xml:space="preserve">
+    <value>Bulleted list</value>
+  </data>
+  <data name="NotesToolbarChecklist" xml:space="preserve">
+    <value>Checklist</value>
+  </data>
+  <data name="NotesToolbarInlineCode" xml:space="preserve">
+    <value>Inline code</value>
+  </data>
+  <data name="NotesToolbarInsertTable" xml:space="preserve">
+    <value>Insert table</value>
+  </data>
+  <data name="NotesToolbarLinkNote" xml:space="preserve">
+    <value>Link a note</value>
   </data>
   <data name="NotesBoldPlaceholder" xml:space="preserve">
     <value>bold text</value>

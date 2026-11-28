@@ -513,39 +513,39 @@
                                 VerticalScrollBarVisibility="Disabled">
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                 <Button
+                                    x:Name="BoldButton"
                                     Click="BoldButton_Click"
                                     Content="B"
-                                    FontWeight="SemiBold"
-                                    ToolTipService.ToolTip="Bold" />
+                                    FontWeight="SemiBold" />
                                 <Button
+                                    x:Name="ItalicButton"
                                     Click="ItalicButton_Click"
                                     Content="I"
-                                    FontStyle="Italic"
-                                    ToolTipService.ToolTip="Italic" />
+                                    FontStyle="Italic" />
                                 <Button
+                                    x:Name="HeadingButton"
                                     Click="HeadingButton_Click"
-                                    Content="H2"
-                                    ToolTipService.ToolTip="Heading" />
+                                    Content="H2" />
                                 <Button
+                                    x:Name="BulletButton"
                                     Click="BulletButton_Click"
-                                    Content="•"
-                                    ToolTipService.ToolTip="Bulleted list" />
+                                    Content="•" />
                                 <Button
+                                    x:Name="ChecklistButton"
                                     Click="ChecklistButton_Click"
-                                    Content="☑"
-                                    ToolTipService.ToolTip="Checklist" />
+                                    Content="☑" />
                                 <Button
+                                    x:Name="CodeButton"
                                     Click="CodeButton_Click"
-                                    Content="&lt;/&gt;"
-                                    ToolTipService.ToolTip="Inline code" />
+                                    Content="&lt;/&gt;" />
                                 <Button
+                                    x:Name="TableButton"
                                     Click="TableButton_Click"
-                                    Content="▦"
-                                    ToolTipService.ToolTip="Insert table" />
+                                    Content="▦" />
                                 <Button
+                                    x:Name="LinkButton"
                                     Click="LinkButton_Click"
-                                    Content="[["
-                                    ToolTipService.ToolTip="Link a note" />
+                                    Content="[[" />
                                 </StackPanel>
                             </ScrollViewer>
 
