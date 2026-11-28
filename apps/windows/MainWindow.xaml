@@ -97,7 +97,7 @@
             <muxc:NavigationView
                 x:Name="RootNavigation"
                 IsBackButtonVisible="Collapsed"
-                IsPaneToggleButtonVisible="False"
+                IsPaneToggleButtonVisible="True"
                 IsSettingsVisible="False"
                 IsTabStop="False"
                 OpenPaneLength="240"
