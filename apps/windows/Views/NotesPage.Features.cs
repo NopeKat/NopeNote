@@ -50,6 +50,7 @@ public sealed partial class NotesPage
         BatchMoveButton.Content = Strings.Get("NotesBatchMove");
         BatchDeleteButton.Content = Strings.Get("NotesBatchDelete");
         BatchDoneButton.Content = Strings.Get("NotesBatchDone");
+        BatchSelectAllButton.Content = Strings.Get("NotesBatchSelectAll");
         ExportMarkdownItem.Text = Strings.Get("NotesExportMarkdownMenu");
         ExportHtmlItem.Text = Strings.Get("NotesExportHtmlMenu");
         CopyNoteItem.Text = Strings.Get("NotesCopyMenu");
@@ -223,6 +224,22 @@ public sealed partial class NotesPage
         BatchTagButton.IsEnabled = count > 0;
         BatchMoveButton.IsEnabled = count > 0;
         BatchDeleteButton.IsEnabled = count > 0;
+
+        bool allSelected = ViewModel.AllNotes.Count > 0 &&
+            ViewModel.AllNotes.All(note => note.IsSelected);
+        BatchSelectAllButton.Content = Strings.Get(
+            allSelected ? "NotesBatchClearSelection" : "NotesBatchSelectAll");
+    }
+
+    private void BatchSelectAllButton_Click(object sender, RoutedEventArgs e)
+    {
+        bool allSelected = ViewModel.AllNotes.Count > 0 &&
+            ViewModel.AllNotes.All(note => note.IsSelected);
+
+        foreach (Note note in ViewModel.AllNotes)
+        {
+            note.IsSelected = !allSelected;
+        }
     }
 
     private IReadOnlyList<Note> SelectedNotes()
@@ -423,12 +440,14 @@ public sealed partial class NotesPage
             return;
         }
 
+        int deleted = 0;
         foreach (Note note in notes)
         {
             try
             {
                 await note.DeleteAsync(store);
                 ViewModel.Remove(note);
+                deleted++;
             }
             catch (Exception exception)
             {
@@ -450,6 +469,13 @@ public sealed partial class NotesPage
         MarkDataChanged();
         RefreshNotes();
         UpdateBatchCount();
+
+        if (deleted == notes.Count)
+        {
+            ShowSuccess(
+                Strings.Get("NotesBatchDeletedTitle"),
+                Strings.Format("NotesBatchDeletedMessage", deleted));
+        }
         }, ShowOperationError);
     }
 

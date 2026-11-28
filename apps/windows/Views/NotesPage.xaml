@@ -258,6 +258,10 @@
                         VerticalAlignment="Center"
                         Style="{StaticResource CaptionTextBlockStyle}" />
                     <Button
+                        x:Name="BatchSelectAllButton"
+                        Click="BatchSelectAllButton_Click"
+                        Content="Select all" />
+                    <Button
                         x:Name="BatchTagButton"
                         Click="BatchTagButton_Click"
                         Content="Add tag" />

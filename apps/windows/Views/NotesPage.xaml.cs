@@ -43,6 +43,7 @@ public sealed partial class NotesPage : Page
     private string? _conflictPath;
     private readonly DispatcherTimer _autoSaveTimer = new();
     private readonly DispatcherTimer _previewTimer = new();
+    private readonly DispatcherTimer _successTimer = new() { Interval = TimeSpan.FromSeconds(4) };
     private AppServices _services = null!;
 
     public NotesPage()
@@ -61,6 +62,11 @@ public sealed partial class NotesPage : Page
         _autoSaveTimer.Tick += AutoSaveTimer_Tick;
         _previewTimer.Interval = PreviewRefreshDelay;
         _previewTimer.Tick += PreviewTimer_Tick;
+        _successTimer.Tick += (_, _) =>
+        {
+            _successTimer.Stop();
+            ErrorInfoBar.IsOpen = false;
+        };
         Loaded += NotesPage_Loaded;
         SizeChanged += NotesPage_SizeChanged;
         Unloaded += NotesPage_Unloaded;
@@ -1080,6 +1086,7 @@ public sealed partial class NotesPage : Page
         InfoBarSeverity severity = InfoBarSeverity.Error,
         string? conflictPath = null)
     {
+        _successTimer.Stop();
         ErrorInfoBar.Title = title;
         ErrorInfoBar.Message = message;
         ErrorInfoBar.Severity = severity;
@@ -1095,8 +1102,14 @@ public sealed partial class NotesPage : Page
         ErrorInfoBar.IsOpen = true;
     }
 
-    private void ShowConflict(VaultConflictException conflict)
+    // 成功提示复用同一条状态栏，几秒后自动收起；错误提示保持可见。
+    private void ShowSuccess(string title, string message)
     {
+        ShowError(title, message, RetryOperation.None, null, InfoBarSeverity.Success);
+        _successTimer.Start();
+    }
+
+    private void ShowConflict(VaultConflictException conflict)    {
         string path = ConflictNotice.ResolvePath(conflict.ConflictPath, ViewModel.Store.RootPath);
         ShowError(
             Strings.Get("NotesConflictTitle"),
@@ -1109,6 +1122,7 @@ public sealed partial class NotesPage : Page
 
     private void ClearError()
     {
+        _successTimer.Stop();
         ResetErrorState();
 
         if (ErrorInfoBar.IsOpen)

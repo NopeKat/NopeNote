@@ -632,6 +632,18 @@
   <data name="NotesBatchDeleteBody" xml:space="preserve">
     <value>把这 {0} 条笔记移进回收站？</value>
   </data>
+  <data name="NotesBatchSelectAll" xml:space="preserve">
+    <value>全选</value>
+  </data>
+  <data name="NotesBatchClearSelection" xml:space="preserve">
+    <value>清除选择</value>
+  </data>
+  <data name="NotesBatchDeletedTitle" xml:space="preserve">
+    <value>已完成</value>
+  </data>
+  <data name="NotesBatchDeletedMessage" xml:space="preserve">
+    <value>已把这 {0} 条笔记移到回收站。</value>
+  </data>
   <data name="NotesNoTemplates" xml:space="preserve">
     <value>还没有模板，可以在下面保存一个。</value>
   </data>
