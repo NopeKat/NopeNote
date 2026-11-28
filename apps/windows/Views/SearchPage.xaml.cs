@@ -2,6 +2,7 @@ using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Documents;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using NopeNote.Core.Vault;
 using NopeNote.Windows.Helpers;
@@ -10,6 +11,7 @@ using NopeNote.Windows.Services;
 using NopeNote.Windows.ViewModels;
 using System;
 using System.Threading.Tasks;
+using Windows.System;
 
 namespace NopeNote.Windows.Views;
 
@@ -376,7 +378,27 @@ public sealed partial class SearchPage : Page
     {
         if (e.ClickedItem is Note note)
         {
-            Frame.Navigate(typeof(NotesPage), new NotesNavigation(note.Id, _services));
+            OpenNote(note);
         }
+    }
+
+    private void ResultsList_KeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key != VirtualKey.Enter)
+        {
+            return;
+        }
+
+        if (FocusManager.GetFocusedElement(ResultsList.XamlRoot) is ListViewItem item &&
+            item.DataContext is Note note)
+        {
+            e.Handled = true;
+            OpenNote(note);
+        }
+    }
+
+    private void OpenNote(Note note)
+    {
+        Frame.Navigate(typeof(NotesPage), new NotesNavigation(note.Id, _services));
     }
 }

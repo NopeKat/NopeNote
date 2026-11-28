@@ -133,15 +133,21 @@
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <ComboBox
                     x:Name="SearchTagFilter"
+                    x:Uid="SearchTagFilter"
                     MinWidth="130"
+                    AutomationProperties.Name="Tag filter"
                     SelectionChanged="SearchFilter_Changed" />
                 <ComboBox
                     x:Name="SearchFolderFilter"
+                    x:Uid="SearchFolderFilter"
                     MinWidth="130"
+                    AutomationProperties.Name="Folder filter"
                     SelectionChanged="SearchFilter_Changed" />
                 <ComboBox
                     x:Name="SearchDateFilter"
+                    x:Uid="SearchDateFilter"
                     MinWidth="130"
+                    AutomationProperties.Name="Date filter"
                     SelectionChanged="SearchFilter_Changed" />
                 <CheckBox
                     x:Name="SearchTitleOnly"
@@ -189,6 +195,7 @@
                 AutomationProperties.Name="Search results"
                 IsItemClickEnabled="True"
                 ItemClick="ResultsList_ItemClick"
+                KeyDown="ResultsList_KeyDown"
                 ItemContainerTransitions="{x:Null}"
                 ItemTemplate="{StaticResource SearchResultTemplate}"
                 ItemsSource="{x:Bind ViewModel.Notes, Mode=OneWay}"

@@ -116,6 +116,15 @@
   <data name="SearchResultsList.AutomationProperties.Name" xml:space="preserve">
     <value>搜索结果</value>
   </data>
+  <data name="SearchTagFilter.AutomationProperties.Name" xml:space="preserve">
+    <value>标签筛选</value>
+  </data>
+  <data name="SearchFolderFilter.AutomationProperties.Name" xml:space="preserve">
+    <value>文件夹筛选</value>
+  </data>
+  <data name="SearchDateFilter.AutomationProperties.Name" xml:space="preserve">
+    <value>日期筛选</value>
+  </data>
   <data name="SearchErrorBar.Title" xml:space="preserve">
     <value>搜索不可用</value>
   </data>
