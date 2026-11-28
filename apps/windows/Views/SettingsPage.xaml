@@ -69,7 +69,11 @@
                         Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
                         Text="Appearance &amp; language" />
 
-                    <toolkit:SettingsCard x:Name="AppThemeCard">
+                    <toolkit:SettingsCard
+                        x:Name="AppThemeCard"
+                        x:Uid="SettingsThemeCard"
+                        Header="App theme"
+                        Description="Choose light, dark, or follow the system setting.">
                         <toolkit:SettingsCard.HeaderIcon>
                             <!-- Fluent UI System Icons: color_20_regular; ink 15.91 x 15.60 -> 17.50 px long edge, centered on 20; 1 px bands after the 1 px correction. Source: fluentui-system-icons main (official SVG). -->
                             <PathIcon
@@ -90,7 +94,11 @@
                         </ComboBox>
                     </toolkit:SettingsCard>
 
-                                        <toolkit:SettingsCard x:Name="LanguageCard">
+                    <toolkit:SettingsCard
+                        x:Name="LanguageCard"
+                        x:Uid="SettingsLanguageCard"
+                        Header="Language"
+                        Description="Change the interface language. Applies immediately.">
                         <toolkit:SettingsCard.HeaderIcon>
                             <!-- Fluent UI System Icons: local_language_20_regular; ink 16.00 x 16.01 -> 17.50 px long edge, centered on 20; 1 px bands after the 1 px correction. Source: fluentui-system-icons main (official SVG). -->
                             <PathIcon
@@ -111,7 +119,11 @@
                         </ComboBox>
                     </toolkit:SettingsCard>
 
-                    <toolkit:SettingsCard x:Name="LockCard">
+                    <toolkit:SettingsCard
+                        x:Name="LockCard"
+                        x:Uid="SettingsLockCard"
+                        Header="App password"
+                        Description="Require a password before the vault opens.">
                         <toolkit:SettingsCard.HeaderIcon>
                             <!-- Fluent UI System Icons: lock_closed_20_regular; ink 12.00 x 17.00 -> 18.75 px long edge, centered on 20; 1 px bands after the 1 px correction. Source: fluentui-system-icons main (official SVG). -->
                             <PathIcon
@@ -132,7 +144,11 @@
                         AutomationProperties.HeadingLevel="Level3"
                         Style="{StaticResource SettingsSectionHeaderTextBlockStyle}"
                         Text="Data &amp; history" />
-                    <toolkit:SettingsCard x:Name="VaultCard">
+                    <toolkit:SettingsCard
+                        x:Name="VaultCard"
+                        x:Uid="SettingsVaultCard"
+                        Header="Vault folder"
+                        Description="The folder that holds notes, attachments, and history.">
                         <toolkit:SettingsCard.HeaderIcon>
                             <!-- Fluent UI System Icons: folder_20_regular; ink 16.00 x 14.00 -> 17.50 px long edge, centered on 20; 1 px bands after the 1 px correction. Source: fluentui-system-icons main (official SVG). -->
                             <PathIcon
@@ -148,7 +164,11 @@
                             Content="Change folder" />
                     </toolkit:SettingsCard>
 
-                    <toolkit:SettingsCard x:Name="ExportCard">
+                    <toolkit:SettingsCard
+                        x:Name="ExportCard"
+                        x:Uid="SettingsExportCard"
+                        Header="Export backup"
+                        Description="Save a zip copy of the vault to another folder.">
                         <toolkit:SettingsCard.HeaderIcon>
                             <!-- Fluent UI System Icons: save_20_regular; ink 14.00 x 14.00 -> 17.50 px long edge, centered on 20; 1 px bands after the 1 px correction. Source: fluentui-system-icons main (official SVG). -->
                             <PathIcon
@@ -164,7 +184,11 @@
                             Content="Export backup" />
                     </toolkit:SettingsCard>
 
-                    <toolkit:SettingsCard x:Name="AttachmentGcCard">
+                    <toolkit:SettingsCard
+                        x:Name="AttachmentGcCard"
+                        x:Uid="SettingsAttachmentGcCard"
+                        Header="Attachment cleanup"
+                        Description="Find attachments no note refers to, move them to quarantine, or delete them.">
                         <StackPanel Spacing="8">
                             <TextBlock
                                 x:Name="AttachmentGcStatus"
@@ -193,7 +217,11 @@
                         </StackPanel>
                     </toolkit:SettingsCard>
 
-                    <toolkit:SettingsCard x:Name="VersionHistoryCard">
+                    <toolkit:SettingsCard
+                        x:Name="VersionHistoryCard"
+                        x:Uid="SettingsGitCard"
+                        Header="Version history"
+                        Description="Commit each save to git so earlier versions can be restored.">
                         <toolkit:SettingsCard.HeaderIcon>
                             <!-- Fluent UI System Icons: history_20_regular; ink 14.00 x 14.00 -> 17.50 px long edge, centered on 20; 1 px bands after the 1 px correction. Source: fluentui-system-icons main (official SVG). -->
                             <PathIcon

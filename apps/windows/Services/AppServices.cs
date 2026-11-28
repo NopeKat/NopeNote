@@ -22,6 +22,9 @@ public sealed class AppServices
 
     public VaultService Vault { get; }
 
+    /// <summary>State the shell keeps across page rebuilds.</summary>
+    public ShellSession Shell { get; } = new();
+
     public static AppServices CreateDefault()
     {
         SettingsHelper settings = new();

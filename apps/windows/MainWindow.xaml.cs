@@ -104,7 +104,13 @@ public sealed partial class MainWindow : Window
     }
 
     private void NavigateTo(ShellRoute route)
-        => ContentFrame.Navigate(route.PageType, route.ParameterFactory(_services));
+    {
+        object parameter = route.Tag == ShellRoutes.Notes.Tag && _services.Shell.LastNoteId is { } noteId
+            ? new NotesNavigation(noteId, _services)
+            : route.ParameterFactory(_services);
+
+        ContentFrame.Navigate(route.PageType, parameter);
+    }
 
     internal Task<bool> EnsureUnlockedAsync() => _appLock.UnlockAsync(() => RootGrid.XamlRoot);
 

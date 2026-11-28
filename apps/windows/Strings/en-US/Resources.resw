@@ -213,6 +213,48 @@
   <data name="SettingsSectionAppearanceLanguage.Text" xml:space="preserve">
     <value>Appearance &amp; language</value>
   </data>
+  <data name="SettingsThemeCard.Header" xml:space="preserve">
+    <value>App theme</value>
+  </data>
+  <data name="SettingsThemeCard.Description" xml:space="preserve">
+    <value>Choose light, dark, or follow the system setting.</value>
+  </data>
+  <data name="SettingsLanguageCard.Header" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="SettingsLanguageCard.Description" xml:space="preserve">
+    <value>Change the interface language. Applies immediately.</value>
+  </data>
+  <data name="SettingsLockCard.Header" xml:space="preserve">
+    <value>App password</value>
+  </data>
+  <data name="SettingsLockCard.Description" xml:space="preserve">
+    <value>Require a password before the vault opens.</value>
+  </data>
+  <data name="SettingsVaultCard.Header" xml:space="preserve">
+    <value>Vault folder</value>
+  </data>
+  <data name="SettingsVaultCard.Description" xml:space="preserve">
+    <value>The folder that holds notes, attachments, and history.</value>
+  </data>
+  <data name="SettingsExportCard.Header" xml:space="preserve">
+    <value>Export backup</value>
+  </data>
+  <data name="SettingsExportCard.Description" xml:space="preserve">
+    <value>Save a zip copy of the vault to another folder.</value>
+  </data>
+  <data name="SettingsAttachmentGcCard.Header" xml:space="preserve">
+    <value>Attachment cleanup</value>
+  </data>
+  <data name="SettingsAttachmentGcCard.Description" xml:space="preserve">
+    <value>Find attachments no note refers to, move them to quarantine, or delete them.</value>
+  </data>
+  <data name="SettingsGitCard.Header" xml:space="preserve">
+    <value>Version history</value>
+  </data>
+  <data name="SettingsGitCard.Description" xml:space="preserve">
+    <value>Commit each save to git so earlier versions can be restored.</value>
+  </data>
   <data name="SettingsThemeComboBox.AutomationProperties.Name" xml:space="preserve">
     <value>App theme</value>
   </data>

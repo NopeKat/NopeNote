@@ -605,13 +605,21 @@ public sealed partial class NotesPage : Page
         }
 
         _pendingNoteId = null;
-        foreach (Note note in ViewModel.Notes)
+        for (int index = 0; index < ViewModel.Notes.Count; index++)
         {
-            if (note.Id == noteId)
+            Note note = ViewModel.Notes[index];
+            if (note.Id != noteId)
             {
-                SelectNote(note);
-                return;
+                continue;
             }
+
+            SelectNote(note);
+            int noteIndex = index;
+            DispatcherQueue.TryEnqueue(() =>
+                NotesItemsView.StartBringItemIntoView(
+                    noteIndex,
+                    new BringIntoViewOptions { AnimationDesired = false }));
+            return;
         }
     }
 
@@ -1129,6 +1137,7 @@ public sealed partial class NotesPage : Page
         }
 
         SelectedNote = note;
+        _services.Shell.LastNoteId = note.Id;
         NoteEditor.IsEnabled = true;
         ApplyWritableState(_services.Vault.IsWritable);
         NoteDateTextBlock.Text = note.Date.ToString("g");
@@ -1150,6 +1159,10 @@ public sealed partial class NotesPage : Page
             _ = PersistEditorTextAsync();
         }
         SelectedNote = null;
+        if (_services is not null)
+        {
+            _services.Shell.LastNoteId = null;
+        }
         NoteEditor.IsEnabled = false;
         NoteEditor.Text = string.Empty;
         NoteDateTextBlock.Text = Strings.Get("NotesSelectPlaceholder");

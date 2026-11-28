@@ -213,6 +213,48 @@
   <data name="SettingsSectionAppearanceLanguage.Text" xml:space="preserve">
     <value>外观与语言</value>
   </data>
+  <data name="SettingsThemeCard.Header" xml:space="preserve">
+    <value>应用主题</value>
+  </data>
+  <data name="SettingsThemeCard.Description" xml:space="preserve">
+    <value>选择浅色、深色，或跟随系统。</value>
+  </data>
+  <data name="SettingsLanguageCard.Header" xml:space="preserve">
+    <value>界面语言</value>
+  </data>
+  <data name="SettingsLanguageCard.Description" xml:space="preserve">
+    <value>切换界面语言，立即生效。</value>
+  </data>
+  <data name="SettingsLockCard.Header" xml:space="preserve">
+    <value>应用密码</value>
+  </data>
+  <data name="SettingsLockCard.Description" xml:space="preserve">
+    <value>打开仓库前需要输入密码。</value>
+  </data>
+  <data name="SettingsVaultCard.Header" xml:space="preserve">
+    <value>仓库文件夹</value>
+  </data>
+  <data name="SettingsVaultCard.Description" xml:space="preserve">
+    <value>笔记、附件和历史记录所在的文件夹。</value>
+  </data>
+  <data name="SettingsExportCard.Header" xml:space="preserve">
+    <value>导出备份</value>
+  </data>
+  <data name="SettingsExportCard.Description" xml:space="preserve">
+    <value>把仓库打包成 zip 保存到其他位置。</value>
+  </data>
+  <data name="SettingsAttachmentGcCard.Header" xml:space="preserve">
+    <value>附件清理</value>
+  </data>
+  <data name="SettingsAttachmentGcCard.Description" xml:space="preserve">
+    <value>找出没有被笔记引用的附件，移到隔离区或彻底删除。</value>
+  </data>
+  <data name="SettingsGitCard.Header" xml:space="preserve">
+    <value>版本历史</value>
+  </data>
+  <data name="SettingsGitCard.Description" xml:space="preserve">
+    <value>每次保存都提交到 git，便于找回旧版本。</value>
+  </data>
   <data name="SettingsThemeComboBox.AutomationProperties.Name" xml:space="preserve">
     <value>应用主题</value>
   </data>
