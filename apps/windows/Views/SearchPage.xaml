@@ -49,8 +49,9 @@
                     AutomationProperties.AccessibilityView="Raw"
                     DataContextChanged="SearchResultText_DataContextChanged"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{Binding Text}"
-                    TextTrimming="CharacterEllipsis" />
+                    Text="{Binding Excerpt}"
+                    TextTrimming="CharacterEllipsis"
+                    Visibility="{Binding ExcerptVisibility}" />
             </Grid>
         </DataTemplate>
     </Page.Resources>
@@ -181,6 +182,14 @@
                         Content="Retry" />
                 </muxc:InfoBar.ActionButton>
             </muxc:InfoBar>
+
+            <TextBlock
+                x:Name="ProgressTextBlock"
+                Margin="{StaticResource PageInfoBarMargin}"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
         </StackPanel>
 
         <Grid

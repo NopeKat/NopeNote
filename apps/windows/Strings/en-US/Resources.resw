@@ -107,6 +107,9 @@
   <data name="SearchPageNoResults" xml:space="preserve">
     <value>No matching notes.</value>
   </data>
+  <data name="SearchProgressFormat" xml:space="preserve">
+    <value>Reading notes {0} of {1}</value>
+  </data>
   <data name="SearchPageVaultError" xml:space="preserve">
     <value>The vault could not be opened, so search is unavailable.</value>
   </data>

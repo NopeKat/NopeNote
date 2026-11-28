@@ -107,6 +107,9 @@
   <data name="SearchPageNoResults" xml:space="preserve">
     <value>没有找到匹配的笔记。</value>
   </data>
+  <data name="SearchProgressFormat" xml:space="preserve">
+    <value>已读正文 {0} / {1}</value>
+  </data>
   <data name="SearchPageVaultError" xml:space="preserve">
     <value>仓库打开失败，暂时无法搜索。</value>
   </data>

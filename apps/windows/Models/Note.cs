@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using NopeNote.Core.Notes;
@@ -16,12 +17,16 @@ namespace NopeNote.Windows.Models;
 /// </summary>
 public sealed class Note : INotifyPropertyChanged
 {
+    private const int ExcerptLimit = 120;
+
     private string _text = string.Empty;
     private string _savedText = string.Empty;
+    private string _excerpt = string.Empty;
     private DateTimeOffset _updated;
     private string _contentHash = string.Empty;
     private bool _isSelected;
     private bool _bodyLoaded;
+    private NoteSearchIndex? _index;
     private Visibility _selectionVisibility = Visibility.Collapsed;
     private string _folder = string.Empty;
 
@@ -41,13 +46,16 @@ public sealed class Note : INotifyPropertyChanged
         string folder,
         DateTimeOffset updated,
         string contentHash = "",
-        bool bodyLoaded = true)
+        bool bodyLoaded = true,
+        NoteSearchIndex? index = null)
     {
         Id = id;
         _text = text;
         _savedText = text;
+        _excerpt = BuildExcerpt(text);
         _updated = updated;
         _contentHash = contentHash;
+        _index = index;
         DisplayTitle = NoteTitle.Display(title);
         Tags = tags;
         IsPinned = pinned;
@@ -132,12 +140,21 @@ public sealed class Note : INotifyPropertyChanged
             if (_text != value)
             {
                 _text = value;
+                _excerpt = BuildExcerpt(value);
                 DisplayTitle = DeriveTitle(value);
                 OnPropertyChanged();
+                OnPropertyChanged(nameof(Excerpt));
+                OnPropertyChanged(nameof(ExcerptVisibility));
                 OnPropertyChanged(nameof(DisplayTitle));
             }
         }
     }
+
+    /// <summary>One-line preview for the list, collapsed while the body is not loaded.</summary>
+    public string Excerpt => _excerpt;
+
+    public Visibility ExcerptVisibility
+        => _excerpt.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
 
     public DateTime Date => _updated.LocalDateTime;
 
@@ -169,7 +186,8 @@ public sealed class Note : INotifyPropertyChanged
                 summary.Pinned,
                 summary.Folder,
                 summary.Updated,
-                bodyLoaded: false));
+                bodyLoaded: false,
+                index: index));
         }
 
         index.Prune(seen);
@@ -177,7 +195,8 @@ public sealed class Note : INotifyPropertyChanged
         return notes;
     }
 
-    /// <summary>Reads the body once and refreshes the summary fields from the document.</summary>
+    /// <summary>Reads the body once (cache first) and refreshes the summary fields
+    /// from the document when the file was read.</summary>
     public async Task EnsureBodyAsync(IVaultStore store)
     {
         if (_bodyLoaded)
@@ -185,27 +204,79 @@ public sealed class Note : INotifyPropertyChanged
             return;
         }
 
-        NoteDocument? document = await store.ReadNoteAsync(Id);
-        if (document is null)
+        string? cachedBody = _index?.TryGetBody(Id, _updated);
+        string? cachedHash = _index?.TryGetContentHash(Id, _updated);
+        NoteDocument? document = null;
+
+        if (cachedBody is null || cachedHash is null)
         {
-            return;
+            document = await store.ReadNoteAsync(Id);
+            if (document is null)
+            {
+                return;
+            }
+
+            cachedBody = document.Body;
+            cachedHash = document.ContentHash;
+            _index?.Remember(Id, document.Summary.Updated, document.Body, document.ContentHash);
         }
 
-        _text = document.Body;
-        _savedText = document.Body;
-        _contentHash = document.ContentHash;
-        _updated = document.Summary.Updated;
-        DisplayTitle = NoteTitle.Display(document.Summary.Title);
-        Tags = document.Summary.Tags;
-        IsPinned = document.Summary.Pinned;
-        Folder = document.Summary.Folder;
+        _text = cachedBody;
+        _savedText = cachedBody;
+        _excerpt = BuildExcerpt(cachedBody);
+        _contentHash = cachedHash;
+        if (document is not null)
+        {
+            _updated = document.Summary.Updated;
+            DisplayTitle = NoteTitle.Display(document.Summary.Title);
+            Tags = document.Summary.Tags;
+            IsPinned = document.Summary.Pinned;
+            Folder = document.Summary.Folder;
+        }
+
         _bodyLoaded = true;
         OnPropertyChanged(nameof(Text));
+        OnPropertyChanged(nameof(Excerpt));
+        OnPropertyChanged(nameof(ExcerptVisibility));
         OnPropertyChanged(nameof(DisplayTitle));
         OnPropertyChanged(nameof(Date));
         OnPropertyChanged(nameof(TagText));
         OnPropertyChanged(nameof(TagVisibility));
         OnPropertyChanged(nameof(PinVisibility));
+    }
+
+    /// <summary>Collapses markdown line breaks into one line and trims it.</summary>
+    private static string BuildExcerpt(string body)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+        {
+            return string.Empty;
+        }
+
+        var builder = new StringBuilder(ExcerptLimit + 8);
+        foreach (string line in body.Split('\n'))
+        {
+            string trimmed = line.Trim();
+            if (trimmed.Length == 0)
+            {
+                continue;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.Append(' ');
+            }
+
+            builder.Append(trimmed);
+            if (builder.Length >= ExcerptLimit)
+            {
+                break;
+            }
+        }
+
+        return builder.Length <= ExcerptLimit
+            ? builder.ToString()
+            : builder.ToString(0, ExcerptLimit) + "…";
     }
 
     public async Task SaveAsync(IVaultStore store)

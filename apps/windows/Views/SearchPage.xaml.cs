@@ -10,6 +10,7 @@ using NopeNote.Windows.Models;
 using NopeNote.Windows.Services;
 using NopeNote.Windows.ViewModels;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.System;
 
@@ -24,6 +25,7 @@ public sealed partial class SearchPage : Page
     private bool _loadFailed;
     private int _filterVersion;
     private int _loadedVersion = -1;
+    private CancellationTokenSource? _searchCts;
     private AppServices _services = null!;
     private string? _appliedQuery;
     private bool _isUpdatingFilters;
@@ -164,13 +166,29 @@ public sealed partial class SearchPage : Page
         int days = (SearchDateFilter.SelectedItem as ComboBoxItem)?.Tag is int value ? value : 0;
         bool titleOnly = SearchTitleOnly.IsChecked == true;
 
+        // 新输入直接取消上一次搜索，避免旧任务读完全库再覆盖结果。
+        _searchCts?.Cancel();
+        var cts = new CancellationTokenSource();
+        _searchCts = cts;
+
         if (ViewModel.StoreOrNull is not null)
         {
             _isLoading = true;
             UpdateViewState();
             try
             {
-                await ViewModel.EnsureBodiesAsync();
+                await ViewModel.ApplySearchAsync(
+                    SearchInput.Text,
+                    tag,
+                    folder,
+                    days,
+                    titleOnly,
+                    UpdateProgressText,
+                    cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
             }
             catch (Exception exception)
             {
@@ -178,12 +196,31 @@ public sealed partial class SearchPage : Page
             }
             finally
             {
-                _isLoading = false;
+                if (ReferenceEquals(cts, _searchCts))
+                {
+                    _isLoading = false;
+                }
             }
         }
 
-        ViewModel.ApplySearch(SearchInput.Text, tag, folder, days, titleOnly);
+        if (cts.IsCancellationRequested)
+        {
+            return;
+        }
+
+        HideProgressText();
         UpdateViewState();
+    }
+
+    private void UpdateProgressText(int done, int total)
+    {
+        ProgressTextBlock.Text = string.Format(Strings.Get("SearchProgressFormat"), done, total);
+        ProgressTextBlock.Visibility = Visibility.Visible;
+    }
+
+    private void HideProgressText()
+    {
+        ProgressTextBlock.Visibility = Visibility.Collapsed;
     }
 
     private void RefreshFilterChoices()
@@ -255,7 +292,7 @@ public sealed partial class SearchPage : Page
 
     private void SearchFilter_Changed(object sender, SelectionChangedEventArgs e)
     {
-        if (!_isUpdatingFilters && _isReady && !_isLoading)
+        if (!_isUpdatingFilters && _isReady)
         {
             ScheduleApplyFilter();
         }
@@ -263,7 +300,7 @@ public sealed partial class SearchPage : Page
 
     private void SearchTitleOnly_Changed(object sender, RoutedEventArgs e)
     {
-        if (!_isUpdatingFilters && _isReady && !_isLoading)
+        if (!_isUpdatingFilters && _isReady)
         {
             ScheduleApplyFilter();
         }
@@ -313,7 +350,7 @@ public sealed partial class SearchPage : Page
 
     private void SearchInput_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        if (_isReady && !_isLoading)
+        if (_isReady)
         {
             ScheduleApplyFilter();
         }
@@ -325,7 +362,7 @@ public sealed partial class SearchPage : Page
         int version = ++_filterVersion;
         await Task.Delay(FilterDelay);
 
-        if (version != _filterVersion || !_isReady || _isLoading)
+        if (version != _filterVersion || !_isReady)
         {
             return;
         }
@@ -368,7 +405,7 @@ public sealed partial class SearchPage : Page
         int index = 0;
         while (highlighter.Ranges.Count < 30)
         {
-            int match = note.Text.IndexOf(query, index, StringComparison.OrdinalIgnoreCase);
+            int match = note.Excerpt.IndexOf(query, index, StringComparison.OrdinalIgnoreCase);
             if (match < 0)
             {
                 break;

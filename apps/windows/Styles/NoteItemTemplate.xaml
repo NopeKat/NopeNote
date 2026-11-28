@@ -63,8 +63,9 @@
                     MaxLines="2"
                     AutomationProperties.AccessibilityView="Raw"
                     Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{Binding Text}"
-                    TextTrimming="CharacterEllipsis" />
+                    Text="{Binding Excerpt}"
+                    TextTrimming="CharacterEllipsis"
+                    Visibility="{Binding ExcerptVisibility}" />
             </Grid>
         </ItemContainer>
     </DataTemplate>
@@ -128,8 +129,9 @@
                 MaxLines="2"
                 AutomationProperties.AccessibilityView="Raw"
                 Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{Binding Text}"
-                TextTrimming="CharacterEllipsis" />
+                Text="{Binding Excerpt}"
+                TextTrimming="CharacterEllipsis"
+                Visibility="{Binding ExcerptVisibility}" />
         </Grid>
     </DataTemplate>
 </ResourceDictionary>

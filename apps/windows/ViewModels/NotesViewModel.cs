@@ -136,18 +136,6 @@ public sealed class NotesViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>Reads every body the list still holds as a summary only. Callers
-    /// that need to search the text (the search page) await this first.</summary>
-    public async Task EnsureBodiesAsync(CancellationToken cancellationToken = default)
-    {
-        IVaultStore store = Store;
-        foreach (Note note in _allNotes)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            await note.EnsureBodyAsync(store);
-        }
-    }
-
     public void ApplyFilter(string query)
     {
         Apply(new NoteQuery
@@ -175,6 +163,133 @@ public sealed class NotesViewModel : INotifyPropertyChanged
             TitleOnly = titleOnly,
             UseSyntax = true,
         });
+    }
+
+    /// <summary>Two-stage search: summary fields cut the candidates first, then
+    /// only the rest have their bodies read before the final match.</summary>
+    public async Task ApplySearchAsync(
+        string query,
+        string? tag,
+        string? folder,
+        int days,
+        bool titleOnly,
+        Action<int, int>? onProgress,
+        CancellationToken cancellationToken)
+    {
+        var noteQuery = new NoteQuery
+        {
+            Text = query,
+            Tag = string.IsNullOrWhiteSpace(tag) ? null : tag,
+            Folder = string.IsNullOrWhiteSpace(folder) ? null : folder,
+            Days = days,
+            TitleOnly = titleOnly,
+            UseSyntax = true,
+        };
+
+        var candidates = new List<Note>(_allNotes.Count);
+        foreach (Note note in _allNotes)
+        {
+            if (MatchesSummary(note, noteQuery))
+            {
+                candidates.Add(note);
+            }
+        }
+
+        if (NeedsBody(noteQuery) && candidates.Count > 0)
+        {
+            int done = 0;
+            foreach (Note note in candidates)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await note.EnsureBodyAsync(Store);
+                done++;
+                if (done % ProgressStep == 0)
+                {
+                    onProgress?.Invoke(done, candidates.Count);
+                }
+            }
+
+            onProgress?.Invoke(done, candidates.Count);
+        }
+
+        Apply(noteQuery);
+    }
+
+    private const int ProgressStep = 64;
+
+    /// <summary>Only a non-empty keyword outside title-only mode needs the body.</summary>
+    private static bool NeedsBody(NoteQuery query)
+        => !string.IsNullOrWhiteSpace(query.Text) && !query.TitleOnly;
+
+    /// <summary>Matches on fields the summary already carries. Tokens that could
+    /// still hit the body are kept as candidates.</summary>
+    private static bool MatchesSummary(Note note, NoteQuery query)
+    {
+        if (query.Tag is not null && !HasTag(note, query.Tag))
+        {
+            return false;
+        }
+
+        if (query.Folder is not null && !IsInFolder(note, query.Folder))
+        {
+            return false;
+        }
+
+        if (query.Days > 0 && note.Date < DateTime.Now.AddDays(-query.Days))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(query.Text) || !query.UseSyntax)
+        {
+            return true;
+        }
+
+        foreach (string token in query.Text.Split(
+                     ' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (token.StartsWith("tag:", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!HasTag(note, token[4..]))
+                {
+                    return false;
+                }
+
+                continue;
+            }
+
+            if (token.StartsWith("folder:", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!IsInFolder(note, token[7..]))
+                {
+                    return false;
+                }
+
+                continue;
+            }
+
+            // Outside title-only mode any token may still hit the body or tags,
+            // so only title-only searches can be rejected from the summary.
+            if (!query.TitleOnly)
+            {
+                continue;
+            }
+
+            string term = token.StartsWith("title:", StringComparison.OrdinalIgnoreCase)
+                ? token[6..]
+                : token;
+            if (term.Length == 0)
+            {
+                continue;
+            }
+
+            if (note.DisplayTitle.IndexOf(term, StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>唯一的求值入口：两个页面都走这里，只是传不同的条件。</summary>
